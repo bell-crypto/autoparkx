@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Parking | ลืมรหัสผ่าน</title>
+
+  <style>
+    *, *::before, *::after{box-sizing:border-box;}
+    html, body{margin:0;padding:0;overflow-x:hidden;}
+
+    :root{
+      --bg:#edf0f7;--bg2:#f7f8fc;--card:#fffffffb;
+      --card-border:rgba(15,23,42,.06);
+      --text:#0f172a;--muted:#6b7280;--primary:#2563eb;
+      --shadow:0 10px 26px rgba(15,23,42,.12);
+    }
+
+    body{
+      font-family:-apple-system,Segoe UI,Roboto,sans-serif;
+      min-height:100svh;padding:16px;
+      display:flex;align-items:center;justify-content:center;
+      background:
+        radial-gradient(900px 600px at 10% 0%, #93c5fd2a, transparent 60%),
+        radial-gradient(800px 500px at 90% 0%, #a5f3fc26, transparent 60%),
+        linear-gradient(145deg,var(--bg),var(--bg2));
+      background-attachment:fixed;
+    }
+
+    .card{
+      width:100%;max-width:420px;
+      background:var(--card);border:1px solid var(--card-border);
+      border-radius:18px;padding:24px 22px 20px;
+      box-shadow:var(--shadow);backdrop-filter:blur(12px) saturate(120%);
+      display:flex;flex-direction:column;text-align:center;gap:10px;
+      opacity:0;transform:translateY(12px) scale(.97);
+      animation:fadeIn .45s cubic-bezier(.25,.8,.3,1) forwards;
+    }
+    @keyframes fadeIn{to{opacity:1;transform:translateY(0) scale(1);}}
+
+    /* --- LOGO --- */
+    .logo-row{
+      display:flex;justify-content:center;align-items:center;
+      gap:10px;margin-bottom:4px;
+    }
+    .logo-circle{
+      width:36px;height:36px;border-radius:50%;
+      background:#2563eb;color:#fff;font-weight:800;
+      display:flex;align-items:center;justify-content:center;
+      font-size:18px;box-shadow:0 8px 16px rgba(37,99,235,.45);
+    }
+    .logo-text{
+      font-size:21px;font-weight:800;color:var(--text);
+    }
+
+    .subtitle{font-size:13px;color:var(--muted);line-height:1.5;margin-top:-4px;}
+
+    form{margin-top:14px;text-align:left;display:flex;flex-direction:column;}
+    label{font-size:14px;font-weight:600;margin-bottom:6px;color:var(--text);}
+    input{
+      padding:12px;border-radius:12px;border:1px solid #cfd2d8;
+      font-size:14px;background:#f9fafb;margin-bottom:14px;
+    }
+    input:focus{border-color:var(--primary);background:white;}
+
+    .btn{
+      padding:12px;border:none;border-radius:12px;
+      background:linear-gradient(135deg,#2563eb,#1d4ed8);
+      color:#fff;font-weight:700;font-size:15px;
+      cursor:pointer;transition:.18s;box-shadow:0 6px 16px rgba(37,99,235,.35);
+    }
+    .btn:hover{filter:brightness(1.03);}
+    .btn:active{transform:scale(.97);}
+
+    .msg{display:none;margin-bottom:10px;padding:9px;border-radius:10px;font-size:13px;}
+    .msg.ok{background:#e7f7ec;border:1px solid #b4e1c2;color:#15803d;}
+    .msg.err{background:#fde2e2;border:1px solid #f3b4b4;color:#b91c1c;}
+
+    .hint{font-size:12px;color:var(--muted);margin-top:6px;}
+    .hint a{color:var(--primary);font-weight:600;text-decoration:none;}
+    .footer{font-size:11px;color:var(--muted);margin-top:10px;}
+  </style>
+</head>
+
+<body>
+  <div class="card">
+
+    <!-- 🔥 โลโก้ P แบบเดียวกับ Login -->
+    <div class="logo-row">
+      <div class="logo-circle">P</div>
+      <div class="logo-text">AutoParkX</div>
+    </div>
+
+    <div class="subtitle">ลืมรหัสผ่าน</div>
+    <div class="subtitle">กรอกอีเมลเพื่อรับลิงก์ตั้งรหัสผ่านใหม่</div>
+
+    <form id="formForgot">
+      <div class="msg err" id="fgErr"></div>
+      <div class="msg ok"  id="fgOk"></div>
+
+      <label for="fgEmail">อีเมล</label>
+      <input id="fgEmail" type="email" placeholder="you@example.com" required>
+
+      <button class="btn" type="submit">ส่งคำขอรีเซ็ตรหัสผ่าน</button>
+    </form>
+
+    <div class="hint">
+      จำรหัสผ่านได้แล้ว? <a href="login.html">เข้าสู่ระบบ</a>
+    </div>
+
+    <div class="footer">© 2026 Parking</div>
+  </div>
+
+<script>
+const API=`${location.origin}/api`;
+const $=s=>document.querySelector(s);
+const setMsg=(el,t)=>{el.textContent=t||'';el.style.display=t?'block':'none'}
+
+$('#formForgot').onsubmit=async e=>{
+  e.preventDefault();
+  let email=$('#fgEmail').value.trim();
+  setMsg(fgErr,'');setMsg(fgOk,'');
+
+  if(!email) return setMsg(fgErr,'กรุณากรอกอีเมล');
+
+  setMsg(fgOk,'หากอีเมลอยู่ในระบบ ระบบได้ส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ให้แล้ว');
+}
+</script>
+</body>
+</html>

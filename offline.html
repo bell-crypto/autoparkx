@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>AutoParkX • ออฟไลน์</title>
+
+  <style>
+    :root{
+      --bg:#f5f6f8; --card:#ffffff; --text:#0b1220; 
+      --muted:#6b7280; --tint:#0a84ff;
+      --radius:18px; --shadow:0 12px 32px rgba(0,0,0,.08);
+      --safe-top:env(safe-area-inset-top); 
+      --safe-btm:env(safe-area-inset-bottom);
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0b0f14; --card:#11161c; --text:#e5e7eb; --muted:#9aa4af;
+        --shadow:0 16px 40px rgba(0,0,0,.6);
+      }
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      margin:0; padding:0;
+      background:var(--bg);
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,"Noto Sans Thai","Sarabun",sans-serif;
+      height:100%;
+    }
+
+    .app{
+      min-height:100%;
+      padding:calc(40px + var(--safe-top)) 20px calc(40px + var(--safe-btm));
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:24px;
+      max-width:380px;
+      width:100%;
+      text-align:center;
+      border:1px solid rgba(0,0,0,.04);
+    }
+
+    .emoji{
+      font-size:62px;
+      margin-bottom:6px;
+    }
+    h1{
+      margin:0 0 4px;
+      font-size:22px;
+      font-weight:800;
+      color:var(--text);
+    }
+    p{
+      margin:0 0 18px;
+      font-size:14px;
+      color:var(--muted);
+    }
+    .btn{
+      display:inline-block;
+      padding:12px 18px;
+      border-radius:14px;
+      background:var(--tint);
+      color:white;
+      font-weight:800;
+      text-decoration:none;
+      font-size:14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="card">
+      <div class="emoji">📡</div>
+      <h1>คุณออฟไลน์อยู่</h1>
+      <p>ไม่สามารถเชื่อมต่อกับอินเทอร์เน็ตได้<br>โปรดลองใหม่อีกครั้งเมื่อเชื่อมต่อแล้ว</p>
+      <a class="btn" href="index.html">ลองใหม่อีกครั้ง</a>
+    </div>
+  </div>
+</body>
+</html>

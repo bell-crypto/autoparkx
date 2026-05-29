@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking • ข้อกำหนดการใช้งาน</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e9edf2;
+                --muted: #9aa4af;
+                --sep: #1b2430;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .5);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            overscroll-behavior: none;
+        }
+
+        .app {
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav {
+            flex: 0 0 auto;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-bottom: 1px solid var(--sep);
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .back-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: var(--text);
+        }
+
+        .back-btn:active {
+            transform: scale(.94);
+        }
+
+        .nav-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-spacer {
+            width: 32px;
+        }
+
+        .page {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            max-width: 980px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 14px 14px 10px;
+            display: flex;
+        }
+
+        .content-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: calc(90px + var(--safe-btm));
+        }
+
+        .content-scroll::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--sep);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 18px 16px 18px;
+        }
+
+        .title {
+            margin: 0 0 6px;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .updated {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 0 0 10px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 14px 0 4px;
+        }
+
+        p {
+            margin: 4px 0 6px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        ul {
+            margin: 4px 0 8px 18px;
+            padding: 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        li+li {
+            margin-top: 2px;
+        }
+
+        .app-name {
+            color: var(--tint);
+            font-weight: 600;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        a {
+            color: var(--tint);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--sep);
+            margin: 10px 0 12px;
+        }
+
+        .tabbar {
+            flex: 0 0 auto;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint)10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="nav">
+            <div class="row">
+                <button class="back-btn" type="button"
+                    onclick="history.length>1 ? history.back() : location.href='account.html'">
+                    ‹
+                </button>
+                <div class="nav-title">ข้อกำหนดการใช้งาน</div>
+                <div class="nav-spacer"></div>
+            </div>
+        </div>
+
+        <main class="page">
+            <div class="content-scroll" id="contentScroll">
+                <section class="card">
+                    <h3 class="title">ข้อกำหนดการใช้งาน (Terms of Service)</h3>
+                    <p class="updated">ปรับปรุงล่าสุด: 5 ก.พ. 2569</p>
+
+                    <p>
+                        ข้อกำหนดนี้ใช้กับการใช้งานระบบจองที่จอดรถ <span class="app-name">AutoParkX</span>
+                        หากคุณสมัครสมาชิก เข้าสู่ระบบ หรือใช้งานระบบ ถือว่าคุณยอมรับเงื่อนไขทั้งหมดด้านล่างนี้
+                    </p>
+
+                    <div class="divider"></div>
+
+                    <h2 class="section-title">1. การยอมรับเงื่อนไข</h2>
+                    <p>เมื่อสมัครสมาชิก เข้าสู่ระบบ หรือใช้งาน AutoParkX ไม่ว่าผ่านเว็บหรือมือถือ ถือว่าคุณยอมรับข้อกำหนดนี้แล้ว</p>
+
+                    <h2 class="section-title">2. บัญชีผู้ใช้</h2>
+                    <ul>
+                        <li>กรุณาใช้ข้อมูลจริงและเป็นปัจจุบันในการสมัคร</li>
+                        <li>คุณต้องเก็บอีเมลและรหัสผ่านไว้เป็นความลับ และรับผิดชอบการใช้งานที่เกิดขึ้นในบัญชีของคุณเอง</li>
+                        <li>หากพบการเข้าถึงที่ผิดปกติ ให้แจ้งแอดมินผ่านเมนู “แจ้งปัญหา / ติดต่อแอดมิน” ทันที</li>
+                    </ul>
+
+                    <h2 class="section-title">3. การจองที่จอดรถ</h2>
+                    <ul>
+                        <li>คุณสามารถจองที่จอดตามช่องและช่วงเวลาที่ระบบแสดง</li>
+                        <li>รายละเอียดการจองจะแสดงในหน้าประวัติการจอง เพื่อให้คุณตรวจสอบย้อนหลังได้</li>
+                        <li>หากไม่มาใช้สิทธิ์ตามเวลาที่กำหนด ระบบอาจยกเลิกหรือเปลี่ยนสถานะการจองโดยอัตโนมัติ ตามที่ผู้ดูแลกำหนด</li>
+                    </ul>
+
+                    <h2 class="section-title">4. วอลเล็ต ค่าบริการ และการชำระเงิน</h2>
+                    <ul>
+                        <li>หากมีการคิดค่าบริการ ระบบจะแสดงข้อมูลโดยประมาณก่อนยืนยันทุกครั้ง</li>
+                        <li>ระบบอาจมีฟีเจอร์วอลเล็ตเพื่อใช้ชำระค่าจอง เติมเงิน หรือรับคืนเงินตามเงื่อนไขที่ระบบกำหนด</li>
+                        <li>อัตราค่าบริการ เงื่อนไขวอลเล็ต และรายละเอียดการชำระเงิน อาจเปลี่ยนแปลงได้ ขึ้นอยู่กับผู้ดูแลระบบหรือผู้ให้บริการที่จอดรถ</li>
+                    </ul>
+
+                    <h2 class="section-title">5. การยกเลิกและการคืนเงิน (ถ้ามี)</h2>
+                    <ul>
+                        <li>เงื่อนไขการยกเลิก/คืนเงินอาจแตกต่างตามพื้นที่จอดและนโยบายของผู้ดูแลระบบ</li>
+                        <li>หากระบบรองรับการคืนเงิน อาจคืนเข้าวอลเล็ตหรือช่องทางที่กำหนด โดยใช้เวลาในการประมวลผลตามระบบ</li>
+                        <li>กรณีมีข้อโต้แย้งเกี่ยวกับรายการชำระเงิน กรุณาติดต่อแอดมินผ่านหน้า “แจ้งปัญหา / ติดต่อแอดมิน” พร้อมหลักฐานที่เกี่ยวข้อง</li>
+                    </ul>
+
+                    <h2 class="section-title">6. พฤติกรรมที่ห้ามทำ</h2>
+                    <ul>
+                        <li>ห้ามใช้ระบบเพื่อการหลอกลวง ผิดกฎหมาย หรือรบกวนการใช้งานของผู้อื่น</li>
+                        <li>ห้ามพยายามเจาะระบบ แฮก ดัดแปลง หรือรันสคริปต์ที่เสี่ยงทำให้ระบบล่ม</li>
+                        <li>ผู้ดูแลมีสิทธิ์ระงับการใช้งานหรือปิดบัญชีที่ฝ่าฝืนโดยไม่ต้องแจ้งให้ทราบล่วงหน้า</li>
+                    </ul>
+
+                    <h2 class="section-title">7. การแจ้งเตือนผ่าน LINE (ถ้ามี)</h2>
+                    <ul>
+                        <li>ระบบอาจรองรับการเชื่อมบัญชีกับ LINE เพื่อส่งแจ้งเตือนเกี่ยวกับการจอง การยกเลิก หรือรายการวอลเล็ต</li>
+                        <li>การเชื่อม LINE เป็นทางเลือก ผู้ใช้สามารถเลือกเชื่อมหรือยกเลิกการเชื่อมได้ตามขั้นตอนที่ระบบกำหนด</li>
+                    </ul>
+
+                    <h2 class="section-title">8. ข้อจำกัดความรับผิดชอบ</h2>
+                    <ul>
+                        <li><span class="app-name">AutoParkX</span> เป็นเครื่องมือช่วยบริหารจัดการข้อมูลการจองเท่านั้น</li>
+                        <li>ผู้พัฒนาไม่รับผิดชอบต่อความเสียหาย การสูญหาย หรืออุบัติเหตุที่เกิดกับรถหรือทรัพย์สินในพื้นที่จอดจริง</li>
+                        <li>ระบบอาจหยุดให้บริการชั่วคราวเพื่อบำรุงรักษาหรืออัปเกรด โดยอาจไม่สามารถแจ้งล่วงหน้าได้ทุกครั้ง</li>
+                    </ul>
+
+                    <h2 class="section-title">9. ข้อมูลส่วนบุคคล</h2>
+                    <p>
+                        ระบบอาจเก็บข้อมูลที่จำเป็น เช่น ชื่อ อีเมล ประวัติการจอง และรายการธุรกรรมวอลเล็ต (ถ้ามี)
+                        รายละเอียดเพิ่มเติมจะแสดงในหน้า <a href="privacy.html">นโยบายความเป็นส่วนตัว</a>
+                    </p>
+
+                    <h2 class="section-title">10. การแก้ไขข้อกำหนด</h2>
+                    <p>
+                        ข้อกำหนดนี้อาจมีการปรับปรุงเป็นระยะ หากมีการเปลี่ยนแปลงสำคัญ
+                        ผู้พัฒนาจะพยายามแจ้งเตือนผ่านหน้าเว็บหรือช่องทางอื่นที่เหมาะสม
+                    </p>
+
+                    <h2 class="section-title">11. การติดต่อ</h2>
+                    <p>
+                        หากมีคำถามหรือพบปัญหาเกี่ยวกับการใช้งาน
+                        คุณสามารถติดต่อแอดมินผ่านหน้า <a href="support.html">แจ้งปัญหา / ติดต่อแอดมิน</a> ภายในระบบ
+                    </p>
+
+                    <p class="muted">
+                        * เอกสารนี้เป็นฉบับย่อสำหรับโปรเจกต์ AutoParkX
+                        หากจะใช้เชิงพาณิชย์จริง ควรให้ผู้เชี่ยวชาญด้านกฎหมายตรวจสอบอีกครั้ง
+                    </p>
+                </section>
+            </div>
+        </main>
+
+        <nav class="tabbar">
+            <div class="tabs">
+                <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+                <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+                <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+                <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+            </div>
+        </nav>
+    </div>
+</body>
+
+</html>

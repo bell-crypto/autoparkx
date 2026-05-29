@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking • กระเป๋าเงิน</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+            --vh: 100dvh;
+            --nav-h: 0px;
+            --tab-h: 0px;
+            --danger: #dc2626;
+            --danger-bg: rgba(220, 38, 38, .06);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e9edf2;
+                --muted: #9aa4af;
+                --sep: #1b2430;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .5);
+                --danger: #f87171;
+                --danger-bg: rgba(248, 113, 113, .08);
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            overflow: hidden;
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-bottom: 1px solid var(--sep);
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .back-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .back-btn:active {
+            transform: scale(.94);
+        }
+
+        .nav-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-spacer {
+            width: 32px;
+        }
+
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 14px 14px calc(90px + var(--safe-btm));
+            height: calc(var(--vh) - var(--nav-h) - var(--tab-h));
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+
+            /* ซ่อน scrollbar แต่ยังเลื่อนได้ */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .page::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        .stack {
+            display: grid;
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--sep);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+
+        .title {
+            margin: 0 0 8px;
+            font-weight: 900;
+        }
+
+        .wallet-label {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .wallet-balance {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: .02em;
+        }
+
+        .wallet-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            background: color-mix(in oklab, var(--tint)12%, transparent);
+            color: #0f172a;
+            margin-top: 6px;
+        }
+
+        .wallet-note {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 10px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 800;
+            margin: 0 0 8px;
+        }
+
+        .topup-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)94%, transparent);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .chip:hover {
+            background: color-mix(in oklab, var(--tint)4%, var(--card));
+        }
+
+        .field-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0;
+        }
+
+        .field {
+            flex: 1;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            padding: 10px 12px;
+            font-size: 14px;
+            outline: none;
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            color: var(--text);
+            transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+        }
+
+        .field:focus {
+            border-color: var(--tint);
+            box-shadow: 0 0 0 1px color-mix(in oklab, var(--tint)35%, transparent);
+        }
+
+        .field.is-error {
+            border-color: var(--danger) !important;
+            box-shadow: 0 0 0 1px color-mix(in oklab, var(--danger)35%, transparent);
+            background: color-mix(in oklab, var(--danger-bg) 60%, var(--card));
+        }
+
+        .topup-help {
+            margin-top: 6px;
+            min-height: 18px;
+            font-size: 12px;
+            line-height: 1.35;
+            color: var(--muted);
+            transition: color .15s ease;
+        }
+
+        .topup-help.error {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .btn {
+            width: 100%;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0a84ff, #2563eb);
+            box-shadow: 0 10px 24px rgba(37, 99, 235, .35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .btn[disabled] {
+            opacity: .55;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .tabbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint)10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav">
+        <div class="row">
+            <button class="back-btn" type="button" onclick="location.href='account.html'">‹</button>
+            <div class="nav-title">กระเป๋าเงิน</div>
+            <div class="nav-spacer"></div>
+        </div>
+    </div>
+
+    <main class="page">
+        <div class="stack">
+            <section class="card">
+                <h3 class="title">กระเป๋าเงิน (e-Wallet)</h3>
+                <div class="wallet-label">ยอดคงเหลือของคุณตอนนี้</div>
+                <div id="walletBalance" class="wallet-balance">– ฿</div>
+                <div class="wallet-badge">💳 ใช้ชำระค่าจองที่จอดอัตโนมัติ</div>
+                <p class="wallet-note">
+                    ระบบจะหักเงินจากกระเป๋าเงินทันทีเมื่อคุณยืนยันการจอง
+                    และคืนเงินตามเงื่อนไขเมื่อยกเลิกภายในเวลาที่กำหนด
+                </p>
+            </section>
+
+            <section class="card">
+                <h3 class="section-title">เติมเงินเข้ากระเป๋า</h3>
+
+                <div class="topup-chips">
+                    <button class="chip" type="button" data-amount="50">+ 50 ฿</button>
+                    <button class="chip" type="button" data-amount="100">+ 100 ฿</button>
+                    <button class="chip" type="button" data-amount="200">+ 200 ฿</button>
+                    <button class="chip" type="button" data-amount="300">+ 300 ฿</button>
+                </div>
+
+                <form id="topupForm" novalidate>
+                    <div class="field-row">
+                        <input id="topupAmount" class="field" type="text" inputmode="numeric" autocomplete="off"
+                            placeholder="กรอกจำนวนเงินที่ต้องการเติม (บาท)">
+                    </div>
+
+                    <div id="topupHelp" class="topup-help">เติมเงินรวมได้ไม่เกิน 10,000 บาท/วัน</div>
+
+                    <button class="btn" id="topupBtn" type="submit">
+                        เติมเงินเข้ากระเป๋า
+                    </button>
+                </form>
+
+                <p class="hint">
+                    * โหมดเดโม: การเติมเงินเป็นการจำลองยอดเงินภายในระบบ AutoParkX เท่านั้น
+                    <a href="wallet_history.html" style="font-size:12px;color:#0a84ff;text-decoration:none;">
+                        ดูประวัติธุรกรรมวอลเล็ตทั้งหมด ›
+                    </a>
+                </p>
+            </section>
+
+            <section class="card">
+                <h3 class="section-title">การใช้งานกระเป๋าเงิน</h3>
+                <ul style="margin:0;padding-left:18px;font-size:12px;color:var(--muted);line-height:1.5;">
+                    <li>กรุณาเติมเงินให้เพียงพอก่อนกดยืนยันการจองที่จอด</li>
+                    <li>หากยอดเงินไม่เพียงพอ ระบบจะแจ้งเตือนและไม่สร้างการจองให้</li>
+                    <li>การคืนเงินจากการยกเลิกจะแสดงในยอดคงเหลือโดยอัตโนมัติ</li>
+                    <li>จำกัดการเติมเงินรวมไม่เกิน 10,000 บาทต่อวัน</li>
+                </ul>
+            </section>
+        </div>
+    </main>
+
+    <nav class="tabbar">
+        <div class="tabs">
+            <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+            <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+            <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+            <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+        </div>
+    </nav>
+
+    <script>
+        const ROOT = '';
+        const API_BASE = `${location.origin}${ROOT}/api`;
+        const $ = s => document.querySelector(s);
+
+        const DAILY_TOPUP_LIMIT = 10000;
+
+        let me = {};
+        try { me = JSON.parse(localStorage.getItem('parking_user') || '{}'); } catch { }
+
+        if (!me?.id) {
+            sessionStorage.setItem('after_login', 'wallet.html');
+            location.href = 'login.html';
+        }
+
+        function lockViewportScrollArea() {
+            const nav = document.querySelector('.nav');
+            const tab = document.querySelector('.tabbar');
+            const navH = nav ? Math.round(nav.getBoundingClientRect().height) : 0;
+            const tabH = tab ? Math.round(tab.getBoundingClientRect().height) : 0;
+            document.documentElement.style.setProperty('--nav-h', navH + 'px');
+            document.documentElement.style.setProperty('--tab-h', tabH + 'px');
+            document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
+        }
+
+        function formatBahtNumber(n) {
+            return Number(n || 0).toLocaleString('th-TH');
+        }
+
+        function digitsOnly(str) {
+            return String(str || '').replace(/\D/g, '');
+        }
+
+        function getTopupAmountNumber() {
+            const raw = digitsOnly($('#topupAmount').value);
+            return parseInt(raw || '0', 10);
+        }
+
+        function setTopupInputFormatted(value) {
+            const inp = $('#topupAmount');
+            const num = parseInt(digitsOnly(value) || '0', 10);
+            inp.value = num > 0 ? formatBahtNumber(num) : '';
+            clearTopupError();
+        }
+
+        function getTodayKey() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `wallet_topup_daily_${me.id}_${y}-${m}-${day}`;
+        }
+
+        function getTodayTopupTotalLocal() {
+            return Number(localStorage.getItem(getTodayKey()) || '0');
+        }
+
+        function addTodayTopupTotalLocal(amount) {
+            const cur = getTodayTopupTotalLocal();
+            localStorage.setItem(getTodayKey(), String(cur + Number(amount || 0)));
+        }
+
+        function getTodayRemaining() {
+            const remaining = DAILY_TOPUP_LIMIT - getTodayTopupTotalLocal();
+            return Math.max(0, remaining);
+        }
+
+        function defaultTopupHelpText() {
+            const used = getTodayTopupTotalLocal();
+            const remaining = getTodayRemaining();
+            return `วันนี้เติมไปแล้ว ${formatBahtNumber(used)} / ${formatBahtNumber(DAILY_TOPUP_LIMIT)} บาท • คงเหลือเติมได้อีก ${formatBahtNumber(remaining)} บาท`;
+        }
+
+        function setTopupError(message) {
+            const input = $('#topupAmount');
+            const help = $('#topupHelp');
+            input.classList.add('is-error');
+            help.classList.add('error');
+            help.textContent = message;
+        }
+
+        function clearTopupError() {
+            const input = $('#topupAmount');
+            const help = $('#topupHelp');
+            input.classList.remove('is-error');
+            help.classList.remove('error');
+            help.textContent = defaultTopupHelpText();
+        }
+
+        async function loadBalance() {
+            const el = $('#walletBalance');
+            el.textContent = 'กำลังโหลด…';
+            try {
+                const res = await fetch(`${API_BASE}/wallet_balance.php?user_id=${encodeURIComponent(me.id)}`, {
+                    cache: 'no-store'
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+                const bal = parseFloat(data.balance ?? data.wallet ?? 0);
+                el.textContent = bal.toLocaleString('th-TH', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }) + ' ฿';
+            } catch (err) {
+                console.error(err);
+                el.textContent = '– ฿';
+            }
+        }
+
+        async function handleTopup(e) {
+            e.preventDefault();
+            const inp = $('#topupAmount');
+            const btn = $('#topupBtn');
+            const amount = getTopupAmountNumber();
+
+            clearTopupError();
+
+            if (!amount || amount <= 0) {
+                setTopupError('กรุณากรอกจำนวนเงินที่ต้องการเติม');
+                inp.focus();
+                return;
+            }
+
+            if (amount < 10) {
+                setTopupError('ขั้นต่ำ 10 บาท');
+                inp.focus();
+                return;
+            }
+
+            const todayTotal = getTodayTopupTotalLocal();
+            const remaining = Math.max(0, DAILY_TOPUP_LIMIT - todayTotal);
+            if ((todayTotal + amount) > DAILY_TOPUP_LIMIT) {
+                setTopupError(`จำกัดให้เติมได้ไม่เกินวันละหมื่น (คงเหลือเติมได้อีก ${formatBahtNumber(remaining)} บาท)`);
+                inp.focus();
+                return;
+            }
+
+            if (amount % 10 !== 0) {
+                setTopupError('กรุณากรอกเป็นจำนวนเงินทีละ 10 บาท');
+                inp.focus();
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'กำลังเติมเงิน…';
+
+            try {
+                const res = await fetch(`${API_BASE}/wallet_topup.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: me.id, amount })
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok || !data.ok) {
+                    const msg = data.error || `HTTP ${res.status}`;
+
+                    if (msg.includes('หมื่น') || msg.includes('10,000') || msg.includes('10000')) {
+                        const r = getTodayRemaining();
+                        setTopupError(`จำกัดให้เติมได้ไม่เกินวันละ10,000บาท (คงเหลือเติมได้อีก ${formatBahtNumber(r)} บาท)`);
+                        inp.focus();
+                        return;
+                    }
+
+                    setTopupError(msg || 'เติมเงินไม่สำเร็จ');
+                    inp.focus();
+                    return;
+                }
+
+                addTodayTopupTotalLocal(amount);
+                inp.value = '';
+                clearTopupError();
+                loadBalance();
+            } catch (err) {
+                console.error(err);
+                setTopupError(err.message || 'เติมเงินไม่สำเร็จ');
+                inp.focus();
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'เติมเงินเข้ากระเป๋า';
+            }
+        }
+
+        function initChips() {
+            document.querySelectorAll('.chip[data-amount]').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const amt = chip.getAttribute('data-amount') || '0';
+                    setTopupInputFormatted(amt);
+                    $('#topupAmount').focus();
+                });
+            });
+        }
+
+        function initTopupInputFormatting() {
+            const inp = $('#topupAmount');
+
+            inp.addEventListener('input', () => {
+                const onlyDigits = digitsOnly(inp.value);
+                if (!onlyDigits) {
+                    inp.value = '';
+                    clearTopupError();
+                    return;
+                }
+                inp.value = formatBahtNumber(parseInt(onlyDigits, 10));
+                clearTopupError();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lockViewportScrollArea();
+            initChips();
+            initTopupInputFormatting();
+            $('#topupForm').addEventListener('submit', handleTopup);
+            loadBalance();
+            clearTopupError();
+        });
+
+        window.addEventListener('resize', lockViewportScrollArea);
+    </script>
+</body>
+
+</html>

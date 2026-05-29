@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <!-- 🔒 ล็อคซูม + รองรับ notch -->
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking | Admin · จัดการช่องจอด</title>
+
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #0f172a;
+            --card: #111827;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --stroke: #1f2937;
+            --primary: #60a5fa;
+            --ok: #10b981;
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --maint: #6b7280;
+            --radius: 16px;
+            --shadow: 0 14px 28px rgba(0, 0, 0, .45);
+            --soft: 0 6px 16px rgba(0, 0, 0, .28);
+            --rail-w: 260px;
+            --rail-gap: 16px;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f7f8fb;
+                --panel: #ffffff;
+                --card: #ffffff;
+                --text: #0f172a;
+                --muted: #64748b;
+                --stroke: #e8ecf3;
+                --primary: #1d4ed8;
+                --shadow: 0 12px 24px rgba(15, 23, 42, .08);
+                --soft: 0 6px 14px rgba(15, 23, 42, .06);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(120deg, color-mix(in oklab, var(--bg)92%, transparent), var(--panel));
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, "Noto Sans Thai", Sarabun, Arial, sans-serif;
+        }
+
+        .no-anim .rail,
+        .no-anim .rail-mask {
+            transition: none !important
+        }
+
+        /* ===== Sidebar / Drawer ===== */
+        .rail {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 80;
+            width: var(--rail-w);
+            background: color-mix(in oklab, var(--panel)96%, transparent);
+            border-right: 1px solid var(--stroke);
+            display: flex;
+            flex-direction: column;
+            padding: 14px 10px;
+            transition: transform .22s ease;
+            transform: translateX(-100%);
+        }
+
+        .rail.open {
+            transform: none;
+        }
+
+        .rail__brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px 12px;
+            font-weight: 900
+        }
+
+        .rail__logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: conic-gradient(from 220deg, #22d3ee, #6366f1, #22d3ee)
+        }
+
+        .rail__chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            color: var(--muted);
+            font-weight: 800;
+            margin: 0 10px 10px;
+            font-size: 13px;
+        }
+
+        .rail__nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 6px
+        }
+
+        .rail__item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .rail__icon {
+            width: 20px;
+            text-align: center
+        }
+
+        .rail__item.is-active {
+            background: color-mix(in oklab, var(--primary)18%, transparent);
+            color: #fff
+        }
+
+        .rail__sp {
+            margin: 8px 6px;
+            height: 1px;
+            background: rgba(148, 163, 184, .25)
+        }
+
+        .rail__foot {
+            margin-top: auto;
+            padding: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center
+        }
+
+        .rail-mask {
+            position: fixed;
+            inset: 0;
+            z-index: 79;
+            background: rgba(0, 0, 0, .26);
+            opacity: 0;
+            pointer-events: none;
+            transition: .2s;
+        }
+
+        .rail-mask.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @media (min-width:1000px) {
+            .rail {
+                transform: none;
+                transition: none;
+            }
+
+            .rail-mask {
+                display: none !important;
+            }
+
+            body.has-rail main,
+            body.has-rail footer {
+                margin-left: calc(var(--rail-w) + var(--rail-gap));
+            }
+
+            #fabMenu {
+                display: none;
+            }
+        }
+
+        /* ปุ่มเมนู (มือถือ) */
+        #fabMenu {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 70;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card)92%, transparent);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: var(--soft);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        @media (min-width:1000px) {
+            #fabMenu {
+                display: none;
+            }
+        }
+
+        /* ===== Content ===== */
+        main {
+            max-width: min(1200px, 94vw);
+            margin: 16px auto;
+            display: grid;
+            gap: 16px;
+        }
+
+        .card {
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: clamp(14px, 3vw, 20px);
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: clamp(18px, 2.4vw, 22px);
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            align-items: center;
+        }
+
+        .field {
+            flex: 1 1 40px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            color: var(--text);
+            font-size: 14px;
+            height: 44px;
+            line-height: 22px;
+        }
+
+        .select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 10px 38px 10px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 900;
+            height: 44px;
+            line-height: 22px;
+            width: auto;
+            min-width: 160px;
+            max-width: 240px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            background-image:
+                linear-gradient(45deg, transparent 50%, currentColor 50%),
+                linear-gradient(135deg, currentColor 50%, transparent 50%);
+            background-position:
+                calc(100% - 18px) 50%,
+                calc(100% - 13px) 50%;
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+        }
+
+        .levelPick {
+            position: relative;
+            flex: 0 0 auto;
+            min-width: 160px;
+            max-width: 220px;
+        }
+
+        .levelPick select {
+            width: 100%;
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 10px 38px 10px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 900;
+            height: 44px;
+            line-height: 22px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .levelPick::after {
+            content: "";
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            width: 10px;
+            height: 10px;
+            transform: translateY(-50%) rotate(45deg);
+            border-right: 2px solid color-mix(in oklab, var(--muted) 80%, transparent);
+            border-bottom: 2px solid color-mix(in oklab, var(--muted) 80%, transparent);
+            pointer-events: none;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 14px;
+            color: var(--text);
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            box-shadow: var(--soft);
+            white-space: nowrap;
+            height: 44px;
+        }
+
+        .btn.alt {
+            background: color-mix(in oklab, var(--card)96%, transparent);
+        }
+
+        .btn.danger {
+            border-color: color-mix(in oklab, var(--danger) 35%, var(--stroke));
+            background: color-mix(in oklab, var(--danger) 14%, var(--panel));
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            filter: brightness(.98);
+        }
+
+        .btn:disabled {
+            opacity: .65;
+            cursor: not-allowed;
+            transform: none !important;
+            filter: none !important;
+        }
+
+        @media (max-width:800px) {
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .select {
+                width: 100%;
+                max-width: none;
+                min-width: 0;
+            }
+
+            .levelPick {
+                width: 100%;
+                max-width: none;
+            }
+        }
+
+        /* ===== Table ===== */
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            margin-top: 10px;
+        }
+
+        .table thead th {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            padding: 0 10px 4px;
+            text-align: left;
+        }
+
+        .table thead th:last-child {
+            text-align: right;
+        }
+
+        .row {
+            background: color-mix(in oklab, var(--panel)92%, transparent);
+            border: 1px solid var(--stroke);
+            border-radius: 14px;
+            box-shadow: var(--soft);
+        }
+
+        .td {
+            padding: 12px 14px;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .code {
+            font-weight: 900;
+        }
+
+        .op {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .selecty {
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            color: var(--text);
+            font-weight: 800;
+            min-width: 170px;
+            font-size: 13px;
+            appearance: auto;
+            -webkit-appearance: auto;
+        }
+
+        .selecty:focus {
+            outline: 2px solid color-mix(in oklab, var(--primary)65%, transparent);
+        }
+
+        .selecty option {
+            color: #0f172a;
+            background: #ffffff;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .selecty option {
+                color: #e5e7eb;
+                background: #020617;
+            }
+        }
+
+        .mini {
+            padding: 7px 11px;
+            border-radius: 10px;
+            border: 0;
+            font-weight: 900;
+            font-size: 12px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary), #1e40af);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .mini:active {
+            transform: translateY(1px);
+            filter: brightness(.98);
+        }
+
+        .mini.danger {
+            background: linear-gradient(135deg, var(--danger), #7f1d1d);
+        }
+
+        /* Status pill */
+        .pill {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 999px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .p-av {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .p-bk {
+            background: linear-gradient(135deg, #f59e0b, #b45309);
+        }
+
+        .p-oc {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+        }
+
+        .p-mt {
+            background: linear-gradient(135deg, #6b7280, #374151);
+        }
+
+        .msg {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .msg.ok {
+            display: block;
+            background: rgba(22, 163, 74, .12);
+            color: #16a34a;
+            border: 1px solid rgba(22, 163, 74, .25);
+        }
+
+        .msg.err {
+            display: block;
+            background: rgba(239, 68, 68, .12);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, .25);
+        }
+
+        footer {
+            max-width: min(1200px, 94vw);
+            margin: 8px auto 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* ===== Mobile Card View ===== */
+        @media (max-width:600px) {
+
+            .table,
+            .table thead,
+            .table tbody,
+            .table tr,
+            .table th,
+            .table td {
+                display: block;
+                width: 100%;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            #slotTbody tr.row {
+                margin-bottom: 10px;
+                border-radius: 14px;
+                border: 1px solid var(--stroke);
+                background: color-mix(in oklab, var(--panel)94%, transparent);
+                box-shadow: var(--soft);
+            }
+
+            #slotTbody .td {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding: 6px 14px;
+                font-size: 13px;
+                gap: 8px;
+                word-break: break-word;
+            }
+
+            #slotTbody .td::before {
+                content: attr(data-label);
+                font-size: 12px;
+                color: var(--muted);
+            }
+
+            .op {
+                justify-content: flex-start;
+                gap: 6px;
+                flex-wrap: wrap;
+                margin-top: 2px;
+            }
+
+            .selecty {
+                min-width: 0;
+                flex: 1 1 100%;
+            }
+
+            .mini {
+                padding: 6px 9px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width:400px) {
+            main {
+                margin-top: 60px;
+            }
+
+            #fabMenu {
+                top: 10px;
+                left: 10px;
+            }
+
+            #slotTbody .td {
+                padding: 5px 12px;
+                font-size: 12.5px;
+            }
+
+            .pill {
+                font-size: 10px;
+                padding: 3px 7px;
+            }
+        }
+
+        /* ===== Modal (Confirm Cancel) ===== */
+        .modalMask {
+            position: fixed;
+            inset: 0;
+            z-index: 120;
+            background: rgba(0, 0, 0, .45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        .modalMask.show {
+            display: flex;
+        }
+
+        .modal {
+            width: min(520px, 96vw);
+            border-radius: 18px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            box-shadow: var(--shadow);
+            padding: 14px 14px 12px;
+        }
+
+        .modal h3 {
+            margin: 0 0 6px;
+            font-size: 16px;
+            font-weight: 1000;
+        }
+
+        .modal .sub {
+            color: var(--muted);
+            font-size: 13px;
+            margin: 0 0 10px;
+            line-height: 1.45;
+        }
+
+        .modal .row2 {
+            display: grid;
+            gap: 10px;
+        }
+
+        .modal textarea {
+            width: 100%;
+            min-height: 76px;
+            resize: vertical;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            color: var(--text);
+            font-size: 13px;
+            line-height: 1.5;
+            outline: none;
+        }
+
+        .modal .actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .kbd {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card)92%, transparent);
+            color: var(--muted);
+            margin-left: 6px;
+        }
+    </style>
+</head>
+
+<body class="no-anim">
+    <!-- Sidebar -->
+    <aside class="rail" id="adminRail" aria-label="Admin navigation">
+        <div class="rail__brand">
+            <div class="rail__logo"></div>
+            <div>Admin</div>
+        </div>
+        <div class="rail__chip" id="adminUser">—</div>
+        <nav class="rail__nav" id="railNav">
+            <a class="rail__item" data-page="dashboard" href="admin.html"><span class="rail__icon">🏠</span>
+                Dashboard</a>
+            <a class="rail__item" data-page="slots" href="admin_slots.html"><span class="rail__icon">🅿️</span>
+                ช่องจอด</a>
+            <a class="rail__item" data-page="users" href="admin_users.html"><span class="rail__icon">👥</span>
+                ผู้ใช้</a>
+            <a class="rail__item" data-page="issues" href="admin_issues.html"><span class="rail__icon">🧯</span>
+                แจ้งปัญหา</a>
+            <a class="rail__item" data-page="issues" href="wallet_admin.html"><span class="rail__icon">💳</span>
+                Wallet</a>
+            <a class="rail__item" data-page="reports" href="admin_reports.html"><span class="rail__icon">📊</span>
+                รายงาน</a>
+            <a class="rail__item" data-page="reports" href="admin_announcements.html"><span class="rail__icon">📢</span>
+                ประกาศระบบ</a>
+            <div class="rail__sp"></div>
+            <a class="rail__item" href="index.html"><span class="rail__icon">↩️</span> กลับหน้า User</a>
+            <a class="rail__item" id="railLogout" href="#"><span class="rail__icon">🚪</span> ออกจากระบบ</a>
+        </nav>
+        <div class="rail__foot">© 2026 Parking </div>
+    </aside>
+    <div class="rail-mask" id="railMask"></div>
+    <button id="fabMenu" aria-label="เปิดเมนู">☰ เมนู</button>
+
+    <!-- Content -->
+    <main>
+        <section class="card">
+            <h1>รายการช่องจอด</h1>
+            <p class="muted">
+                จัดการสถานะช่องจอดแบบเรียลไทม์
+                <span class="kbd">ESC</span> ปิดหน้าต่าง
+            </p>
+
+            <div class="toolbar">
+                <input id="q" class="field" type="text" placeholder="ค้นหา: A01 / คำอธิบาย / ชั้น" />
+
+                <div class="levelPick" title="เลือกชั้น">
+                    <select id="levelFilter">
+            <option value="">ชั้นทั้งหมด</option>
+            <option value="1">ชั้น 1</option>
+            <option value="2">ชั้น 2</option>
+          </select>
+                </div>
+
+                <select id="statusFilter" class="select">
+          <option value="">สถานะทั้งหมด</option>
+          <option value="AVAILABLE">AVAILABLE (ว่าง)</option>
+          <option value="BOOKED">BOOKED (จองแล้ว)</option>
+          <option value="OCCUPIED">OCCUPIED (ใช้งานอยู่)</option>
+          <option value="MAINTENANCE">MAINTENANCE (ปิดปรับปรุง)</option>
+        </select>
+
+                <select id="bulkStatus" class="select" style="min-width:200px;max-width:260px;">
+          <option value="AVAILABLE">ปรับที่เลือกเป็น: AVAILABLE</option>
+          <option value="BOOKED">ปรับที่เลือกเป็น: BOOKED</option>
+          <option value="OCCUPIED">ปรับที่เลือกเป็น: OCCUPIED</option>
+          <option value="MAINTENANCE">ปรับที่เลือกเป็น: MAINTENANCE</option>
+        </select>
+
+                <button class="btn alt" id="bulkApply">ปรับทั้งหมด</button>
+            </div>
+
+            <table class="table" id="slotTable">
+                <thead>
+                    <tr>
+                        <th>เลือก</th>
+                        <th>โค้ด</th>
+                        <th>ชั้น</th>
+                        <th>สถานะ</th>
+                        <th>อัปเดต</th>
+                        <th style="text-align:right">การทำงาน</th>
+                    </tr>
+                </thead>
+                <tbody id="slotTbody">
+                    <tr>
+                        <td class="td" colspan="6">กำลังโหลด…</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="msg" id="result"></div>
+        </section>
+    </main>
+
+    <footer>© 2026 Parking </footer>
+
+    <!-- ===== Cancel Booking Modal ===== -->
+    <div class="modalMask" id="cancelMask" role="dialog" aria-modal="true" aria-label="ยืนยันยกเลิกการจอง">
+        <div class="modal">
+            <h3>ยกเลิกการจอง + คืนเงิน</h3>
+            <p class="sub" id="cancelSub">—</p>
+
+            <!-- ✅ ให้ error/ผลลัพธ์ขึ้นใน modal เลย -->
+            <div class="msg" id="cancelMsg" style="margin-top:0"></div>
+
+            <div class="row2">
+                <textarea id="cancelReason" placeholder="เหตุผล (จะแสดงในประวัติวอลเล็ต/บันทึก) เช่น: ช่องเสีย / ปิดฉุกเฉิน"></textarea>
+            </div>
+
+            <div class="actions">
+                <button class="btn alt" id="cancelClose">ปิด</button>
+                <button class="btn danger" id="cancelConfirm">ยืนยันยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = (s, el = document) => el.querySelector(s);
+    const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.remove('no-anim');
+    });
+
+    /* Sidebar */
+    const rail = $('#adminRail');
+    const mask = $('#railMask');
+    const burger = $('#fabMenu');
+
+    function openRail() { rail.classList.add('open'); mask.classList.add('show'); }
+    function closeRail() { rail.classList.remove('open'); mask.classList.remove('show'); }
+
+    burger.addEventListener('click', () => rail.classList.contains('open') ? closeRail() : openRail());
+    mask.addEventListener('click', closeRail);
+    window.addEventListener('keydown', e => { if (e.key === 'Escape') { closeRail(); closeCancelModal(); } });
+
+    function updateRailMode() {
+      if (window.innerWidth >= 1000) {
+        document.body.classList.add('has-rail');
+        closeRail();
+      } else {
+        document.body.classList.remove('has-rail');
+      }
+    }
+    updateRailMode();
+    window.addEventListener('resize', updateRailMode);
+
+    // active menu
+    (function markActive() {
+      const p = location.pathname;
+      const page =
+        /admin_slots\.html$/i.test(p) ? 'slots' :
+        /admin_users\.html$/i.test(p) ? 'users' :
+        /admin_reports\.html$/i.test(p) ? 'reports' :
+        /admin_issues\.html$/i.test(p) ? 'issues' :
+        'dashboard';
+      $$('#railNav .rail__item').forEach(a => {
+        a.classList.toggle('is-active', a.dataset.page === page);
+      });
+    })();
+
+    // session chip
+    const currentUser = JSON.parse(localStorage.getItem('parking_user') || '{}');
+    $('#adminUser').textContent = currentUser?.id
+      ? `ผู้ใช้: ${currentUser.name || currentUser.email || '-'} · ID ${currentUser.id}`
+      : 'ยังไม่ล็อกอิน';
+    $('#railLogout').addEventListener('click', e => {
+      e.preventDefault();
+      localStorage.removeItem('parking_user');
+      sessionStorage.removeItem('after_login');
+      location.href = 'login.html';
+    });
+
+    /* API / Data */
+    const ORIGIN_FIXED = location.origin.replace('://www.', '://'); // กัน www ไม่ตรง
+    const API_BASE = `${ORIGIN_FIXED}/api`;
+
+    let ALL_SLOTS = [];
+
+    const pill = (status) => ({
+      AVAILABLE: `<span class="pill p-av">AVAILABLE</span>`,
+      BOOKED: `<span class="pill p-bk">BOOKED</span>`,
+      OCCUPIED: `<span class="pill p-oc">OCCUPIED</span>`,
+      MAINTENANCE: `<span class="pill p-mt">MAINTENANCE</span>`
+    }[status] || `<span class="pill p-mt">${status}</span>`);
+
+    const fmtUpdated = t => t ? String(t).replace('T', ' ').replace(':00', '') : '—';
+
+    function canCancelBooking(status) {
+      return status === 'BOOKED' || status === 'OCCUPIED';
+    }
+
+    function rowTemplate(s) {
+      const showCancel = canCancelBooking(String(s.status || '').toUpperCase());
+      return `
+        <tr class="row" data-id="${s.id}" data-code="${(s.code || '').replace(/"/g, '&quot;')}" data-status="${(s.status || '').replace(/"/g, '&quot;')}">
+          <td class="td" data-label="เลือก"><input type="checkbox" class="pick"></td>
+          <td class="td code" data-label="โค้ด">${s.code}</td>
+          <td class="td" data-label="ชั้น">${s.level ?? '-'}</td>
+          <td class="td" data-label="สถานะ">${pill(s.status)}</td>
+          <td class="td" data-label="อัปเดต">${fmtUpdated(s.updated_at || s.last_update)}</td>
+          <td class="td op" data-label="การทำงาน">
+            <select class="selecty setStatus">
+              <option value="AVAILABLE"   ${s.status === 'AVAILABLE' ? 'selected' : ''}>AVAILABLE</option>
+              <option value="BOOKED"      ${s.status === 'BOOKED' ? 'selected' : ''}>BOOKED</option>
+              <option value="OCCUPIED"    ${s.status === 'OCCUPIED' ? 'selected' : ''}>OCCUPIED</option>
+              <option value="MAINTENANCE" ${s.status === 'MAINTENANCE' ? 'selected' : ''}>MAINTENANCE</option>
+            </select>
+            <button class="mini doSave">บันทึก</button>
+            ${showCancel ? `<button class="mini danger doCancel">ยกเลิกการจอง</button>` : ``}
+          </td>
+        </tr>`;
+    }
+
+    function showMsg(kind, text) {
+      const el = $('#result');
+      el.className = 'msg' + (kind ? ' ' + kind : '');
+      el.textContent = text || '';
+      el.style.display = text ? 'block' : 'none';
+    }
+
+    function showCancelMsg(kind, text) {
+      const el = $('#cancelMsg');
+      el.className = 'msg' + (kind ? ' ' + kind : '');
+      el.textContent = text || '';
+      el.style.display = text ? 'block' : 'none';
+    }
+
+    function bindRowActions(tr) {
+      const btnSave = $('.doSave', tr);
+      if (btnSave) {
+        btnSave.addEventListener('click', async () => {
+          const id = Number(tr.dataset.id);
+          const val = $('.setStatus', tr).value;
+          await updateStatusById(id, val, tr);
+        });
+      }
+
+      const btnCancel = $('.doCancel', tr);
+      if (btnCancel) {
+        btnCancel.addEventListener('click', () => {
+          const id = Number(tr.dataset.id);
+          const code = tr.dataset.code || '-';
+          const st = tr.dataset.status || '';
+          openCancelModal({ slot_id: id, code, status: st });
+        });
+      }
+    }
+
+    function renderTable() {
+      const q = $('#q').value.trim().toLowerCase();
+      const st = $('#statusFilter').value;
+      const lv = $('#levelFilter').value;
+
+      const filtered = ALL_SLOTS.filter(s => {
+        const textMatch = !q ||
+          (s.code?.toLowerCase().includes(q)) ||
+          ((s.description || '').toLowerCase().includes(q)) ||
+          String(s.level || '').includes(q);
+
+        const stMatch = !st || s.status === st;
+        const lvMatch = !lv || String(s.level || '') === String(lv);
+
+        return textMatch && stMatch && lvMatch;
+      });
+
+      $('#slotTbody').innerHTML = filtered.length
+        ? filtered.map(rowTemplate).join('')
+        : '<tr><td class="td" colspan="6" style="text-align:center;color:var(--muted)">— ไม่พบรายการ —</td></tr>';
+
+      $$('#slotTbody tr.row').forEach(bindRowActions);
+    }
+
+    async function loadSlots() {
+      try {
+        const res = await fetch(`${API_BASE}/slots_list.php?mode=admin`, { cache: 'no-store' });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'โหลดข้อมูลไม่สำเร็จ');
+        ALL_SLOTS = data.slots || [];
+        renderTable();
+        showMsg('', '');
+      } catch (err) {
+        console.error(err);
+        showMsg('err', '❌ ' + (err.message || 'ผิดพลาด'));
+      }
+    }
+
+    async function updateStatusById(slotId, status, trEl) {
+      try {
+        const res = await fetch(`${API_BASE}/slot_update_status.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slot_id: Number(slotId), status })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'อัปเดตไม่สำเร็จ');
+
+        const idx = ALL_SLOTS.findIndex(s => s.id === slotId);
+        if (idx > -1) ALL_SLOTS[idx].status = status;
+
+        if (trEl && idx > -1) {
+          trEl.outerHTML = rowTemplate(ALL_SLOTS[idx]);
+          const newTr = $(`#slotTbody tr[data-id="${slotId}"]`);
+          if (newTr) bindRowActions(newTr);
+        } else {
+          renderTable();
+        }
+        showMsg('ok', `✅ อัปเดตช่อง ${data.slot?.code || slotId} เป็น ${status} แล้ว`);
+      } catch (err) {
+        console.error(err);
+        showMsg('err', '❌ ' + (err.message || 'ผิดพลาด'));
+      }
+    }
+
+    // ===== Bulk Apply =====
+    $('#bulkApply').addEventListener('click', async () => {
+      const picked = $$('#slotTbody .pick:checked').map(c => Number(c.closest('tr').dataset.id));
+      if (!picked.length) {
+        showMsg('err', '❌ กรุณาเลือกรายการอย่างน้อย 1 ช่อง');
+        return;
+      }
+      const st = $('#bulkStatus').value;
+      for (const id of picked) {
+        await updateStatusById(id, st);
+      }
+    });
+
+    // Filters
+    $('#q').addEventListener('input', renderTable);
+    $('#statusFilter').addEventListener('change', renderTable);
+    $('#levelFilter').addEventListener('change', renderTable);
+
+    // ===== Cancel Booking Modal Logic =====
+    const cancelMask = $('#cancelMask');
+    const cancelSub = $('#cancelSub');
+    const cancelReason = $('#cancelReason');
+    const cancelClose = $('#cancelClose');
+    const cancelConfirm = $('#cancelConfirm');
+
+    let CANCEL_CTX = null; // {slot_id, code, status}
+    let CANCEL_ACTIVE_BOOKING = null; // booking object
+
+    function openCancelModal(ctx) {
+      CANCEL_CTX = ctx;
+      CANCEL_ACTIVE_BOOKING = null;
+
+      const code = ctx?.code || '-';
+      const st = String(ctx?.status || '').toUpperCase();
+
+      cancelSub.innerHTML = `
+        คุณกำลังจะยกเลิกการจองของช่อง <b>${code}</b> (สถานะปัจจุบัน: <b>${st}</b>)<br/>
+        ระบบจะค้นหา <b>รายการจองที่ active</b> ของช่องนี้ แล้วทำการ <b>ยกเลิก + คืนเงิน</b> และปรับช่องเป็น <b>AVAILABLE</b>
+      `;
+      cancelReason.value = '';
+      showCancelMsg('', '');
+      cancelMask.classList.add('show');
+      setTimeout(() => cancelReason.focus(), 50);
+
+      // ดึง booking active มาโชว์
+      refreshActiveBookingPreview().catch(() => { });
+    }
+
+    function closeCancelModal() {
+      cancelMask.classList.remove('show');
+      CANCEL_CTX = null;
+      CANCEL_ACTIVE_BOOKING = null;
+      showCancelMsg('', '');
+    }
+
+    cancelClose.addEventListener('click', closeCancelModal);
+    cancelMask.addEventListener('click', (e) => {
+      if (e.target === cancelMask) closeCancelModal();
+    });
+
+    async function safeJson(res) {
+      const text = await res.text();
+      try { return JSON.parse(text); }
+      catch { return { ok: false, error: 'API ไม่ได้ส่ง JSON (อาจเป็น PHP error/404)', raw: text?.slice(0, 200) }; }
+    }
+
+    // ดึง booking active ด้วย slot_id
+    async function getActiveBookingBySlot(slotId) {
+      const url = `${API_BASE}/booking_get_active_by_slot.php?slot_id=${Number(slotId)}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      const data = await safeJson(res);
+      if (!res.ok || !data.ok) {
+        const hint = (!res.ok && res.status === 404) ? ' (ไม่พบไฟล์ booking_get_active_by_slot.php / 404)' : '';
+        throw new Error((data.error || 'โหลด booking active ไม่สำเร็จ') + hint);
+      }
+      return data.booking || null;
+    }
+
+    async function refreshActiveBookingPreview() {
+      if (!CANCEL_CTX?.slot_id) return;
+      const slotId = Number(CANCEL_CTX.slot_id);
+
+      try {
+        showCancelMsg('', '');
+        const b = await getActiveBookingBySlot(slotId);
+        CANCEL_ACTIVE_BOOKING = b;
+
+        const code = CANCEL_CTX.code || slotId;
+
+        if (!b) {
+          cancelSub.innerHTML = `
+            คุณกำลังจะยกเลิกการจองของช่อง <b>${code}</b><br/>
+            <span style="color:var(--warn);font-weight:900">ไม่พบรายการจองที่ active</span> ของช่องนี้ในตอนนี้
+          `;
+          return;
+        }
+
+        const bid = b.id;
+        const amt = (b.amount != null) ? Number(b.amount).toFixed(2) : '-';
+        const st = String(b.status || '').toUpperCase();
+
+        cancelSub.innerHTML = `
+          คุณกำลังจะยกเลิกการจองของช่อง <b>${code}</b><br/>
+          พบรายการจองที่ active: <b>#${bid}</b> (สถานะ: <b>${st}</b>) • ยอดบิล <b>${amt}</b> บาท<br/>
+          ระบบจะทำการ <b>ยกเลิก + คืนเงิน</b> และปรับช่องเป็น <b>AVAILABLE</b>
+        `;
+      } catch (e) {
+        console.error(e);
+        showCancelMsg('err', '❌ ' + (e.message || 'โหลด booking active ไม่สำเร็จ'));
+      }
+    }
+
+    // ยกเลิก: ส่งทั้ง booking_id และ slot_id กันฝั่ง PHP รับไม่ตรง
+    async function adminCancelBookingBySlot(slotId, reason) {
+      const booking = CANCEL_ACTIVE_BOOKING || await getActiveBookingBySlot(slotId);
+      if (!booking || !booking.id) throw new Error('ไม่พบรายการจองที่ active ของช่องนี้');
+
+      const bookingId = Number(booking.id);
+
+      const res = await fetch(`${API_BASE}/admin_cancel_booking.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          booking_id: bookingId,
+          slot_id: Number(slotId),
+          reason: reason || 'Admin cancelled',
+          refund_mode: 'FULL'
+        })
+      });
+
+      const data = await safeJson(res);
+      if (!res.ok || !data.ok) {
+        const hint = (!res.ok && res.status === 404) ? ' (ไม่พบไฟล์ admin_cancel_booking.php / 404)' : '';
+        throw new Error((data.error || data.message || 'ยกเลิกการจองไม่สำเร็จ') + hint);
+      }
+      return { data, booking };
+    }
+
+    cancelConfirm.addEventListener('click', async () => {
+      if (!CANCEL_CTX?.slot_id) return;
+
+      const slotId = Number(CANCEL_CTX.slot_id);
+      const code = CANCEL_CTX.code || slotId;
+      const reason = (cancelReason.value || '').trim() || 'ยกเลิกโดยแอดมิน';
+
+      cancelConfirm.disabled = true;
+      cancelClose.disabled = true;
+      showCancelMsg('', '');
+      showMsg('', '');
+
+      try {
+        showCancelMsg('ok', '⏳ กำลังยกเลิกและคืนเงิน...');
+        const { data, booking } = await adminCancelBookingBySlot(slotId, reason);
+
+        // อัปเดตสถานะช่องเป็น AVAILABLE
+        try {
+          await updateStatusById(slotId, 'AVAILABLE');
+        } catch (e) {
+          console.warn('slot status update warn:', e);
+        }
+
+        const refunded = (data?.refunded != null) ? Number(data.refunded) : null;
+        const alreadyRefunded = !!data?.already_refunded;
+
+        showCancelMsg(
+          'ok',
+          `✅ ยกเลิกสำเร็จ: ช่อง ${code} (Booking #${booking?.id || '-'})` +
+          (refunded !== null ? ` · คืนเงิน ${refunded.toFixed(2)} บาท` + (alreadyRefunded ? ' (เคยคืนแล้ว)' : '') : '')
+        );
+
+        showMsg(
+          'ok',
+          `✅ ยกเลิกการจองช่อง ${code} แล้ว (Booking #${booking?.id || '-'})` +
+          (refunded !== null ? ` · คืนเงิน ${refunded.toFixed(2)} บาท` + (alreadyRefunded ? ' (เคยคืนแล้ว)' : '') : '')
+        );
+
+        // ปิด modal หลังหน่วงนิดให้ผู้ใช้เห็นผล
+        setTimeout(() => closeCancelModal(), 600);
+
+        await loadSlots();
+      } catch (err) {
+        console.error(err);
+        // ✅ ให้เห็นใน modal ชัดๆ
+        showCancelMsg('err', '❌ ' + (err.message || 'ผิดพลาด'));
+        // และโชว์ด้านล่างด้วย (เผื่อปิด modal)
+        showMsg('err', '❌ ' + (err.message || 'ผิดพลาด'));
+      } finally {
+        cancelConfirm.disabled = false;
+        cancelClose.disabled = false;
+      }
+    });
+
+    // init
+    loadSlots();
+    setInterval(loadSlots, 15000);
+    </script>
+</body>
+
+</html>

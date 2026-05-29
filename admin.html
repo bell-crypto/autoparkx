@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <!-- ให้พฤติกรรมซูม/ขนาดเหมือน wallet_admin -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"/>
+  <title>Parking | Admin Dashboard</title>
+
+  <!-- ⚠️ CSS ด้านล่างคงเดิมโทนเดิม แต่ปรับ layout ให้เท่ากับ wallet_admin -->
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#0f172a; --card:#111827;
+      --text:#e5e7eb; --muted:#9ca3af; --stroke:#1f2937;
+      --primary:#60a5fa; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
+      --radius:16px; --shadow:0 14px 28px rgba(0,0,0,.45); --soft:0 6px 16px rgba(0,0,0,.25);
+      --rail-w:260px;
+      --rail-gap:16px; /* ช่องว่างระหว่าง sidebar กับเนื้อหา */
+    }
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg:#f7f8fb; --panel:#ffffff; --card:#ffffff;
+        --text:#0f172a; --muted:#64748b; --stroke:#e8ecf3;
+        --primary:#1d4ed8; --ok:#16a34a; --warn:#eab308; --danger:#ef4444;
+        --shadow:0 12px 24px rgba(15,23,42,.08); --soft:0 6px 14px rgba(15,23,42,.06);
+      }
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:linear-gradient(120deg,color-mix(in oklab,var(--bg) 92%,transparent),var(--panel));
+      color:var(--text);
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Inter,Roboto,"Noto Sans Thai",Sarabun,Arial,sans-serif;
+    }
+
+    /* ===== Sidebar / Drawer ===== */
+    .rail{
+      position:fixed; inset:0 auto 0 0; z-index:80; width:var(--rail-w);
+      background:color-mix(in oklab,var(--panel) 96%,transparent);
+      border-right:1px solid var(--stroke);
+      display:flex; flex-direction:column; padding:14px 10px;
+      transform:translateX(-100%);
+      transition:transform .22s ease;
+    }
+    .rail.open{ transform:none; }
+
+    .rail .brand{
+      display:flex;align-items:center;gap:10px;
+      padding:6px 10px 12px;
+      font-weight:900;
+    }
+    .rail .logo{
+      width:28px;height:28px;border-radius:8px;
+      background:conic-gradient(from 220deg,#22d3ee,#6366f1,#22d3ee);
+    }
+    .rail .chip{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:999px;
+      border:1px solid var(--stroke);
+      background:color-mix(in oklab,var(--card) 96%,transparent);
+      color:var(--muted);font-weight:800;
+      margin:0 10px 10px;
+      font-size:13px;
+    }
+    .rail nav{display:flex;flex-direction:column;gap:6px;padding:6px}
+    .rail a.item{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;border-radius:10px;
+      color:var(--text);text-decoration:none;font-weight:800;font-size:14px;
+    }
+    .rail a.item .ico{width:20px;text-align:center}
+    .rail a.item.active{
+      background:color-mix(in oklab,var(--primary) 18%,transparent);
+      color:#fff;
+    }
+    .rail .sp{
+      margin:8px 6px;height:1px;
+      background:color-mix(in oklab,var(--stroke) 70%,transparent);
+    }
+    .rail .foot{
+      margin-top:auto;padding:8px;
+      color:var(--muted);font-size:12px;text-align:center;
+    }
+
+    .rail-mask{
+      position:fixed; inset:0; z-index:79;
+      background:rgba(0,0,0,.26);
+      opacity:0; pointer-events:none; transition:.2s;
+    }
+    .rail-mask.show{opacity:1; pointer-events:auto;}
+
+    /* Desktop: pin sidebar + เผื่อช่องว่าง (ให้เหมือน wallet_admin) */
+    @media (min-width:1000px){
+      .rail{ transform:none; transition:none; }
+      body.has-rail main,
+      body.has-rail footer{
+        margin-left: calc(var(--rail-w) + var(--rail-gap));
+      }
+      body.has-rail #fabMenu{ display:none; }
+      body.has-rail main{
+        max-width: min(1200px, calc(100vw - var(--rail-w) - var(--rail-gap) - 32px));
+      }
+      .rail-mask{display:none!important;}
+    }
+
+    /* ปุ่มแฮมเบอร์เกอร์ลอย (มือถือ/แท็บเล็ต) */
+    #fabMenu{
+      position:fixed; top:14px; left:14px; z-index:70;
+      border:1px solid var(--stroke);
+      background:color-mix(in oklab,var(--card) 92%,transparent);
+      color:var(--text);
+      border-radius:12px; padding:10px 12px;
+      font-weight:900; cursor:pointer;
+      box-shadow:var(--soft);
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:14px;
+    }
+    @media (min-width:1000px){
+      #fabMenu{display:none;}
+    }
+
+    /* ===== เนื้อหา ===== */
+    main{
+      max-width:min(1200px,94vw);
+      margin:16px auto;
+      display:grid;
+      gap:16px;
+    }
+    .card{
+      background:color-mix(in oklab,var(--card) 96%,transparent);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:clamp(14px,3vw,20px);
+    }
+
+    /* หัวเรื่องชิดซ้าย */
+    .head-center{
+      display:flex; flex-direction:column;
+      align-items:flex-start; justify-content:center;
+      text-align:left; gap:6px;
+    }
+    h1{ margin:0; font-size:clamp(18px,2.4vw,24px); }
+    h2{ margin:0 0 8px; font-size:clamp(16px,2vw,20px); }
+    .muted{ color:var(--muted); }
+
+    /* Stats — กล่องเท่ากัน กึ่งกลางทั้งแนวตั้ง/แนวนอน */
+    .stats{
+      display:grid;
+      gap:12px;
+      grid-template-columns:1fr;
+      margin-top:12px;
+    }
+    @media(min-width:700px){
+      .stats{grid-template-columns:repeat(3,1fr);}
+    }
+    .stat{
+      border:1px solid var(--stroke);
+      border-radius:14px;
+      background:color-mix(in oklab,var(--panel) 92%,transparent);
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      text-align:center;
+      min-height:130px; padding:16px;
+    }
+    .stat .label{color:var(--muted);font-weight:800}
+    .stat .num{
+      font-size:clamp(28px,6vw,44px);
+      font-weight:900;line-height:1;margin-top:6px;
+    }
+    .stat.ok{background:color-mix(in oklab,var(--ok) 15%,var(--panel))}
+    .stat.warn{background:color-mix(in oklab,var(--warn) 12%,var(--panel))}
+    .stat.danger{background:color-mix(in oklab,var(--danger) 12%,var(--panel))}
+
+    /* ตารางชั้น — จัดกึ่งกลางทุกคอลัมน์ */
+    .table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0 10px;
+      margin-top:8px;
+      text-align:center;
+    }
+    .thead th{
+      font-size:12px;color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.3px;
+      padding:0 10px;
+      text-align:center;
+    }
+    .row{
+      background:color-mix(in oklab,var(--panel) 92%,transparent);
+      border:1px solid var(--stroke);
+      border-radius:12px;
+      box-shadow:var(--soft);
+    }
+    .td{padding:12px 14px}
+    .badge{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      color:#fff;
+      font-weight:900;
+      font-size:12px;
+    }
+    .b-ok{background:linear-gradient(135deg,var(--ok),#059669)}
+    .b-warn{background:linear-gradient(135deg,var(--warn),#a16207)}
+    .b-danger{background:linear-gradient(135deg,var(--danger),#991b1b)}
+
+    /* Skeleton & Toast */
+    .skeleton{
+      height:54px;border-radius:12px;
+      background:
+        linear-gradient(90deg,
+          color-mix(in oklab,var(--panel) 82%,transparent) 0%,
+          color-mix(in oklab,var(--panel) 66%,transparent) 50%,
+          color-mix(in oklab,var(--panel) 82%,transparent) 100%);
+      background-size:200% 100%;
+      animation:shimmer 1.2s infinite;
+    }
+    @keyframes shimmer{
+      0%{background-position:0 0}
+      100%{background-position:-200% 0}
+    }
+    .toast{
+      position:fixed;left:50%;bottom:24px;
+      transform:translate(-50%,16px);
+      opacity:0;
+      background:var(--panel);
+      border:1px solid var(--stroke);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 14px;
+      box-shadow:var(--soft);
+      font-weight:900;
+      transition:.25s;
+      z-index:90;
+    }
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+
+    footer{
+      max-width:min(1200px,94vw);
+      margin:8px auto 20px;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+  </style>
+</head>
+<body>
+<!-- 🧭 Sidebar (เมนูแอดมิน) -->
+<aside class="rail" id="adminRail" aria-label="Admin navigation">
+  <div class="brand"><div class="logo"></div><div>Admin</div></div>
+  <div class="chip" id="adminUser">—</div>
+  <nav id="railNav">
+    <a class="item" data-page="dashboard" href="admin.html"><span class="ico">🏠</span> Dashboard</a>
+    <a class="item" data-page="slots" href="admin_slots.html"><span class="ico">🅿️</span> ช่องจอด</a>
+    <a class="item" data-page="users" href="admin_users.html"><span class="ico">👥</span> ผู้ใช้</a>
+    <a class="item" data-page="issues" href="admin_issues.html"><span class="ico">🧯</span> แจ้งปัญหา</a>
+    <a class="item" data-page="wallet" href="wallet_admin.html"><span class="ico">💳</span> Wallet</a>
+    <a class="item" data-page="reports" href="admin_reports.html"><span class="ico">📊</span> รายงาน</a>
+    <a class="item" data-page="announcements" href="admin_announcements.html"><span>📢</span>ประกาศระบบ</a>
+    <div class="sp"></div>
+    <a class="item" href="index.html"><span class="ico">↩️</span> กลับหน้า User</a>
+    <a class="item" id="railLogout" href="#"><span class="ico">🚪</span> ออกจากระบบ</a>
+  </nav>
+  <div class="foot">© 2026 AutoParkX</div>
+</aside>
+<div class="rail-mask" id="railMask"></div>
+
+<!-- 🍔 ปุ่มเปิด/ปิดเมนู (มือถือ) -->
+<button id="fabMenu" aria-label="เปิดเมนู">☰ เมนู</button>
+
+<!-- 📊 เนื้อหาหลัก -->
+<main>
+  <section class="card">
+    <!-- หัวข้อ + เวลาที่อัปเดต -->
+    <div class="head-center">
+      <h1>ภาพรวมลานจอด</h1>
+      <div class="muted" id="updatedAt">อัปเดตล่าสุด —</div>
+    </div>
+
+    <!-- กล่องสถิติ 3 คอลัมน์ -->
+    <div class="stats" id="statsGrid">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <!-- ตารางสรุปตามชั้น -->
+    <h2 style="text-align:center">ภาพรวมตามชั้น (Level)</h2>
+    <table class="table">
+      <thead class="thead">
+        <tr>
+          <th>ชั้น/โซน</th>
+          <th>ว่าง</th>
+          <th>จองแล้ว</th>
+          <th>ใช้งานอยู่</th>
+          <th>รวม</th>
+        </tr>
+      </thead>
+      <tbody id="levelTbody">
+        <tr><td colspan="5"><div class="skeleton"></div></td></tr>
+        <tr><td colspan="5"><div class="skeleton"></div></td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<footer>© 2026 AutoParkX</footer>
+
+<div id="toast" class="toast">อัปเดตข้อมูลแล้ว</div>
+
+<script>
+  // ⚙️ ตั้งค่า ROOT / API_BASE ให้เสถียร
+  const ROOT = '';
+  const API_BASE = `${location.origin}${ROOT}/api`;
+  const $ = s => document.querySelector(s);
+
+  // 👤 อ่าน user จาก localStorage
+  let me = {};
+  try { me = JSON.parse(localStorage.getItem('parking_user') || '{}'); } catch {}
+
+  // บังคับให้ต้องล็อกอิน + เป็น admin
+  (function guardAdmin(){
+    if (!me?.id) {
+      sessionStorage.setItem('after_login', 'admin.html');
+      location.href = 'login.html';
+      return;
+    }
+    const role = (me.role || '').toString().toLowerCase();
+    if (role !== 'admin') {
+      alert('ต้องเป็นแอดมินเท่านั้น');
+      location.href = 'index.html';
+    }
+  })();
+
+  // 🧰 จัดการ Sidebar (เปิด/ปิด + โหมด desktop)
+  const rail  = $('#adminRail');
+  const mask  = $('#railMask');
+  const burger = $('#fabMenu');
+
+  function openRail(){ rail.classList.add('open'); mask.classList.add('show'); }
+  function closeRail(){ rail.classList.remove('open'); mask.classList.remove('show'); }
+
+  burger.addEventListener('click', ()=> rail.classList.contains('open') ? closeRail() : openRail());
+  mask.addEventListener('click', closeRail);
+  window.addEventListener('keydown', e=>{ if(e.key==='Escape') closeRail(); });
+
+  function updateRailMode(){
+    if (window.innerWidth >= 1000) {
+      document.body.classList.add('has-rail');
+      closeRail();
+    } else {
+      document.body.classList.remove('has-rail');
+    }
+  }
+  updateRailMode();
+  window.addEventListener('resize', updateRailMode);
+
+  // 🔖 ไฮไลต์เมนูตามหน้าปัจจุบัน
+  (function markActive(){
+    const p = location.pathname;
+    const active =
+      /admin_slots\.html$/i.test(p)   ? 'slots'   :
+      /admin_users\.html$/i.test(p)   ? 'users'   :
+      /admin_reports\.html$/i.test(p) ? 'reports' :
+      /admin_issues\.html$/i.test(p)  ? 'issues'  :
+      'dashboard';
+    document.querySelectorAll('#railNav a.item').forEach(a=>{
+      a.classList.toggle('active', a.dataset.page===active);
+    });
+  })();
+
+  // 👤 แสดงชื่อผู้ใช้ใน Sidebar
+  $('#adminUser').textContent = me?.id
+    ? `Admin: ${me.name || me.email || '-'} · ID ${me.id}`
+    : 'ยังไม่ล็อกอิน';
+
+  // 🚪 ออกจากระบบ
+  function doLogout(){
+    localStorage.removeItem('parking_user');
+    sessionStorage.removeItem('after_login');
+    location.href = 'login.html';
+  }
+  $('#railLogout').addEventListener('click', (e)=>{ e.preventDefault(); doLogout(); });
+
+  // 🔔 Toast สั้นๆ
+  function toast(msg){
+    const t = $('#toast');
+    t.textContent = msg || 'อัปเดตข้อมูลแล้ว';
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 1800);
+  }
+
+  // 🧮 render กล่องสถิติ
+  function renderStats(summary){
+    $('#statsGrid').innerHTML = `
+      <div class="stat ok">
+        <div class="label">ว่าง (AVAILABLE)</div>
+        <div class="num">${summary.available}</div>
+      </div>
+      <div class="stat warn">
+        <div class="label">จองแล้ว (BOOKED)</div>
+        <div class="num">${summary.booked}</div>
+      </div>
+      <div class="stat danger">
+        <div class="label">ใช้งานอยู่ (OCCUPIED)</div>
+        <div class="num">${summary.occupied}</div>
+      </div>`;
+  }
+
+  // 🏢 render ตารางตามชั้น
+  function renderLevels(slots){
+    const map = new Map();
+    for (const s of (slots || [])) {
+      const lv = String(s.level ?? 1);
+      if (!map.has(lv)) map.set(lv, {available:0, booked:0, occupied:0, total:0});
+      const g = map.get(lv);
+      g.total++;
+      if (s.status === 'AVAILABLE') g.available++;
+      else if (s.status === 'OCCUPIED') g.occupied++;
+      else g.booked++;
+    }
+    const rows = [...map.entries()]
+      .sort((a,b)=> Number(a[0]) - Number(b[0]))
+      .map(([lv,g])=>`
+        <tr class="row">
+          <td class="td">ชั้น ${lv}</td>
+          <td class="td"><span class="badge b-ok">${g.available}</span></td>
+          <td class="td"><span class="badge b-warn">${g.booked}</span></td>
+          <td class="td"><span class="badge b-danger">${g.occupied}</span></td>
+          <td class="td">${g.total}</td>
+        </tr>`).join('')
+      || `<tr><td class="td" colspan="5" style="text-align:center;color:var(--muted)">— ไม่มีข้อมูล —</td></tr>`;
+    $('#levelTbody').innerHTML = rows;
+  }
+
+  // 🔁 โหลดข้อมูล + รีเฟรชอัตโนมัติ
+  async function loadAll(showToast=false){
+    try{
+      const res = await fetch(`${API_BASE}/slots_list.php`, {cache:'no-store'});
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || 'โหลดข้อมูลไม่ได้');
+
+      renderStats(data.summary || {available:0, booked:0, occupied:0});
+      renderLevels(data.slots || []);
+
+      const now = new Date();
+      $('#updatedAt').textContent =
+        'อัปเดตล่าสุด ' + now.toLocaleString('th-TH', {dateStyle:'medium', timeStyle:'short'});
+      if (showToast) toast('อัปเดตข้อมูลแล้ว');
+    }catch(err){
+      console.error(err);
+      $('#statsGrid').innerHTML = `
+        <div class="stat ok"><div class="label">ว่าง</div><div class="num">—</div></div>
+        <div class="stat warn"><div class="label">จองแล้ว</div><div class="num">—</div></div>
+        <div class="stat danger"><div class="label">ใช้งานอยู่</div><div class="num">—</div></div>`;
+      $('#levelTbody').innerHTML =
+        `<tr><td colspan="5" class="td">❌ โหลดข้อมูลไม่สำเร็จ</td></tr>`;
+      $('#updatedAt').textContent = 'อัปเดตล่าสุด — (โหลดไม่ได้)';
+    }
+  }
+
+  loadAll(false);
+  let timer = null;
+  function start(){ if(!timer) timer = setInterval(()=>loadAll(false), 10000); }
+  function stop(){ if(timer){ clearInterval(timer); timer = null; } }
+  document.addEventListener('visibilitychange', ()=>{
+    if (document.hidden) stop();
+    else { loadAll(false); start(); }
+  });
+  start();
+</script>
+</body>
+</html>

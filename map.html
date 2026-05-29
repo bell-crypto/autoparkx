@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <!-- ✅ ล็อคซูม + รองรับ notch -->
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking • ผังที่จอด</title>
+
+    <!-- iOS PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+            --warn-bg: #fff7ed;
+            --warn-bd: #fed7aa;
+            --warn-tx: #9a3412;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e5e7eb;
+                --muted: #9aa4af;
+                --sep: #1f2937;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .55);
+                --warn-bg: rgba(249, 115, 22, .12);
+                --warn-bd: rgba(249, 115, 22, .28);
+                --warn-tx: #fdba74;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+        }
+
+        input,
+        textarea,
+        select {
+            font-size: 16px;
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-bottom: 1px solid var(--sep);
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .back-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: var(--text);
+        }
+
+        .back-btn:active {
+            transform: scale(.94);
+        }
+
+        .nav-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-spacer {
+            width: 32px;
+        }
+
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 14px 14px calc(90px + var(--safe-btm));
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--sep);
+            box-shadow: var(--shadow);
+            padding: 14px 14px 12px;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .title {
+            margin: 0;
+            font-weight: 900;
+            font-size: 16px;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .mini-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)92%, transparent);
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--text);
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .level-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .selectwrap {
+            position: relative;
+            display: inline-block;
+            z-index: 2;
+        }
+
+        .levelSelect {
+            -webkit-appearance: none;
+            appearance: none;
+            width: auto;
+            max-width: 100%;
+            display: inline-block;
+            border: 1px solid var(--sep);
+            background: var(--card);
+            color: var(--text);
+            font-weight: 950;
+            font-size: 13px;
+            letter-spacing: .1px;
+            padding: 8px 22px 8px 12px;
+            border-radius: 14px;
+            box-shadow: none;
+            outline: none;
+        }
+
+        .levelSelect:focus,
+        .levelSelect:focus-visible {
+            outline: none;
+            box-shadow: none;
+            border-color: var(--sep);
+        }
+
+        .selectwrap::after {
+            content: "▾";
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        .info-note {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--warn-bd);
+            background: var(--warn-bg);
+            color: var(--warn-tx);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .info-note.show {
+            display: block;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 6px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .lg {
+            flex: 1 1 0;
+            min-width: 0;
+            justify-content: center;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            color: var(--text);
+            font-weight: 800;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            flex: 0 0 auto;
+        }
+
+        .d-av {
+            background: #10b981;
+        }
+
+        .d-bk {
+            background: #f59e0b;
+        }
+
+        .d-oc {
+            background: #ef4444;
+        }
+
+        .d-mt {
+            background: #6b7280;
+        }
+
+        @media (max-width: 390px) {
+            .legend {
+                gap: 5px;
+            }
+
+            .lg {
+                font-size: 11px;
+                padding: 5px 7px;
+                gap: 5px;
+            }
+
+            .dot {
+                width: 8px;
+                height: 8px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .legend {
+                gap: 4px;
+            }
+
+            .lg {
+                font-size: 10px;
+                padding: 4px 6px;
+            }
+        }
+
+        .blueprint {
+            border-radius: 18px;
+            border: 1px solid color-mix(in oklab, var(--sep)85%, transparent);
+            background: linear-gradient(180deg,
+                    color-mix(in oklab, var(--card)95%, transparent),
+                    color-mix(in oklab, var(--card)92%, transparent));
+            padding: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lot-grid {
+            display: grid;
+            grid-template-columns: 1fr minmax(68px, .7fr) 1fr;
+            gap: 10px;
+            align-items: start;
+        }
+
+        .side {
+            display: grid;
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .lane {
+            border: 1px dashed color-mix(in oklab, var(--sep)75%, transparent);
+            border-radius: 16px;
+            min-height: 100%;
+            padding: 10px 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: var(--muted);
+            text-align: center;
+            font-weight: 900;
+            font-size: 11px;
+            letter-spacing: .3px;
+            background: color-mix(in oklab, var(--card)94%, transparent);
+            position: relative;
+        }
+
+        .lane::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            transform: translateX(-50%);
+            background: repeating-linear-gradient(to bottom,
+                    color-mix(in oklab, var(--sep)65%, transparent) 0 10px,
+                    transparent 10px 18px);
+            opacity: .9;
+        }
+
+        .entrance {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 900;
+        }
+
+        .gate {
+            width: 140px;
+            height: 10px;
+            border-radius: 999px;
+            border: 1px solid color-mix(in oklab, var(--sep)75%, transparent);
+            background: color-mix(in oklab, var(--card)92%, transparent);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gate::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 45%;
+            background: color-mix(in oklab, var(--tint)14%, transparent);
+        }
+
+        .slot {
+            border-radius: 14px;
+            border: 1px solid color-mix(in oklab, var(--sep)85%, transparent);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            padding: 10px 10px 9px;
+            text-align: left;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            transition: transform .12s ease, border-color .12s ease, background .12s ease, opacity .12s ease;
+            min-height: 74px;
+            overflow: hidden;
+        }
+
+        .slot:hover {
+            border-color: color-mix(in oklab, var(--tint)22%, var(--sep));
+        }
+
+        .slot:active {
+            transform: scale(.99);
+        }
+
+        .slot::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 6px;
+            bottom: 6px;
+            width: 5px;
+            border-radius: 999px;
+            background: color-mix(in oklab, var(--sep)70%, transparent);
+        }
+
+        .slot[data-status="AVAILABLE"]::before {
+            background: #10b981;
+        }
+
+        .slot[data-status="BOOKED"]::before {
+            background: #f59e0b;
+        }
+
+        .slot[data-status="OCCUPIED"]::before {
+            background: #ef4444;
+        }
+
+        .slot[data-status="MAINTENANCE"]::before {
+            background: #6b7280;
+        }
+
+        .slot[data-status="HELD"]::before {
+            background: #6b7280;
+        }
+
+        .slot-code {
+            font-weight: 900;
+            font-size: 14px;
+            letter-spacing: .3px;
+        }
+
+        .slot-sub {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 900;
+            border: 1px solid color-mix(in oklab, var(--sep)85%, transparent);
+            background: color-mix(in oklab, var(--card)95%, transparent);
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .sdot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+        }
+
+        .s-av {
+            background: #10b981;
+        }
+
+        .s-bk {
+            background: #f59e0b;
+        }
+
+        .s-oc {
+            background: #ef4444;
+        }
+
+        .s-mt {
+            background: #6b7280;
+        }
+
+        .slot.disabled {
+            opacity: .62;
+            filter: saturate(.65);
+            cursor: default;
+        }
+
+        .slot.view-only {
+            cursor: default;
+        }
+
+        .slot.selected {
+            outline: 2px solid var(--tint);
+            background: color-mix(in oklab, var(--tint)7%, var(--card));
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(16px + var(--safe-btm));
+            transform: translateX(-50%) translateY(30px);
+            opacity: 0;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            background: #0f172a;
+            color: #f9fafb;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .6);
+            pointer-events: none;
+            transition: opacity .18s, transform .18s;
+            max-width: 90%;
+            text-align: center;
+            z-index: 80;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: #b91c1c;
+        }
+
+        .actionbar {
+            position: sticky;
+            bottom: 0;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card) 92%, transparent);
+            backdrop-filter: blur(10px) saturate(180%);
+        }
+
+        .ab-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .ab-left {
+            min-width: 0;
+        }
+
+        .ab-title {
+            font-weight: 900;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ab-sub {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ab-btn {
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 0;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--tint), #0a66cc);
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 10px 24px rgba(10, 132, 255, .25);
+        }
+
+        .ab-btn:active {
+            transform: scale(.98);
+        }
+
+        .ab-btn:disabled {
+            opacity: .6;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .tabbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint)10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav">
+        <div class="row">
+            <button class="back-btn" id="backBtn" type="button">‹</button>
+            <div class="nav-title">ผังที่จอด (Top view)</div>
+            <div class="nav-spacer"></div>
+        </div>
+    </div>
+
+    <main class="page">
+        <section class="card">
+            <div class="title-row">
+                <h3 class="title">ภาพรวมผังที่จอด</h3>
+                <div class="mini-chip" id="miniInfo">กำลังโหลด…</div>
+            </div>
+            <p class="subtitle">แผนผังลานจอด AutoParkX (มุมมองด้านบน)</p>
+
+            <div class="legend">
+                <span class="lg"><span class="dot d-av"></span>ว่าง</span>
+                <span class="lg"><span class="dot d-bk"></span>จองแล้ว</span>
+                <span class="lg"><span class="dot d-oc"></span>ใช้งานอยู่</span>
+                <span class="lg"><span class="dot d-mt"></span>ปิดปรับปรุง</span>
+            </div>
+
+            <div class="level-row">
+                <div class="subtitle" style="margin:0">เลือกชั้นที่ต้องการแสดง</div>
+                <div class="selectwrap" aria-label="เลือกชั้น">
+                    <select class="levelSelect" id="levelSelect">
+            <option value="1">ชั้น 1 (A01–A10)</option>
+            <option value="2">ชั้น 2 (B01–B10)</option>
+          </select>
+                </div>
+            </div>
+
+            <div class="info-note" id="levelNote">
+                ชั้น 2 ใช้สำหรับดูสถานะว่าง/ไม่ว่างเท่านั้น และยังไม่รองรับการจอง
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="title-row">
+                <h3 class="title">ผังลานจอด</h3>
+                <div class="mini-chip" id="levelChipText">ชั้น 1</div>
+            </div>
+
+            <div class="blueprint">
+                <div class="lot-grid">
+                    <div class="side" id="leftSide">
+                        <div class="slot" data-code="A01" data-slot="1">
+                            <div class="slot-code">A01</div>
+                            <div class="slot-sub">
+                                <span class="status-pill"><span class="sdot s-mt"></span><span class="stxt">กำลังโหลด…</span></span>
+                                <span style="font-weight:900;color:var(--muted)">#1</span>
+                            </div>
+                        </div>
+                        <div class="slot" data-code="A02" data-slot="2">
+                            <div class="slot-code">A02</div>
+                            <div class="slot-sub">
+                                <span class="status-pill"><span class="sdot s-mt"></span><span class="stxt">กำลังโหลด…</span></span>
+                                <span style="font-weight:900;color:var(--muted)">#2</span>
+                            </div>
+                        </div>
+                        <div class="slot" data-code="A03" data-slot="3">
+                            <div class="slot-code">A03</div>
+                            <div class="slot-sub">
+                                <span class="status-pill"><span class="sdot s-mt"></span><span class="stxt">กำลังโหลด…</span></span>
+                                <span style="font-weight:900;color:var(--muted)">#3</span>
+                            </div>
+                        </div>
+                        <div class="slot" data-code="A04" data-slot="4">
+                            <div class="slot-code">A04</div>
+                            <div class="slot-sub">
+                                <span class="status-pill"><span class="sdot s-mt"></span><span class="stxt">กำลังโหลด…</span></span>
+                                <span style="font-weight:900;color:var(--muted)">#4</span>
+                            </div>
+                        </div>
+                        <div class="slot" data-code="A05" data-slot="5">
+                            <div class="slot-code">A05</div>
+                            <div class="slot-sub">
+                                <span class="status-pill"><span class="sdot s-mt"></span><span class="stxt">กำลังโหลด…</span></span>
+                                <span style="font-weight:900;color:var(--muted)">#5</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lane">
+                        <div style="position:relative;z-index:1">เลนวิ่งรถ</div>
+                        <div style="position:relative;z-index:1">↕</div>
+                        <div style="position:relative;z-index:1">เข้า–ออก</div>
+                    </div>
+
+                    <div class="side" id="rightSide">
+                        <div class="slot" data-code="A06" data-slot="6">
+                            <div class="slot-code">A06</div>
+                            <div class="slot-sub">
+                                <span class="status-pill"><span class="sdot s-mt"></span><span class="stxt">กำลังโหลด…</span></span>
+                                <span style="font-weight:900;color:var(--muted)">#6</span>
+                            </div>
+                        </div>
+                        <div class="slot" data-code="A07" data-slot="7">
+                            <div class="slot-code">A07</div>
+                            <div class="slot-sub">
+                                <span class="status-pill"><span class="sdot s-mt"></span><span class="stxt">กำลังโหลด…</span></span>
+                                <span style="font-weight:900;color:var(--muted)">#7</span>
+                            </div>
+                        </div>
+                        <div class="slot" data-code="A08" data-slot="8">
+                            <div class="slot-code">A08</div>
+                            <div class="slot-sub">
+                                <span class="status-pill"><span class="sdot s-mt"></span><span class="stxt">กำลังโหลด…</span></span>
+                                <span style="font-weight:900;color:var(--muted)">#8</span>
+                            </div>
+                        </div>
+                        <div class="slot" data-code="A09" data-slot="9">
+                            <div class="slot-code">A09</div>
+                            <div class="slot-sub">
+                                <span class="status-pill"><span class="sdot s-mt"></span><span class="stxt">กำลังโหลด…</span></span>
+                                <span style="font-weight:900;color:var(--muted)">#9</span>
+                            </div>
+                        </div>
+                        <div class="slot" data-code="A10" data-slot="10">
+                            <div class="slot-code">A10</div>
+                            <div class="slot-sub">
+                                <span class="status-pill"><span class="sdot s-mt"></span><span class="stxt">กำลังโหลด…</span></span>
+                                <span style="font-weight:900;color:var(--muted)">#10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="entrance">
+                    <span>ทางเข้า–ออก</span>
+                    <div class="gate" aria-hidden="true"></div>
+                </div>
+
+                <div class="actionbar">
+                    <div class="ab-inner">
+                        <div class="ab-left">
+                            <div class="ab-title" id="selTitle">ยังไม่ได้เลือกช่อง</div>
+                            <div class="ab-sub" id="selSub">แตะช่องเพื่อเลือก แล้วกลับไปหน้าจอง</div>
+                        </div>
+                        <button class="ab-btn" id="goBookingBtn" type="button" disabled>ไปหน้าจอง</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <nav class="tabbar">
+        <div class="tabs">
+            <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+            <a class="tab active" href="booking.html"><span class="ico">📅</span>จอง</a>
+            <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+            <a class="tab" href="account.html"><span class="ico">👤</span>บัญชี</a>
+        </div>
+    </nav>
+
+    <script>
+        const ROOT = "";
+    const API_BASE = `${location.origin}${ROOT}/api`;
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+
+    const STATUS_TEXT = {
+      AVAILABLE: 'ว่าง',
+      BOOKED: 'จองแล้ว',
+      OCCUPIED: 'ใช้งานอยู่',
+      MAINTENANCE: 'ปิดปรับปรุง',
+      HELD: 'กันไว้'
+    };
+
+    const DOT_CLASS = {
+      AVAILABLE: 's-av',
+      BOOKED: 's-bk',
+      OCCUPIED: 's-oc',
+      MAINTENANCE: 's-mt',
+      HELD: 's-mt'
+    };
+
+    function showToast(msg, isError = false) {
+      const t = $('#toast');
+      t.textContent = msg;
+      t.classList.toggle('error', !!isError);
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function parseQS() {
+      const u = new URL(location.href);
+      return {
+        level: Number(u.searchParams.get('level') || '1'),
+        start: u.searchParams.get('start') || '',
+        end: u.searchParams.get('end') || '',
+        slot: (u.searchParams.get('slot') || '').toUpperCase()
+      };
+    }
+
+    let state = {
+      level: 1,
+      start: '',
+      end: '',
+      selectedCode: '',
+      slotsByCode: new Map()
+    };
+
+    function isBookingLevel() {
+      return Number(state.level) === 1;
+    }
+
+    function codeForLevel(code, level) {
+      const m = String(code).match(/^([AB])(\d{2})$/i);
+      if (!m) return code;
+      const num = m[2];
+      return (Number(level) === 2 ? 'B' : 'A') + num;
+    }
+
+    function applyLevel(level) {
+      state.level = Number(level) || 1;
+      $('#levelChipText').textContent = `ชั้น ${state.level}`;
+
+      const sel = document.getElementById('levelSelect');
+      if (sel) sel.value = String(state.level);
+
+      $$('.slot').forEach(el => {
+        const base = el.getAttribute('data-slot') || '1';
+        const current = (Number(state.level) === 2 ? 'B' : 'A') + String(base).padStart(2, '0');
+        el.setAttribute('data-code', current);
+        el.querySelector('.slot-code').textContent = current;
+        el.classList.remove('selected');
+      });
+
+      state.selectedCode = '';
+      updateLevelNote();
+      loadSlots();
+      updateSelectedUI();
+    }
+
+    function updateLevelNote() {
+      const note = $('#levelNote');
+      const btn = $('#goBookingBtn');
+
+      if (isBookingLevel()) {
+        note.classList.remove('show');
+        btn.style.display = '';
+      } else {
+        note.classList.add('show');
+        btn.style.display = 'none';
+      }
+    }
+
+    async function loadSlots() {
+      try {
+        $('#miniInfo').textContent = 'กำลังโหลด…';
+
+        const qs = `?level=${encodeURIComponent(String(state.level))}`;
+        const res = await fetch(`${API_BASE}/slots_list.php${qs}`, { cache: 'no-store' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+        const slots = Array.isArray(data.slots) ? data.slots : [];
+        state.slotsByCode = new Map();
+        slots.forEach(s => {
+          if (s?.code) state.slotsByCode.set(String(s.code).toUpperCase(), s);
+        });
+
+        let c = { all: 0, av: 0, bk: 0, oc: 0, mt: 0 };
+
+        $$('.slot').forEach(el => {
+          const code = String(el.getAttribute('data-code') || '').toUpperCase();
+          const s = state.slotsByCode.get(code);
+          const st = (s?.status || 'MAINTENANCE').toUpperCase();
+
+          c.all++;
+          if (st === 'AVAILABLE') c.av++;
+          else if (st === 'BOOKED') c.bk++;
+          else if (st === 'OCCUPIED') c.oc++;
+          else c.mt++;
+
+          el.setAttribute('data-status', st);
+
+          const dot = el.querySelector('.sdot');
+          const txt = el.querySelector('.stxt');
+          dot.classList.remove('s-av', 's-bk', 's-oc', 's-mt');
+          dot.classList.add(DOT_CLASS[st] || 's-mt');
+          txt.textContent = STATUS_TEXT[st] || st;
+
+          if (isBookingLevel()) {
+            el.classList.toggle('disabled', st !== 'AVAILABLE');
+            el.classList.remove('view-only');
+          } else {
+            el.classList.remove('disabled');
+            el.classList.add('view-only');
+          }
+        });
+
+        $('#miniInfo').textContent = `ว่าง ${c.av}/${c.all}`;
+        updateSelectedUI();
+      } catch (e) {
+        console.error(e);
+        $('#miniInfo').textContent = 'โหลดไม่สำเร็จ';
+        showToast('โหลดสถานะช่องจอดไม่สำเร็จ', true);
+      }
+    }
+
+    function updateSelectedUI() {
+      $$('.slot').forEach(el => {
+        const code = String(el.getAttribute('data-code') || '').toUpperCase();
+        el.classList.toggle('selected', !!state.selectedCode && code === state.selectedCode);
+      });
+
+      const title = $('#selTitle');
+      const sub = $('#selSub');
+      const btn = $('#goBookingBtn');
+
+      if (!isBookingLevel()) {
+        title.textContent = 'ชั้น 2 • ดูสถานะอย่างเดียว';
+        sub.textContent = 'ชั้นนี้ใช้สำหรับดูว่าช่องไหนว่างหรือไม่ว่างเท่านั้น';
+        btn.disabled = true;
+        return;
+      }
+
+      if (!state.selectedCode) {
+        title.textContent = 'ยังไม่ได้เลือกช่อง';
+        sub.textContent = 'แตะช่องว่างเพื่อเลือก แล้วกลับไปหน้าจอง';
+        btn.disabled = true;
+        return;
+      }
+
+      const s = state.slotsByCode.get(state.selectedCode);
+      const st = (s?.status || '').toUpperCase();
+      title.textContent = `${state.selectedCode} • ชั้น ${state.level}`;
+
+      if (st === 'AVAILABLE') {
+        sub.textContent = 'ช่องนี้ว่าง (ไปหน้าจองเพื่อยืนยันได้)';
+        btn.disabled = false;
+      } else {
+        sub.textContent = `ช่องนี้: ${STATUS_TEXT[st] || st} (เลือกไม่ได้)`;
+        btn.disabled = true;
+      }
+    }
+
+    function gotoBooking() {
+      if (!isBookingLevel() || !state.selectedCode) return;
+
+      const u = new URL('booking.html', location.href);
+      u.searchParams.set('slot', state.selectedCode);
+      if (state.start) u.searchParams.set('start', state.start);
+      if (state.end) u.searchParams.set('end', state.end);
+      location.href = u.pathname + u.search;
+    }
+
+    (function init() {
+      const qs = parseQS();
+      state.level = qs.level || 1;
+      state.start = qs.start || '';
+      state.end = qs.end || '';
+      state.selectedCode = '';
+
+      $('#backBtn').addEventListener('click', () => {
+        const u = new URL('booking.html', location.href);
+        if (state.start) u.searchParams.set('start', state.start);
+        if (state.end) u.searchParams.set('end', state.end);
+        location.href = u.pathname + u.search;
+      });
+
+      const levelSelect = document.getElementById('levelSelect');
+      if (levelSelect) {
+        levelSelect.value = String(state.level);
+        levelSelect.addEventListener('change', (e) => {
+          applyLevel(Number(e.target.value));
+        }, { passive: true });
+      }
+
+      $$('.slot').forEach(el => {
+        el.addEventListener('click', () => {
+          const code = String(el.getAttribute('data-code') || '').toUpperCase();
+          const s = state.slotsByCode.get(code);
+          const st = (s?.status || 'MAINTENANCE').toUpperCase();
+
+          if (!isBookingLevel()) {
+            state.selectedCode = '';
+            updateSelectedUI();
+            showToast(`${code}: ${STATUS_TEXT[st] || st}`, false);
+            return;
+          }
+
+          if (st !== 'AVAILABLE') {
+            state.selectedCode = code;
+            updateSelectedUI();
+            showToast(`${code}: ${STATUS_TEXT[st] || st}`, true);
+            return;
+          }
+
+          state.selectedCode = code;
+          updateSelectedUI();
+          showToast(`เลือก ${code} แล้ว`, false);
+        });
+      });
+
+      $('#goBookingBtn').addEventListener('click', gotoBooking);
+
+      applyLevel(state.level);
+    })();
+    </script>
+</body>
+
+</html>

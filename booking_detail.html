@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <!-- กัน iOS ซูมเวลาโฟกัส input -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <title>Parking • รายละเอียดการจอง</title>
+
+  <!-- iOS full screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="AutoParkX">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+
+  <!-- PWA / browser อื่น ๆ -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a84ff">
+
+  <style>
+    :root{
+      --bg:#f5f6f8; --card:#ffffff; --text:#0b1220; --muted:#6b7280;
+      --tint:#0a84ff; --sep:#e9edf2; --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.08);
+      --safe-top:env(safe-area-inset-top); --safe-btm:env(safe-area-inset-bottom);
+      --vh:100dvh; --nav-h:0px; --tab-h:0px;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --bg:#0b0f14; --card:#11161c; --text:#e9edf2; --muted:#9aa4af;
+        --sep:#1b2430; --shadow:0 14px 26px rgba(0,0,0,.5);
+      }
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; scrollbar-gutter:stable both-edges;}
+    @supports not (scrollbar-gutter:stable){ body{overflow-y:scroll} }
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,"Noto Sans Thai","Sarabun",sans-serif;
+    }
+
+    /* nav */
+    .nav{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter:saturate(180%) blur(12px);
+      background:color-mix(in oklab,var(--bg)90%,transparent);
+      border-bottom:1px solid var(--sep);
+      padding:calc(8px + var(--safe-top)) 14px 8px;
+    }
+    .row{
+      max-width:980px; margin:0 auto;
+      display:grid; grid-template-columns:auto 1fr auto;
+      align-items:center; column-gap:8px;
+    }
+    .back-btn{
+      border:none; background:transparent; padding:4px 8px;
+      font-size:22px; line-height:1; cursor:pointer;
+      display:flex; align-items:center; justify-content:flex-start;
+    }
+    .back-btn:active{transform:scale(.94);}
+    .nav-title{
+      text-align:center; font-weight:800; font-size:15px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .nav-spacer{width:32px;}
+
+    .page{
+      max-width:980px; margin:0 auto;
+      padding:14px 14px calc(90px + var(--safe-btm));
+      min-height:calc(var(--vh) - var(--nav-h) - var(--tab-h));
+    }
+    .card{
+      background:var(--card); border:1px solid var(--sep);
+      border-radius:var(--radius); box-shadow:var(--shadow);
+      padding:16px; margin-bottom:12px;
+    }
+    .title{margin:0 0 4px; font-weight:900; font-size:18px;}
+    .subtitle{margin:0 0 10px; font-size:12px; color:var(--muted);}
+
+    .loading, .error-msg{
+      font-size:13px; color:var(--muted);
+      padding:12px 4px;
+      text-align:center;
+    }
+    .error-msg{color:#b91c1c;}
+
+    .summary-header{
+      display:flex; justify-content:space-between; align-items:flex-start;
+      gap:12px; margin-bottom:8px;
+    }
+    .summary-left{
+      display:flex; flex-direction:column; gap:4px;
+      min-width:0;
+    }
+    .badge-booking{
+      font-size:12px; color:var(--muted);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .slot-label{
+      font-size:22px; font-weight:900;
+      letter-spacing:.04em; text-transform:uppercase;
+    }
+    .slot-meta{
+      font-size:11px; color:var(--muted);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+
+    .status-chip{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 10px; border-radius:999px;
+      font-size:11px; font-weight:800; text-transform:uppercase;
+      border:1px solid transparent;
+      white-space:nowrap;
+    }
+    .status-chip-dot{
+      width:6px; height:6px; border-radius:999px;
+      background:#9ca3af;
+    }
+    .status-pending{
+      background:rgba(251,191,36,.1);
+      color:#92400e;
+      border-color:rgba(251,191,36,.6);
+    }
+    .status-pending .status-chip-dot{background:#fbbf24;}
+
+    .status-booked{
+      background:rgba(59,130,246,.1);
+      color:#1d4ed8;
+      border-color:rgba(59,130,246,.6);
+    }
+    .status-booked .status-chip-dot{background:#3b82f6;}
+
+    .status-active{
+      background:rgba(16,185,129,.1);
+      color:#047857;
+      border-color:rgba(16,185,129,.6);
+    }
+    .status-active .status-chip-dot{background:#10b981;}
+
+    .status-done{
+      background:rgba(34,197,94,.1);
+      color:#15803d;
+      border-color:rgba(34,197,94,.6);
+    }
+    .status-done .status-chip-dot{background:#22c55e;}
+
+    .status-cancelled{
+      background:rgba(248,113,113,.1);
+      color:#b91c1c;
+      border-color:rgba(248,113,113,.6);
+    }
+    .status-cancelled .status-chip-dot{background:#ef4444;}
+
+    .status-expired{
+      background:rgba(148,163,184,.12);
+      color:#4b5563;
+      border-color:rgba(148,163,184,.6);
+    }
+    .status-expired .status-chip-dot{background:#9ca3af;}
+
+    .amount-block{
+      text-align:right;
+    }
+    .amount-label{
+      font-size:11px; color:var(--muted);
+    }
+    .amount-main{
+      font-size:20px; font-weight:900;
+    }
+    .amount-sub{
+      font-size:11px; color:var(--muted);
+      white-space:nowrap;
+    }
+
+    /* key-value list */
+    .kv-list{
+      margin:2px 0 0; padding:0; list-style:none;
+      border-top:1px dashed var(--sep);
+      margin-top:10px; padding-top:8px;
+    }
+    .kv-item{
+      display:flex; justify-content:space-between; align-items:flex-start;
+      gap:8px; padding:4px 0;
+      font-size:12px;
+    }
+    .kv-label{
+      color:var(--muted); white-space:nowrap;
+    }
+    .kv-value{
+      text-align:right; flex:1; white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis;
+    }
+
+    .section-title{
+      font-size:13px; font-weight:800; margin:0 0 6px;
+    }
+
+    .note-box{
+      font-size:12px; color:var(--muted);
+      border-radius:12px; border:1px dashed var(--sep);
+      padding:8px 10px;
+      background:color-mix(in oklab,var(--card)96%,transparent);
+    }
+    .note-label{
+      font-weight:700; margin-bottom:2px;
+    }
+
+    /* ปุ่ม */
+    .btn-row{
+      display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;
+    }
+    .btn{
+      flex:1;
+      min-width:120px;
+      padding:9px 10px;
+      border-radius:999px;
+      border:none;
+      font-size:13px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .btn-outline{
+      background:transparent;
+      border:1px solid var(--sep);
+      color:var(--text);
+    }
+    .btn-primary{
+      background:var(--tint);
+      color:#fff;
+    }
+    .btn:active{transform:scale(.97);}
+
+    .toast{
+      position:fixed; left:50%; bottom:calc(16px + var(--safe-btm));
+      transform:translateX(-50%) translateY(30px);
+      opacity:0; padding:10px 14px; border-radius:999px;
+      font-size:13px; background:#0f172a; color:#f9fafb;
+      box-shadow:0 12px 30px rgba(0,0,0,.6);
+      pointer-events:none; transition:opacity .18s, transform .18s;
+      max-width:90%; text-align:center; z-index:80;
+    }
+    .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+    .toast.error{background:#b91c1c;}
+
+    .tabbar{
+      position:fixed; left:0; right:0; bottom:0; z-index:60;
+      padding:8px max(12px,env(safe-area-inset-left))
+              calc(8px + var(--safe-btm))
+              max(12px,env(safe-area-inset-right));
+      background:color-mix(in oklab,var(--bg)90%,transparent);
+      border-top:1px solid var(--sep);
+      backdrop-filter:saturate(180%) blur(10px);
+    }
+    .tabs{
+      max-width:980px; margin:0 auto;
+      display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
+    }
+    .tab{
+      display:flex; flex-direction:column; align-items:center;
+      gap:4px; padding:8px 6px; border-radius:12px;
+      color:var(--muted); text-decoration:none;
+      font-size:12px; font-weight:800;
+    }
+    .tab.active{color:var(--tint); background:color-mix(in oklab,var(--tint)10%,transparent);}
+    .ico{font-size:18px; line-height:1;}
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <div class="row">
+      <button class="back-btn" type="button" onclick="history.back()">‹</button>
+      <div class="nav-title">รายละเอียดการจอง</div>
+      <div class="nav-spacer"></div>
+    </div>
+  </div>
+
+  <main class="page">
+    <!-- สถานะโหลด / error -->
+    <div id="loading" class="loading">กำลังโหลดรายละเอียดการจอง…</div>
+    <div id="error" class="error-msg" style="display:none;"></div>
+
+    <!-- รายละเอียดหลัก (ซ่อนตอนยังไม่โหลด) -->
+    <section id="detailCard" class="card" style="display:none;">
+      <h3 class="title">ข้อมูลการจอง</h3>
+      <p class="subtitle" id="bkSummaryText">
+        รายละเอียดการจองที่จอดของคุณในระบบ AutoParkX
+      </p>
+
+      <div class="summary-header">
+        <div class="summary-left">
+          <div class="badge-booking" id="bkCode">เลขที่การจอง –</div>
+          <div class="slot-label" id="bkSlot">ช่อง –</div>
+          <div class="slot-meta" id="bkLocation">–</div>
+        </div>
+        <div class="amount-block">
+          <div class="amount-label">ยอดรวมโดยประมาณ</div>
+          <div class="amount-main" id="bkAmount">– ฿</div>
+          <div class="amount-sub" id="bkPayMethod">ชำระด้วย –</div>
+        </div>
+      </div>
+
+      <div id="bkStatusChip" class="status-chip status-booked" style="margin-top:4px;">
+        <span class="status-chip-dot"></span>
+        <span id="bkStatusText">สถานะการจอง</span>
+      </div>
+
+      <ul class="kv-list">
+        <li class="kv-item">
+          <div class="kv-label">เวลาเริ่มจอง</div>
+          <div class="kv-value" id="bkStart">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">เวลาสิ้นสุด</div>
+          <div class="kv-value" id="bkEnd">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">ระยะเวลาโดยประมาณ</div>
+          <div class="kv-value" id="bkDuration">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">สถานะระบบ</div>
+          <div class="kv-value" id="bkStatusDetail">–</div>
+        </li>
+      </ul>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn-outline" id="btnCopyCode">คัดลอกเลขที่จอง</button>
+        <button type="button" class="btn btn-primary" id="btnOpenMap">ดูตำแหน่งที่จอด</button>
+      </div>
+    </section>
+
+    <!-- การชำระเงิน -->
+    <section id="paymentCard" class="card" style="display:none;">
+      <h4 class="section-title">รายละเอียดการชำระเงิน</h4>
+      <ul class="kv-list">
+        <li class="kv-item">
+          <div class="kv-label">ค่าจอดพื้นฐาน</div>
+          <div class="kv-value" id="payBase">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">ส่วนลด / โปรโมชัน</div>
+          <div class="kv-value" id="payDiscount">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">ค่าปรับ / ค่าธรรมเนียม</div>
+          <div class="kv-value" id="payPenalty">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">ชำระด้วยวอลเล็ต</div>
+          <div class="kv-value" id="payWallet">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">คืนเงินเข้าวอลเล็ต</div>
+          <div class="kv-value" id="payRefund">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">ยอดสุทธิ</div>
+          <div class="kv-value" id="payTotal" style="font-weight:800;"></div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- เวลาอื่น ๆ / Audit -->
+    <section id="timelineCard" class="card" style="display:none;">
+      <h4 class="section-title">สถานะเวลา / การดำเนินการ</h4>
+      <ul class="kv-list">
+        <li class="kv-item">
+          <div class="kv-label">สร้างรายการ</div>
+          <div class="kv-value" id="bkCreated">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">เวลาเช็คอิน</div>
+          <div class="kv-value" id="bkCheckin">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">เวลาเช็คเอาต์</div>
+          <div class="kv-value" id="bkCheckout">–</div>
+        </li>
+        <li class="kv-item">
+          <div class="kv-label">ยกเลิกเมื่อ</div>
+          <div class="kv-value" id="bkCancelled">–</div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- หมายเหตุ -->
+    <section id="noteCard" class="card" style="display:none;">
+      <h4 class="section-title">หมายเหตุ / ข้อความ</h4>
+      <div class="note-box" id="noteBox"></div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <div class="tabs">
+      <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+      <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+      <a class="tab active" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+      <a class="tab" href="account.html"><span class="ico">👤</span>บัญชี</a>
+    </div>
+  </nav>
+
+  <div id="toast" class="toast"></div>
+
+<script>
+  const ROOT = '';
+  const API_BASE = `${location.origin}${ROOT}/api`;
+  const $ = s => document.querySelector(s);
+
+  let me = {};
+  try { me = JSON.parse(localStorage.getItem('parking_user') || '{}'); } catch {}
+
+  if (!me?.id) {
+    sessionStorage.setItem('after_login', 'mybookings.html');
+    location.href = 'login.html';
+  }
+
+  function showToast(msg, isError = false) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.toggle('error', !!isError);
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function getParam(name){
+    const p = new URLSearchParams(location.search);
+    return p.get(name);
+  }
+
+  function toDate(str){
+    if(!str) return null;
+    const s = str.replace(' ','T');
+    const d = new Date(s);
+    return isNaN(d) ? null : d;
+  }
+
+  function fmtDT(str){
+    const d = toDate(str);
+    if(!d) return '–';
+    return d.toLocaleString('th-TH',{
+      dateStyle:'short',
+      timeStyle:'short'
+    });
+  }
+
+  function fmtMoney(num){
+    if(num === null || num === undefined || isNaN(num)) return '–';
+    return Number(num).toLocaleString('th-TH',{minimumFractionDigits:2})+' ฿';
+  }
+
+  function fmtDuration(mins){
+    const m = Number(mins||0);
+    if(!m || m<=0) return '–';
+    const h = Math.floor(m/60);
+    const mm = m%60;
+    if(h && mm) return `${h} ชม. ${mm} นาที`;
+    if(h && !mm) return `${h} ชม.`;
+    return `${m} นาที`;
+  }
+
+  function mapStatus(status){
+    const s = (status||'').toUpperCase();
+    switch(s){
+      case 'PENDING':   return {label:'รอชำระ/รอยืนยัน', class:'status-pending'};
+      case 'BOOKED':    return {label:'จองสำเร็จ', class:'status-booked'};
+      case 'ACTIVE':    return {label:'กำลังใช้งาน', class:'status-active'};
+      case 'ONGOING':   return {label:'กำลังใช้งาน', class:'status-active'};
+      case 'COMPLETED': return {label:'เสร็จสิ้น', class:'status-done'};
+      case 'DONE':      return {label:'เสร็จสิ้น', class:'status-done'};
+      case 'CANCELLED': return {label:'ถูกยกเลิก', class:'status-cancelled'};
+      case 'EXPIRED':   return {label:'หมดอายุ', class:'status-expired'};
+      case 'NO_SHOW':   return {label:'ไม่มาจอด', class:'status-expired'};
+      default:          return {label:s || 'ไม่ทราบสถานะ', class:'status-expired'};
+    }
+  }
+
+  async function loadBookingDetail(){
+    const loadingEl = $('#loading');
+    const errEl     = $('#error');
+    const detailCard= $('#detailCard');
+    const payCard   = $('#paymentCard');
+    const timeCard  = $('#timelineCard');
+    const noteCard  = $('#noteCard');
+
+    loadingEl.style.display = 'block';
+    errEl.style.display = 'none';
+    detailCard.style.display = 'none';
+    payCard.style.display = 'none';
+    timeCard.style.display = 'none';
+    noteCard.style.display = 'none';
+
+    const id = getParam('id') || getParam('code') || '';
+    if(!id){
+      loadingEl.style.display = 'none';
+      errEl.textContent = 'ไม่พบรหัสการจองที่ต้องการแสดงผล';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    try{
+      const url = `${API_BASE}/booking_detail.php?id=${encodeURIComponent(id)}&user_id=${encodeURIComponent(me.id)}`;
+      const res = await fetch(url, {cache:'no-store'});
+      const data = await res.json();
+      if(!data.ok){
+        throw new Error(data.error || 'โหลดข้อมูลไม่สำเร็จ');
+      }
+      const b = data.booking || data.data || {};
+
+      renderDetail(b);
+      loadingEl.style.display = 'none';
+      detailCard.style.display = 'block';
+      timeCard.style.display   = 'block';
+
+      // แสดงการเงินถ้ามีข้อมูลสักช่อง
+      const hasPayInfo =
+        b.amount_base   != null ||
+        b.amount_total  != null ||
+        b.amount_wallet != null ||
+        b.amount_refund != null ||
+        b.amount_penalty!= null ||
+        b.amount_discount!=null;
+      if(hasPayInfo){
+        renderPayment(b);
+        payCard.style.display = 'block';
+      }
+
+      // หมายเหตุ
+      const notes = [];
+      if(b.note_user)  notes.push(`<div><span class="note-label">หมายเหตุจากผู้ใช้:</span> ${escapeHTML(b.note_user)}</div>`);
+      if(b.note_admin) notes.push(`<div style="margin-top:4px;"><span class="note-label">หมายเหตุจากผู้ดูแล:</span> ${escapeHTML(b.note_admin)}</div>`);
+      if(notes.length){
+        $('#noteBox').innerHTML = notes.join('');
+        noteCard.style.display = 'block';
+      }
+    }catch(e){
+      console.error(e);
+      loadingEl.style.display = 'none';
+      errEl.textContent = 'ไม่สามารถโหลดรายละเอียดการจองได้ กรุณาลองใหม่อีกครั้ง';
+      errEl.style.display = 'block';
+      showToast('โหลดรายละเอียดไม่สำเร็จ', true);
+    }
+  }
+
+  function escapeHTML(str){
+    return String(str||'')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  function renderDetail(b){
+    const code = b.code || b.booking_code || ('#'+(b.id||'–'));
+    const slot = b.slot_code || b.slot || '–';
+    const floor= b.level_name || b.level || '';
+    const place= b.location_name || b.lot_name || '';
+    const statusRaw = b.status || b.booking_status || '';
+    const st = mapStatus(statusRaw);
+
+    const start = b.start_time || b.start || '';
+    const end   = b.end_time   || b.end   || '';
+    const dur   = b.duration_minutes || b.duration || '';
+
+    const payMethod = b.pay_method || b.payment_method || 'e-Wallet';
+    const payChannel= b.pay_channel|| '';
+
+    const sumTxtParts = [];
+    if(slot) sumTxtParts.push(`ช่อง ${slot}`);
+    if(place) sumTxtParts.push(place);
+    if(floor) sumTxtParts.push(`ชั้น ${floor}`);
+    $('#bkSummaryText').textContent =
+      sumTxtParts.length ? sumTxtParts.join(' · ') : 'รายละเอียดการจองในระบบ AutoParkX';
+
+    $('#bkCode').textContent = 'เลขที่การจอง ' + code;
+    $('#bkSlot').textContent = 'ช่อง ' + slot;
+    $('#bkLocation').textContent =
+      (place || floor) ? `${place || ''}${place && floor ? ' · ' : ''}${floor ? 'ชั้น '+floor : ''}` : '–';
+
+    const total = (b.amount_total != null)
+      ? Number(b.amount_total)
+      : (b.amount_base != null ? Number(b.amount_base) : NaN);
+    $('#bkAmount').textContent = isNaN(total) ? '– ฿' : fmtMoney(total);
+
+    const payTxt = payChannel
+      ? `${payMethod} (${payChannel})`
+      : payMethod;
+    $('#bkPayMethod').textContent = 'ชำระด้วย ' + payTxt;
+
+    // status chip
+    const chip = $('#bkStatusChip');
+    chip.className = 'status-chip ' + st.class;
+    $('#bkStatusText').textContent = st.label;
+    $('#bkStatusDetail').textContent = st.label + (statusRaw ? ` (${statusRaw})` : '');
+
+    $('#bkStart').textContent = fmtDT(start);
+    $('#bkEnd').textContent   = fmtDT(end);
+    $('#bkDuration').textContent = fmtDuration(dur);
+
+    $('#bkCreated').textContent  = fmtDT(b.created_at || b.created || '');
+    $('#bkCheckin').textContent  = fmtDT(b.checkin_at || b.checked_in_at || '');
+    $('#bkCheckout').textContent = fmtDT(b.checkout_at || b.checked_out_at || '');
+    $('#bkCancelled').textContent= fmtDT(b.cancelled_at || b.canceled_at || '');
+    
+    // ปุ่ม copy
+    $('#btnCopyCode').onclick = async ()=>{
+      try{
+        await navigator.clipboard.writeText(code);
+        showToast('คัดลอกเลขที่การจองแล้ว');
+      }catch{
+        showToast('คัดลอกไม่สำเร็จ', true);
+      }
+    };
+
+    // ปุ่มแผนที่ – ตอนนี้ให้เด้ง toast ไว้ก่อน เผื่อยังไม่ได้ทำแผนที่
+    $('#btnOpenMap').onclick = ()=>{
+      showToast('สามารถเชื่อมไปหน้าแผนที่/ตำแหน่งที่จอดได้ในภายหลัง');
+    };
+  }
+
+  function renderPayment(b){
+    const base    = (b.amount_base    != null) ? Number(b.amount_base)    : NaN;
+    const disc    = (b.amount_discount!= null) ? Number(b.amount_discount): NaN;
+    const penalty = (b.amount_penalty != null) ? Number(b.amount_penalty) : NaN;
+    const wallet  = (b.amount_wallet  != null) ? Number(b.amount_wallet)  : NaN;
+    const refund  = (b.amount_refund  != null) ? Number(b.amount_refund)  : NaN;
+    const total   = (b.amount_total   != null) ? Number(b.amount_total)   : NaN;
+
+    $('#payBase').textContent     = isNaN(base)    ? '–' : fmtMoney(base);
+    $('#payDiscount').textContent = isNaN(disc)    ? '–' : fmtMoney(disc);
+    $('#payPenalty').textContent  = isNaN(penalty) ? '–' : fmtMoney(penalty);
+    $('#payWallet').textContent   = isNaN(wallet)  ? '–' : fmtMoney(wallet);
+    $('#payRefund').textContent   = isNaN(refund)  ? '–' : fmtMoney(refund);
+    $('#payTotal').textContent    = isNaN(total)   ? '–' : fmtMoney(total);
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    loadBookingDetail();
+  });
+</script>
+</body>
+</html>

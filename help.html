@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking • ศูนย์ช่วยเหลือ</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e5e7eb;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e5e7eb;
+                --muted: #9aa4af;
+                --sep: #1f2937;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .55);
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            overflow: hidden;
+        }
+
+        body {
+            overscroll-behavior: none;
+        }
+
+        input,
+        textarea,
+        select {
+            font-size: 16px;
+        }
+
+        .app {
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav {
+            flex: 0 0 auto;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-bottom: 1px solid var(--sep);
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .back-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: var(--text);
+        }
+
+        .back-btn:active {
+            transform: scale(.94);
+        }
+
+        .nav-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-spacer {
+            width: 32px;
+        }
+
+        .page {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            max-width: 980px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 14px 14px 10px;
+            display: flex;
+        }
+
+        .content-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: calc(90px + var(--safe-btm));
+        }
+
+        .content-scroll::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--sep);
+            box-shadow: var(--shadow);
+            padding: 14px 14px 10px;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 2px;
+        }
+
+        .title {
+            margin: 0;
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        .badge-sec {
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            background: color-mix(in oklab, var(--tint)12%, transparent);
+            color: var(--tint);
+            white-space: nowrap;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .faq-list {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        details.faq {
+            border-radius: 14px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            padding: 8px 10px;
+        }
+
+        details.faq[open] {
+            background: color-mix(in oklab, var(--card)92%, transparent);
+        }
+
+        .faq summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .faq summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .faq-icon {
+            font-size: 16px;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        .faq-q {
+            font-size: 14px;
+            font-weight: 800;
+            flex: 1;
+        }
+
+        .faq-a {
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .hint-bottom {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .hint-bottom a {
+            color: var(--tint);
+            text-decoration: none;
+        }
+
+        .hint-bottom a:hover {
+            text-decoration: underline;
+        }
+
+        .tabbar {
+            flex: 0 0 auto;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint)10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="nav">
+            <div class="row">
+                <button class="back-btn" type="button" onclick="location.href='account.html'">‹</button>
+                <div class="nav-title">ศูนย์ช่วยเหลือ</div>
+                <div class="nav-spacer"></div>
+            </div>
+        </div>
+
+        <main class="page">
+            <div class="content-scroll" id="contentScroll">
+                <div class="stack">
+                    <section class="card">
+                        <div class="title-row">
+                            <h3 class="title">เริ่มต้นใช้งาน AutoParkX</h3>
+                            <div class="badge-sec">คำถามที่พบบ่อย</div>
+                        </div>
+                        <p class="subtitle">รวมคำตอบสั้น ๆ สำหรับผู้ใช้ใหม่</p>
+
+                        <div class="faq-list">
+                            <details class="faq">
+                                <summary>
+                                    <span class="faq-icon">❓</span>
+                                    <span class="faq-q">ต้องมีบัญชีก่อนใช้งานระบบหรือไม่?</span>
+                                </summary>
+                                <div class="faq-a">
+                                    ต้องมีบัญชีผู้ใช้ก่อนจึงจะจองที่จอดได้
+                                    สามารถสมัครได้จากหน้า “ล็อกอิน / สมัครสมาชิก”
+                                    โดยใช้อีเมลและรหัสผ่านที่คุณตั้งเอง
+                                </div>
+                            </details>
+
+                            <details class="faq">
+                                <summary>
+                                    <span class="faq-icon">📱</span>
+                                    <span class="faq-q">ใช้ได้ทั้งในคอมพิวเตอร์และมือถือหรือไม่?</span>
+                                </summary>
+                                <div class="faq-a">
+                                    ใช้ได้ทั้งคอมและสมาร์ตโฟนผ่านเว็บเบราว์เซอร์
+                                    และสามารถเพิ่มเป็นไอคอนบนหน้าจอหลักให้ใช้งานเหมือนแอพได้
+                                </div>
+                            </details>
+
+                            <details class="faq">
+                                <summary>
+                                    <span class="faq-icon">🔐</span>
+                                    <span class="faq-q">ลืมรหัสผ่านต้องทำอย่างไร?</span>
+                                </summary>
+                                <div class="faq-a">
+                                    หากเวอร์ชันที่คุณใช้งานมีฟีเจอร์รีเซ็ตรหัสผ่าน
+                                    ให้ไปที่หน้าเข้าสู่ระบบแล้วเลือก “ลืมรหัสผ่าน”
+                                    ถ้ายังไม่มีฟีเจอร์นี้ ให้ติดต่อแอดมินผ่านหน้า “แจ้งปัญหา / ติดต่อแอดมิน”
+                                </div>
+                            </details>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="title-row">
+                            <h3 class="title">การจองที่จอดรถ</h3>
+                            <div class="badge-sec">การใช้งานการจอง</div>
+                        </div>
+                        <p class="subtitle">คำถามเกี่ยวกับการเลือกช่องและช่วงเวลา</p>
+
+                        <div class="faq-list">
+                            <details class="faq">
+                                <summary>
+                                    <span class="faq-icon">🅿️</span>
+                                    <span class="faq-q">จะรู้ได้อย่างไรว่าช่องไหนว่างให้จอง?</span>
+                                </summary>
+                                <div class="faq-a">
+                                    ไปที่หน้า “จองที่จอด” ระบบจะแสดงสถานะของแต่ละช่อง
+                                    เช่น ว่าง, จองแล้ว, ใช้งานอยู่ หรือปิดปรับปรุง
+                                    สามารถแตะเลือกช่องที่เป็นสถานะ “ว่าง” เพื่อเริ่มจองได้
+                                </div>
+                            </details>
+
+                            <details class="faq">
+                                <summary>
+                                    <span class="faq-icon">⏰</span>
+                                    <span class="faq-q">สามารถจองล่วงหน้าได้กี่นาที / ชั่วโมง?</span>
+                                </summary>
+                                <div class="faq-a">
+                                    ขึ้นอยู่กับการตั้งค่าของผู้ดูแลระบบ
+                                    หากช่วงเวลาที่ต้องการจองเลือกไม่ได้
+                                    อาจเป็นเพราะช่วงนั้นเต็มหรือเลยช่วงเวลาที่อนุญาตแล้ว
+                                </div>
+                            </details>
+
+                            <details class="faq">
+                                <summary>
+                                    <span class="faq-icon">🚗</span>
+                                    <span class="faq-q">ถ้าถึงเวลาจองแล้วแต่ยังไม่มาถึง จะเกิดอะไรขึ้น?</span>
+                                </summary>
+                                <div class="faq-a">
+                                    ระบบอาจยกเลิกหรือเปลี่ยนสถานะการจองโดยอัตโนมัติ
+                                    เพื่อเปิดช่องให้คนอื่นใช้งาน ทั้งนี้ขึ้นกับกติกาที่ผู้ดูแลกำหนด
+                                </div>
+                            </details>
+
+                            <details class="faq">
+                                <summary>
+                                    <span class="faq-icon">❌</span>
+                                    <span class="faq-q">สามารถยกเลิกการจองได้หรือไม่?</span>
+                                </summary>
+                                <div class="faq-a">
+                                    สามารถดูและยกเลิกการจองได้จากหน้า “ประวัติการจอง”
+                                    เงื่อนไขว่าจะยกเลิกได้ถึงเมื่อไหร่ หรือมีค่าปรับหรือไม่
+                                    ขึ้นกับกติกาของผู้ดูแลระบบ
+                                </div>
+                            </details>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="title-row">
+                            <h3 class="title">ปัญหาการใช้งานและการติดต่อ</h3>
+                            <div class="badge-sec">แจ้งปัญหา</div>
+                        </div>
+                        <p class="subtitle">กรณีข้อมูลในระบบไม่ตรงกับหน้างานจริง</p>
+
+                        <div class="faq-list">
+                            <details class="faq">
+                                <summary>
+                                    <span class="faq-icon">⚠️</span>
+                                    <span class="faq-q">ช่องขึ้นว่าว่าง แต่มีรถคันอื่นจอดอยู่แล้ว?</span>
+                                </summary>
+                                <div class="faq-a">
+                                    ให้ใช้เมนู “แจ้งปัญหา / ติดต่อแอดมิน”
+                                    เลือกหัวข้อ “ช่องจอดไม่ว่างจริง”
+                                    และระบุช่องที่พบปัญหาไว้ แอดมินจะช่วยตรวจสอบให้
+                                </div>
+                            </details>
+
+                            <details class="faq">
+                                <summary>
+                                    <span class="faq-icon">🔄</span>
+                                    <span class="faq-q">หน้าจอไม่อัปเดตสถานะ / ขึ้นข้อมูลเก่าอยู่ตลอด</span>
+                                </summary>
+                                <div class="faq-a">
+                                    ลองรีเฟรชหน้าเว็บหรือออกจากระบบแล้วล็อกอินใหม่
+                                    หากยังพบปัญหา ให้แจ้งผ่านหน้า “แจ้งปัญหา / ติดต่อแอดมิน”
+                                    พร้อมแนบช่วงเวลาที่พบปัญหา
+                                </div>
+                            </details>
+
+                            <details class="faq">
+                                <summary>
+                                    <span class="faq-icon">💬</span>
+                                    <span class="faq-q">อยากพูดคุยกับเจ้าหน้าที่โดยตรงต้องทำอย่างไร?</span>
+                                </summary>
+                                <div class="faq-a">
+                                    สามารถกรอกแบบฟอร์มในหน้า
+                                    “แจ้งปัญหา / ติดต่อแอดมิน” แล้วรอเจ้าหน้าที่ติดต่อกลับ
+                                    ตามช่องทางที่ระบุไว้ในระบบ
+                                </div>
+                            </details>
+                        </div>
+
+                        <p class="hint-bottom">
+                            ถ้าไม่พบคำตอบที่ต้องการ สามารถไปที่หน้า
+                            <a href="support.html">แจ้งปัญหา / ติดต่อแอดมิน</a>
+                            เพื่อส่งรายละเอียดปัญหาให้ทีมดูแลระบบช่วยตรวจสอบเพิ่มเติม
+                        </p>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <nav class="tabbar">
+            <div class="tabs">
+                <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+                <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+                <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+                <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+            </div>
+        </nav>
+    </div>
+</body>
+
+</html>

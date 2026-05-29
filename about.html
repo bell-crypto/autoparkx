@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking • เกี่ยวกับแอป</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+            --vh: 100dvh;
+            --nav-h: 0px;
+            --tab-h: 0px;
+            --green: #16a34a;
+            --green-bg: #dcfce7;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e9edf2;
+                --muted: #9aa4af;
+                --sep: #1b2430;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .5);
+                --green-bg: rgba(34, 197, 94, .12);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
+        body {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        a,
+        button,
+        input,
+        textarea,
+        select {
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-bottom: 1px solid var(--sep);
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .back-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: var(--text);
+        }
+
+        .back-btn:active {
+            transform: scale(.94);
+        }
+
+        .nav-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-spacer {
+            width: 32px;
+        }
+
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 14px 14px calc(90px + var(--safe-btm));
+            height: calc(var(--vh) - var(--nav-h) - var(--tab-h));
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .page::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--sep);
+            box-shadow: var(--shadow);
+            padding: 18px 16px 18px;
+            flex: 0 0 auto;
+        }
+
+        .hero-title {
+            margin: 0 0 6px;
+            font-weight: 900;
+            font-size: 18px;
+            line-height: 1.35;
+        }
+
+        .hero-desc {
+            margin: 0;
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .title {
+            margin: 0 0 4px;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 10px;
+            border-radius: 14px;
+            background: color-mix(in oklab, var(--card)94%, transparent);
+            border: 1px solid var(--sep);
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .item-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .item-sub {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+            word-break: break-word;
+            white-space: pre-line;
+        }
+
+        .item-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            text-align: right;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        .item-right.link {
+            color: var(--tint);
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--green);
+            background: var(--green-bg);
+            border: 1px solid rgba(34, 197, 94, .10);
+            line-height: 1;
+        }
+
+        .chev {
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1;
+            transform: translateX(1px);
+        }
+
+        .link-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .link-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 12px;
+            border-radius: 14px;
+            background: color-mix(in oklab, var(--card)94%, transparent);
+            border: 1px solid var(--sep);
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .link-item span:first-child {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: -2px;
+            line-height: 1.5;
+            padding-bottom: 2px;
+        }
+
+        .tabbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint)10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav">
+        <div class="row">
+            <button class="back-btn" type="button" onclick="location.href='account.html'">‹</button>
+            <div class="nav-title">เกี่ยวกับแอป</div>
+            <div class="nav-spacer"></div>
+        </div>
+    </div>
+
+    <main class="page" id="pageScroll">
+
+        <section class="card">
+            <h1 class="hero-title">AutoParkX</h1>
+            <p class="hero-desc">
+                ระบบจองและจัดการที่จอดรถอัจฉริยะสำหรับการใช้งานผ่านเว็บแอป
+                ช่วยให้ผู้ใช้ตรวจสอบสถานะช่องจอด จองล่วงหน้า จัดการวอลเล็ต
+                และติดตามประวัติการใช้งานได้สะดวกในที่เดียว
+            </p>
+        </section>
+
+        <section class="card">
+            <h3 class="title">ข้อมูลแอป</h3>
+            <p class="subtitle">รายละเอียดพื้นฐานของระบบ AutoParkX</p>
+
+            <div class="list">
+                <div class="item">
+                    <div class="item-left">
+                        <div class="item-title">เวอร์ชันแอป</div>
+                    </div>
+                    <div class="item-right">2.0.0</div>
+                </div>
+
+                <div class="item">
+                    <div class="item-left">
+                        <div class="item-title">อัปเดตล่าสุด</div>
+                    </div>
+                    <div class="item-right">11/01/2569</div>
+                </div>
+
+                <div class="item">
+                    <div class="item-left">
+                        <div class="item-title">สถานะระบบ</div>
+                    </div>
+                    <div class="item-right">
+                        <span class="status">พร้อมใช้งาน</span>
+                    </div>
+                </div>
+
+                <a class="item" href="https://autoparkx.com" target="_blank" rel="noopener">
+                    <div class="item-left">
+                        <div class="item-title">เว็บไซต์</div>
+                    </div>
+                    <div class="item-right link">
+                        <span>autoparkx.com</span>
+                        <span class="chev">›</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3 class="title">ทีมพัฒนา</h3>
+            <p class="subtitle">ข้อมูลทีมพัฒนาโครงการและอาจารย์ที่ปรึกษา</p>
+
+            <div class="list">
+                <div class="item" style="align-items:flex-start;">
+                    <div class="item-left">
+                        <div class="item-title">พัฒนาโดย</div>
+                    </div>
+                    <div class="item-right" style="align-items:flex-end;">
+                        จักรกฤษ เพชรสังฆาต
+                        รณกร พาจรทิศ
+                        ศิวกร สระน้อย
+                        ศุภวิชญ์ สายธนู
+                    </div>
+                </div>
+
+                <div class="item">
+                    <div class="item-left">
+                        <div class="item-title">อาจารย์ที่ปรึกษา</div>
+                    </div>
+                    <div class="item-right link">อ.ปิยะ วราบุญทวีสุข</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3 class="title">ติดต่อ</h3>
+            <p class="subtitle">ช่องทางติดต่อของระบบ</p>
+
+            <div class="list">
+                <a class="item" href="mailto:support@autoparkx.com">
+                    <div class="item-left">
+                        <div class="item-title">อีเมล</div>
+                    </div>
+                    <div class="item-right link">
+                        <span>support@autoparkx.com</span>
+                        <span class="chev">›</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3 class="title">เอกสาร</h3>
+            <p class="subtitle">เอกสารและนโยบายที่เกี่ยวข้องกับการใช้งาน</p>
+
+            <div class="link-row">
+                <a class="link-item" href="privacy.html">
+                    <span>นโยบายความเป็นส่วนตัว</span>
+                    <span class="chev">›</span>
+                </a>
+
+                <a class="link-item" href="terms.html">
+                    <span>ข้อกำหนดการใช้งาน</span>
+                    <span class="chev">›</span>
+                </a>
+            </div>
+        </section>
+
+        <div class="footer">
+            © 2026 AutoParkX. All rights reserved.
+        </div>
+
+    </main>
+
+    <nav class="tabbar">
+        <div class="tabs">
+            <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+            <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+            <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+            <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+        </div>
+    </nav>
+
+    <script>
+        function lockViewportScrollArea() {
+            const nav = document.querySelector('.nav');
+            const tab = document.querySelector('.tabbar');
+            const navH = nav ? Math.round(nav.getBoundingClientRect().height) : 0;
+            const tabH = tab ? Math.round(tab.getBoundingClientRect().height) : 0;
+
+            document.documentElement.style.setProperty('--nav-h', navH + 'px');
+            document.documentElement.style.setProperty('--tab-h', tabH + 'px');
+            document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
+
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        }
+
+        lockViewportScrollArea();
+        window.addEventListener('resize', lockViewportScrollArea);
+        window.addEventListener('orientationchange', lockViewportScrollArea);
+
+        document.addEventListener('touchmove', function (e) {
+            const scrollEl = document.querySelector('.page');
+            if (!scrollEl) return;
+            if (!scrollEl.contains(e.target)) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+
+</html>

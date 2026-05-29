@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Parking • ประวัติการจอง</title>
+    <!-- ===== PWA / iOS เต็มจอ ===== -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+            --nav-h: 0px;
+            --tab-h: 0px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e9edf2;
+                --muted: #9aa4af;
+                --sep: #1b2430;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .5)
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        /* ✅ ล็อคหน้าแบบแอพ: ห้าม body/html scroll + กัน overscroll */
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            overscroll-behavior-y: none;
+            -webkit-text-size-adjust: 100%;
+            scrollbar-width: none;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: saturate(180%) blur(12px);
+            -webkit-backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg) 85%, transparent);
+            border-bottom: 1px solid var(--sep);
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--tint);
+            box-shadow: 0 0 0 4px color-mix(in oklab, var(--tint)15%, transparent)
+        }
+
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+
+            /* ✅ ดันเนื้อหาให้พ้น nav fixed + กันชน tabbar */
+            padding: calc(14px + var(--nav-h)) 14px calc(90px + var(--safe-btm));
+            height: calc(100svh - var(--tab-h));
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--sep);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            margin-bottom: 16px
+        }
+
+        .title {
+            margin: 0 0 8px;
+            font-weight: 900
+        }
+
+        .sub {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        /* ✅ แถบแจ้งเตือนจองสำเร็จ/ไม่สำเร็จ แบบ pill เรียบ ๆ */
+        .banner {
+            display: none;
+            margin-bottom: 12px;
+            padding: 9px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 13px;
+            align-items: center;
+            gap: 8px;
+
+            /* ตัดแสงฟุ้งออก */
+            box-shadow: none;
+        }
+
+        /* เปิดโชว์ตอนมีข้อความ */
+        .banner.show {
+            display: flex;
+            animation: bannerIn .25s ease-out;
+        }
+
+        .banner::before {
+            content: "";
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        /* ✅ จองสำเร็จ: เขียวเรียบ ไม่มีเงาฟุ้ง */
+        .banner.success {
+            background: #22c55e;
+            color: #ecfdf3;
+            box-shadow: none;
+        }
+
+        .banner.success::before {
+            content: "✔";
+            background: rgba(255, 255, 255, .18);
+            color: #ecfdf3;
+        }
+
+        /* ❌ จองไม่สำเร็จ: แดงเรียบ ไม่มีเงาฟุ้ง */
+        .banner.error {
+            background: #ef4444;
+            color: #fef2f2;
+            box-shadow: none;
+        }
+
+        .banner.error::before {
+            content: "!";
+            background: rgba(0, 0, 0, .15);
+            color: #fef2f2;
+            font-weight: 900;
+        }
+
+        @keyframes bannerIn {
+            from {
+                opacity: 0;
+                transform: translateY(-2px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tools {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px
+        }
+
+        .tool {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card) 95%, transparent);
+            font-weight: 800;
+            cursor: pointer
+        }
+
+        .tool.active {
+            outline: 2px solid color-mix(in oklab, var(--tint) 60%, transparent)
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 120px;
+        }
+
+        .rowb {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border: 1px solid var(--sep);
+            border-radius: 12px;
+            padding: 12px;
+            background: color-mix(in oklab, var(--card) 92%, transparent)
+        }
+
+        .left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .slot {
+            font-weight: 900
+        }
+
+        .time {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .ac {
+            background: #22c55e;
+        }
+
+        .bk {
+            background: #f97316;
+        }
+
+        .oc {
+            background: #ef4444;
+        }
+
+        .cn {
+            background: #4b5563;
+        }
+
+        .ex {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: #fff;
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            font-weight: 900;
+            cursor: pointer
+        }
+
+        .btn:disabled {
+            opacity: .6;
+            cursor: not-allowed
+        }
+
+        .btn.is-loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .btn.is-loading::after {
+            content: "";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            width: 14px;
+            height: 14px;
+            margin-top: -7px;
+            border: 2px solid #fff;
+            border-left-color: transparent;
+            border-radius: 50%;
+            animation: spin .9s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .tabbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg) 90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+            -webkit-backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint) 10%, transparent)
+        }
+
+        .ico {
+            font-size: 18px;
+            line-height: 1
+        }
+
+        @media (max-width:420px) {
+            .tools {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                flex-wrap: unset;
+            }
+
+            .tool {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                text-align: center;
+            }
+        }
+
+        .sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            background: rgba(15, 23, 42, .45);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+
+        .sheet-dialog {
+            width: 100%;
+            max-width: 520px;
+            max-height: min(560px, 90vh);
+            margin: 0;
+            background: var(--card);
+            border-radius: 24px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, .35);
+            padding: 14px 18px 20px;
+            border: 1px solid var(--sep);
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
+        .sheet-handle {
+            width: 46px;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, .7);
+            margin: 4px auto 10px;
+        }
+
+        .sheet-title {
+            margin: 0 0 2px;
+            font-weight: 900;
+            font-size: 17px;
+            text-align: left;
+        }
+
+        .sheet-sub {
+            margin: 0 0 10px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .sheet-section {
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .sheet-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 6px 0 2px;
+        }
+
+        .sheet-value {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .sheet-row {
+            margin-top: 10px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .sheet-row strong {
+            font-weight: 800
+        }
+
+        .sheet-note {
+            margin: 8px 0 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .sheet-note.strong {
+            color: #b91c1c;
+            font-weight: 800;
+        }
+
+        .sheet-actions {
+            margin-top: 14px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .sheet-actions .btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
+            border-radius: 14px;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        #cancelConfirmBtn {
+            background: linear-gradient(135deg, #0a84ff, #006eff);
+        }
+
+        #cancelConfirmBtn.is-loading {
+            background: linear-gradient(135deg, #0a6bea, #005ad1);
+        }
+
+        .btn.outline {
+            background: transparent;
+            color: var(--tint);
+            border: 2px solid var(--tint);
+            border-radius: 14px;
+            font-weight: 900;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav">
+        <div class="row">
+            <div class="brand"><span class="dot"></span>AutoParkX</div>
+        </div>
+    </div>
+
+    <main class="page">
+        <div class="card">
+            <h3 class="title">ประวัติการจอง</h3>
+            <div id="banner" class="banner"></div>
+
+            <div class="tools">
+                <button class="tool active" data-filter="upcoming">กำลังจะมาถึง</button>
+                <button class="tool" data-filter="all">ทั้งหมด</button>
+            </div>
+
+            <div id="list" class="list">
+                <div class="rowb">
+                    <div class="left">
+                        <div class="slot">…</div>
+                        <div class="time">กำลังโหลด</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="result" class="sub" style="font-weight:900"></div>
+        </div>
+    </main>
+
+    <nav class="tabbar" role="navigation">
+        <div class="tabs">
+            <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+            <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+            <a class="tab active" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+            <a class="tab" href="account.html"><span class="ico">👤</span>บัญชี</a>
+        </div>
+    </nav>
+
+    <!-- ป็อปอัพยกเลิก -->
+    <div id="cancelSheet" class="sheet-backdrop hidden">
+        <div class="sheet-dialog" role="dialog" aria-modal="true">
+            <div class="sheet-handle"></div>
+            <h3 class="sheet-title">ยืนยันการยกเลิกการจอง</h3>
+            <p class="sheet-sub">รายการนี้ยังไม่เริ่มจอดจริง จึงสามารถยกเลิกได้ภายใน 15 นาทีแรก</p>
+
+            <div class="sheet-section">
+                <p class="sheet-label">ช่องจอด</p>
+                <p class="sheet-value" id="cSlot">A01 (ชั้น 1)</p>
+
+                <p class="sheet-label">เวลาเริ่มจอง</p>
+                <p class="sheet-value" id="cStartTime">28 มี.ค. 2569 20:16</p>
+
+                <p class="sheet-label">กำหนดยกเลิกได้ถึง</p>
+                <p class="sheet-value" id="cCancelUntil">28 มี.ค. 2569 20:31</p>
+            </div>
+
+            <hr style="border:none;border-top:1px solid var(--sep);margin:12px 0 10px" />
+
+            <div class="sheet-row refund-only-row">
+                <span><strong>ยอดที่จะคืน</strong></span>
+                <span id="cRefund"><strong>24 บาท</strong></span>
+            </div>
+
+            <p class="sheet-note" style="margin-top:12px">
+                • หากยกเลิกภายใน 15 นาที จะคืนเงิน 80%<br>
+        • ถ้าเลยเวลา 15 นาที หรือเริ่มจอดจริงแล้ว จะยกเลิกไม่ได้
+            </p>
+
+            <div class="sheet-actions">
+                <button id="cancelConfirmBtn" class="btn">ยืนยันยกเลิก</button>
+                <button id="cancelCloseBtn" type="button" class="btn outline">กลับไปหน้าประวัติ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = `${location.origin}/api`;
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+
+    const CANCEL_WINDOW_MS = 15 * 60 * 1000;
+    const PRICE_PER_HOUR = 30;
+    const REFUND_RATE = 0.80;
+    const CANCEL_FEE_RATE = 0.20;
+
+    let me = {};
+    try { me = JSON.parse(localStorage.getItem('parking_user') || '{}'); } catch { }
+    const isGuest = !me || !me.id;
+
+    function gotoLoginAfterHistory() {
+      sessionStorage.setItem('after_login', 'mybookings.html');
+      location.href = 'login.html';
+    }
+
+    // Banner หลังจอง (ใช้ class .show + .success / .error)
+    (function handleBanner() {
+      const qs = new URLSearchParams(location.search);
+      const banner = $('#banner');
+      if (!banner) return;
+
+      const msg = qs.get('msg');
+      if (msg === 'book_ok') {
+        const slot = qs.get('slot') || '';
+        banner.textContent = slot ? `จองสำเร็จ ช่อง ${slot}` : 'จองสำเร็จ';
+        banner.classList.remove('error');
+        banner.classList.add('show', 'success');
+
+        history.replaceState({}, '', location.pathname);
+        setTimeout(() => {
+          banner.classList.remove('show', 'success');
+        }, 5000);
+      } else if (msg === 'book_fail') {
+        const reason = qs.get('reason') || '';
+        banner.textContent = reason ? `จองไม่สำเร็จ: ${reason}` : 'จองไม่สำเร็จ';
+        banner.classList.remove('success');
+        banner.classList.add('show', 'error');
+
+        history.replaceState({}, '', location.pathname);
+        setTimeout(() => {
+          banner.classList.remove('show', 'error');
+        }, 6000);
+      }
+    })();
+
+    let currentFilter = 'upcoming';
+
+    const mapCls = {
+      ACTIVE: 'ac',
+      CONFIRMED: 'ac',
+      BOOKED: 'bk',
+      PENDING: 'bk',
+      RESERVED: 'bk',
+      OCCUPIED: 'oc',
+      CANCELLED: 'cn',
+      CANCELLED_BY_ADMIN: 'cn',
+      COMPLETED: 'ex',
+      EXPIRED: 'ex'
+    };
+
+    const fmt = s => (s || '').replace('T', ' ').slice(0, 16);
+
+    function toTs(s) {
+      if (!s) return 0;
+      const t = String(s).trim().replace('T', ' ');
+      const m = t.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
+      if (!m) return 0;
+      const [_, Y, M, D, h, mn, sec] = m;
+      const dt = new Date(+Y, +M - 1, +D, +h, +mn, sec ? +sec : 0, 0);
+      return isNaN(dt.getTime()) ? 0 : dt.getTime();
+    }
+
+    const slotName = b => b.slot_code || `#${b.slot_id ?? '-'}`;
+
+    const TOP_SET = new Set(['ACTIVE', 'CONFIRMED', 'BOOKED', 'PENDING', 'RESERVED', 'OCCUPIED']);
+    const normStatus = b => String(b.computed_status || b.status || '').trim().toUpperCase();
+    function isTopAny(b) {
+      const st = normStatus(b);
+      const canCancelFlag = (String(b.can_cancel) === '1' || b.can_cancel === true);
+      if (canCancelFlag) return true;
+      if (TOP_SET.has(st)) return true;
+      if (!st || st === '-' || st === 'UNKNOWN') return true;
+      return false;
+    }
+    const createdTs = b => toTs(b.created_at || b.created || b.createdAt || b.updated_at || b.updatedAt);
+
+    function canCancelNow(b, nowTs) {
+      let ok = (String(b.can_cancel) === '1' || b.can_cancel === true);
+      if (!ok) return false;
+
+      const tsStart = toTs(b.start_time);
+      if (!tsStart) return ok;
+
+      const afterStart = nowTs - tsStart;
+      if (afterStart > CANCEL_WINDOW_MS) {
+        return false;
+      }
+      return true;
+    }
+
+    async function loadBookings() {
+      const list = $('#list'); const msg = $('#result');
+      if (!list) return;
+      msg && (msg.textContent = '');
+      list.innerHTML = `<div class="rowb"><div class="left"><div class="slot">…</div><div class="time">กำลังโหลด</div></div></div>`;
+
+      try {
+        const url = `${API_BASE}/booking_list_my.php?user_id=${encodeURIComponent(me.id)}&time=${encodeURIComponent(currentFilter)}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        const text = await res.text();
+        let data = {};
+        try { data = JSON.parse(text); } catch { data = {}; }
+
+        const ok = res.ok && (data.ok === true || data.ok === 1 || data.ok === "1" || String(data.ok).toLowerCase?.() === "ok");
+        if (!ok) throw new Error((data && data.error) ? data.error : `HTTP ${res.status}`);
+
+        let arr = data.bookings || [];
+
+        if (currentFilter === 'upcoming') {
+          arr = arr.filter(b => {
+            const st = normStatus(b);
+            return !['CANCELLED', 'CANCELLED_BY_ADMIN', 'COMPLETED', 'EXPIRED'].includes(st);
+          });
+        }
+
+        if (arr.length === 0) {
+          list.innerHTML = `<div class="rowb"><div class="left"><div class="slot">— ไม่มีรายการ —</div><div class="time">ยังไม่มีการจองในช่วงนี้</div></div></div>`;
+          return;
+        }
+
+        const nowTs = Date.now();
+
+        arr = arr.slice().sort((a, b) => {
+          const ta = isTopAny(a) ? 0 : 1;
+          const tb = isTopAny(b) ? 0 : 1;
+          if (ta !== tb) return ta - tb;
+
+          const ca = canCancelNow(a, nowTs) ? 1 : 0;
+          const cb = canCancelNow(b, nowTs) ? 1 : 0;
+          if (ca !== cb) return ca - cb;
+
+          const as = toTs(a.start_time), bs = toTs(b.start_time);
+          const ac = createdTs(a), bc = createdTs(b);
+
+          if (currentFilter === 'upcoming') {
+            if (as && bs && as !== bs) return as - bs;
+            if (ac && bc && ac !== bc) return bc - ac;
+          } else {
+            if (as && bs && as !== bs) return bs - as;
+            if (ac && bc && ac !== bc) return bc - ac;
+          }
+          return (b.id || b.booking_id || 0) - (a.id || a.booking_id || 0);
+        });
+
+        list.innerHTML = arr.map(b => {
+          const status = normStatus(b);
+          const cls = mapCls[status] || 'ex';
+          const nowTsLocal = nowTs;
+          const canCancel = canCancelNow(b, nowTsLocal);
+
+          return `
+            <div class="rowb"
+              data-id="${b.id}"
+              data-slot="${slotName(b)}"
+              data-start="${b.start_time || ''}"
+              data-end="${b.end_time || ''}">
+              <div class="left">
+                <div class="slot">ช่อง ${slotName(b)}</div>
+                <div class="time">${fmt(b.start_time)} → ${fmt(b.end_time)}</div>
+                <span class="pill ${cls}">${status || '-'}</span>
+              </div>
+              ${canCancel ? `<button class="btn">ยกเลิก</button>` : ``}
+            </div>`;
+        }).join('');
+
+      } catch (err) {
+        const list = $('#list');
+        if (!list) return;
+        list.innerHTML = `<div class="rowb"><div class="left"><div class="slot">โหลดไม่สำเร็จ</div><div class="time">${err.message || err}</div></div></div>`;
+      }
+    }
+
+    let currentCancel = null;
+
+    function openCancelSheet(row) {
+      const id = Number(row?.dataset.id);
+      const slot = row?.dataset.slot || '';
+      const startStr = row?.dataset.start || '';
+      const endStr = row?.dataset.end || '';
+
+      if (!id || !startStr || !endStr) return;
+
+      const tsStart = toTs(startStr);
+      const tsEnd = toTs(endStr);
+      if (!tsStart || !tsEnd || tsEnd <= tsStart) return;
+
+      const nowTs = Date.now();
+      const afterStart = nowTs - tsStart;
+      if (afterStart > CANCEL_WINDOW_MS) {
+        alert('❌ ยกเลิกไม่ได้: เลยเวลาเริ่มเกิน 10 นาทีแล้ว');
+        return;
+      }
+
+      const sd = new Date(tsStart);
+      const cancelDeadline = new Date(tsStart + CANCEL_WINDOW_MS);
+
+      const diffMs = tsEnd - tsStart;
+      const billHours = Math.max(1, Math.ceil(diffMs / 3600000));
+      const fee = billHours * PRICE_PER_HOUR;
+      const refund = Math.round(fee * REFUND_RATE * 100) / 100;
+
+      const MONTHS_TH = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      const pad = n => String(n).padStart(2, '0');
+      const fmtThaiDateTime = (d) => `${d.getDate()} ${MONTHS_TH[d.getMonth()]} ${d.getFullYear() + 543} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+      $('#cSlot').textContent = slot;
+      $('#cStartTime').textContent = fmtThaiDateTime(sd);
+      $('#cCancelUntil').textContent = fmtThaiDateTime(cancelDeadline);
+      $('#cRefund').innerHTML = `<strong>${refund.toLocaleString()} บาท</strong>`;
+
+      currentCancel = { id, slot, start: startStr, end: endStr };
+
+      $('#cancelSheet').classList.remove('hidden');
+    }
+
+    function closeCancelSheet() {
+      $('#cancelSheet').classList.add('hidden');
+      currentCancel = null;
+      const btn = $('#cancelConfirmBtn');
+      btn.disabled = false;
+      btn.classList.remove('is-loading');
+      btn.textContent = 'ยืนยันยกเลิก';
+    }
+
+    const listEl = $('#list');
+    if (listEl && !listEl._binded) {
+      listEl.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('.btn');
+        if (!btn) return;
+        if (isGuest) {
+          gotoLoginAfterHistory();
+          return;
+        }
+        const row = btn.closest('.rowb');
+        if (!row) return;
+        openCancelSheet(row);
+      });
+      listEl._binded = true;
+    }
+
+    $('#cancelConfirmBtn').addEventListener('click', async () => {
+      if (!currentCancel) { closeCancelSheet(); return; }
+
+      const btn = $('#cancelConfirmBtn');
+      btn.classList.add('is-loading');
+      btn.disabled = true;
+      btn.textContent = 'กำลังยกเลิก...';
+
+      try {
+        const body = new URLSearchParams();
+        body.set('booking_id', String(currentCancel.id));
+        body.set('user_id', String(me.id));
+
+        const res = await fetch(`${API_BASE}/booking_cancel.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+          body
+        });
+
+        const text = await res.text();
+        let d = {};
+        try { d = JSON.parse(text); } catch { d = {}; }
+
+        const ok = res.ok && (d.ok === true || d.ok === 1 || d.ok === "1" || String(d.ok).toLowerCase?.() === "ok");
+        if (!ok) throw new Error((d.error || d.message) || `HTTP ${res.status}`);
+
+        let msg = '✅ ยกเลิกสำเร็จ';
+        if (typeof d.refund !== 'undefined') {
+          const r = Number(d.refund || 0);
+          msg += `\nคืนเงิน ${r.toLocaleString()} ฿`;
+        }
+        if (typeof d.cancel_fee !== 'undefined') {
+          const f = Number(d.cancel_fee || 0);
+          msg += `\nค่าธรรมเนียมที่ถูกหัก ${f.toLocaleString()} ฿`;
+        }
+        alert(msg);
+
+        closeCancelSheet();
+        if (!isGuest) loadBookings();
+      } catch (e) {
+        alert('❌ ยกเลิกไม่สำเร็จ: ' + (e.message || 'unknown'));
+        const btn2 = $('#cancelConfirmBtn');
+        btn2.disabled = false;
+        btn2.classList.remove('is-loading');
+        btn2.textContent = 'ยืนยันยกเลิก';
+      }
+    });
+
+    $('#cancelCloseBtn').addEventListener('click', closeCancelSheet);
+    $('#cancelSheet').addEventListener('click', (ev) => {
+      if (ev.target === $('#cancelSheet')) closeCancelSheet();
+    });
+
+    $$('.tool').forEach(b => {
+      b.addEventListener('click', () => {
+        $$('.tool').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        currentFilter = b.dataset.filter;
+        if (!isGuest) loadBookings();
+      });
+    });
+
+    (function () {
+      const goTop = () => {
+        const page = document.querySelector('.page');
+        if (page) page.scrollTop = 0;
+      };
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+      window.addEventListener('DOMContentLoaded', goTop, { once: true });
+      window.addEventListener('pageshow', e => { if (e.persisted) goTop(); });
+      const _oldLoad = loadBookings;
+      loadBookings = async function () { await _oldLoad(); goTop(); };
+    })();
+
+    if (isGuest) {
+      const list = $('#list');
+      if (list) {
+        list.innerHTML = `
+          <div class="rowb">
+            <div class="left">
+              <div class="slot">ยังไม่มีประวัติที่แสดง</div>
+              <div class="time">เข้าสู่ระบบจากเมนู "บัญชี" เพื่อดูประวัติการจองของคุณ</div>
+            </div>
+          </div>`;
+      }
+    } else {
+      loadBookings();
+    }
+
+    /* ✅ อัปเดต var ความสูง nav/tab ให้ padding/height เป๊ะ + กัน rubber-band iOS */
+    (function layoutFix() {
+      const root = document.documentElement;
+      const setVar = (n, px) => root.style.setProperty(n, (px | 0) + 'px');
+
+      function updateBars() {
+        const nav = document.querySelector('.nav');
+        const tab = document.querySelector('.tabbar');
+        setVar('--nav-h', nav?.offsetHeight || 0);
+        setVar('--tab-h', tab?.offsetHeight || 0);
+      }
+
+      const ro = new ResizeObserver(updateBars);
+      const nav = document.querySelector('.nav');
+      const tab = document.querySelector('.tabbar');
+      if (nav) ro.observe(nav);
+      if (tab) ro.observe(tab);
+
+      ['DOMContentLoaded', 'load', 'resize', 'orientationchange', 'pageshow', 'visibilitychange']
+        .forEach(ev => window.addEventListener(ev, updateBars, { passive: true }));
+
+      setTimeout(updateBars, 0);
+      setTimeout(updateBars, 120);
+      setTimeout(updateBars, 600);
+
+      /* กันดึงเด้ง (rubber band) เฉพาะขอบบน/ล่างของ .page และใน sheet */
+      const allowRoots = ['.page', '.sheet-dialog'];
+
+      function getScroller(target) {
+        for (const sel of allowRoots) {
+          const el = target.closest(sel);
+          if (el) return el;
+        }
+        return null;
+      }
+
+      let startY = 0;
+
+      document.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+
+      document.addEventListener('touchmove', (e) => {
+        if (e.touches.length !== 1) return;
+
+        const scroller = getScroller(e.target);
+        if (!scroller) {
+          e.preventDefault();
+          return;
+        }
+
+        const y = e.touches[0].clientY;
+        const dy = y - startY;
+
+        const top = scroller.scrollTop <= 0;
+        const bottom = (scroller.scrollTop + scroller.clientHeight) >= (scroller.scrollHeight - 1);
+
+        if ((top && dy > 0) || (bottom && dy < 0)) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    })();
+    </script>
+</body>
+
+</html>

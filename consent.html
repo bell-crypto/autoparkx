@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>AutoParkX • การให้ความยินยอม</title>
+
+    <!-- iOS / PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+
+            --maxw: 560px;
+            --bar-pad: 14px;
+            --bar-gap: 10px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e9edf2;
+                --muted: #9aa4af;
+                --sep: #1b2430;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .5);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            height: 100dvh;
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .app {
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg)85%, transparent);
+            border-bottom: 1px solid var(--sep);
+            padding: calc(10px + var(--safe-top)) 14px 10px;
+            flex: 0 0 auto;
+        }
+
+        .wrap {
+            width: 100%;
+            max-width: var(--maxw);
+            margin: 0 auto;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 900;
+            letter-spacing: -.2px;
+            padding: 0 0;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--tint);
+            box-shadow: 0 0 0 4px color-mix(in oklab, var(--tint)15%, transparent);
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .content {
+            flex: 1 1 auto;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            padding: 14px 14px 0;
+            padding-bottom: calc(var(--actionbar-h, 140px) + var(--safe-btm) + 10px);
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--sep);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        .title {
+            margin: 2px 0 8px;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .subrow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 0 0 10px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            font-size: 12px;
+            font-weight: 900;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            color: var(--muted);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            max-width: 100%;
+            white-space: nowrap;
+        }
+
+        .lead {
+            margin: 0 0 12px;
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: var(--muted);
+        }
+
+        .summary,
+        .notice,
+        .check,
+        .modal-body {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .summary {
+            margin: 10px 0 12px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+        }
+
+        .summary h4 {
+            margin: 0 0 6px;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .summary ul {
+            margin: 6px 0 0;
+            padding-left: 22px;
+            list-style-position: outside;
+            color: var(--muted);
+            font-size: 12.5px;
+            line-height: 1.7;
+        }
+
+        .summary li {
+            margin: 6px 0;
+            padding-right: 6px;
+        }
+
+        .notice {
+            margin: 10px 0 12px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--tint)7%, var(--card));
+            font-size: 12.5px;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+
+        .hintline {
+            margin: 0 0 10px;
+            font-size: 12.5px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .check {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            margin-top: 8px;
+        }
+
+        .check input {
+            margin-top: 2px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--tint);
+            flex: 0 0 auto;
+        }
+
+        .check strong {
+            display: block;
+            font-size: 13.5px;
+            margin-bottom: 2px;
+        }
+
+        .linkbtn {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            color: var(--tint);
+            font-weight: 900;
+            text-decoration: none;
+            font: inherit;
+        }
+
+        .linkbtn:hover {
+            text-decoration: underline;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 8px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            font-size: 11px;
+            color: var(--muted);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .badge.ok {
+            color: color-mix(in oklab, var(--tint)70%, var(--text));
+            border-color: color-mix(in oklab, var(--tint)22%, var(--sep));
+            background: color-mix(in oklab, var(--tint)10%, var(--card));
+        }
+
+        .foot {
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        .foot a {
+            color: var(--tint);
+            text-decoration: none;
+            font-weight: 900;
+        }
+
+        .foot a:hover {
+            text-decoration: underline;
+        }
+
+        .actionbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: var(--bar-pad) 14px calc(var(--bar-pad) + var(--safe-btm));
+            background: color-mix(in oklab, var(--bg)85%, transparent);
+            backdrop-filter: blur(14px) saturate(180%);
+            border-top: 1px solid var(--sep);
+        }
+
+        .actionbar .wrap {
+            display: grid;
+            gap: var(--bar-gap);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--sep);
+            background: transparent;
+            font-weight: 900;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn.primary {
+            border: none;
+            color: #fff;
+            background: linear-gradient(135deg, #0a84ff, #2563eb);
+            box-shadow: 0 10px 22px rgba(37, 99, 235, .38);
+        }
+
+        .btn.primary:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn.secondary {
+            color: var(--muted);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+        }
+
+        .btn.loading {
+            cursor: wait;
+            opacity: .92;
+            box-shadow: 0 10px 22px rgba(37, 99, 235, .22);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, .55);
+            border-top-color: rgba(255, 255, 255, 1);
+            margin-right: 8px;
+            vertical-align: -2px;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(16px + var(--safe-btm) + 120px);
+            transform: translateX(-50%) translateY(30px);
+            opacity: 0;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            background: #0f172a;
+            color: #f9fafb;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .6);
+            pointer-events: none;
+            transition: opacity .18s, transform .18s;
+            max-width: 92%;
+            text-align: center;
+            z-index: 80;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: #b91c1c;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 120;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px 14px;
+            background: rgba(15, 23, 42, .72);
+            backdrop-filter: blur(8px) saturate(180%);
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 740px;
+            max-height: calc(100dvh - 36px - var(--safe-top) - var(--safe-btm));
+            background: var(--card);
+            border: 1px solid var(--sep);
+            border-radius: 20px;
+            box-shadow: 0 14px 28px rgba(0, 0, 0, .18);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-head {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--sep);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .modal-title {
+            font-weight: 900;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .modal-btn {
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: none;
+            color: #fff;
+            background: linear-gradient(135deg, #0a84ff, #2563eb);
+            font-weight: 900;
+            cursor: pointer;
+            font-size: 12px;
+            box-shadow: 0 10px 22px rgba(37, 99, 235, .25);
+            white-space: nowrap;
+        }
+
+        .modal-loading {
+            padding: 14px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .modal-body {
+            padding: 14px;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 13.5px;
+            overscroll-behavior: contain;
+        }
+
+        .readbar {
+            padding: 10px 14px;
+            border-top: 1px solid var(--sep);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: color-mix(in oklab, var(--card)96%, transparent);
+        }
+
+        .readbar small {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .readbar .mini {
+            border: 1px solid var(--sep);
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-weight: 900;
+            background: transparent;
+            cursor: pointer;
+            color: var(--text);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .readbar .mini:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .modal-body * {
+            max-width: 100%;
+        }
+
+        .modal-body img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .modal-body table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .modal-body h1,
+        .modal-body h2,
+        .modal-body h3 {
+            margin: 12px 0 8px;
+        }
+
+        .modal-body p {
+            margin: 8px 0;
+        }
+
+        .inline-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            margin: 8px 0 10px;
+        }
+
+        .inline-links .linkbtn {
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            text-decoration: none;
+        }
+
+        .inline-links .linkbtn:hover {
+            text-decoration: none;
+            border-color: color-mix(in oklab, var(--tint)24%, var(--sep));
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="nav">
+            <div class="wrap">
+                <div class="brand"><span class="dot"></span>AutoParkX</div>
+            </div>
+        </div>
+
+        <main class="content no-scrollbar" id="contentScroll">
+            <div class="wrap">
+                <section class="card">
+                    <div class="title">การให้ความยินยอม</div>
+
+                    <div class="subrow">
+                        <div class="pill">ขั้นตอน 2/2 • ยืนยันก่อนเริ่มใช้งาน</div>
+                        <div class="pill">ทำเครื่องหมาย 1 รายการเพื่อดำเนินการต่อ</div>
+                    </div>
+
+                    <p class="lead">
+                        ก่อนเริ่มใช้งาน AutoParkX กรุณาอ่านสรุปด้านล่าง
+                        และสามารถกดเปิดดูรายละเอียดเอกสารได้ตามต้องการ
+                    </p>
+
+                    <div class="summary">
+                        <h4>สรุปข้อมูลสำคัญ (แบบย่อ)</h4>
+                        <ul>
+                            <li>ใช้ข้อมูลบัญชีและข้อมูลติดต่อเพื่อยืนยันตัวตน ให้บริการ และแจ้งเตือนการใช้งาน</li>
+                            <li>จัดเก็บประวัติการจอง/การใช้งานเพื่อความปลอดภัย การให้บริการ และการตรวจสอบรายการ</li>
+                            <li>อาจใช้ข้อมูลเพื่อปรับปรุงระบบ วิเคราะห์ปัญหา และพัฒนาคุณภาพแอปพลิเคชัน</li>
+                            <li>ท่านสามารถถอนความยินยอมหรือขอลบบัญชีได้ตามช่องทางติดต่อที่ระบุด้านล่าง</li>
+                        </ul>
+                    </div>
+
+                    <div class="notice">
+                        <strong style="color:var(--text);">หมายเหตุ</strong><br>
+                        สามารถเลื่อนอ่านเนื้อหาในหน้านี้ได้ตามต้องการ และกดเปิดดูเอกสารฉบับเต็มได้ทุกเมื่อ
+                    </div>
+
+                    <div class="hintline" id="hintLine">
+                        ทำเครื่องหมายยืนยันด้านล่าง แล้วกดปุ่ม “ยืนยันและเริ่มใช้งาน”
+                    </div>
+
+                    <div class="inline-links" aria-label="ลิงก์เอกสาร">
+                        <button class="linkbtn" type="button" id="openTermsBtn">ข้อกำหนดการใช้บริการ</button>
+                        <button class="linkbtn" type="button" id="openPrivacyBtn">นโยบายความเป็นส่วนตัว</button>
+                    </div>
+
+                    <label class="check">
+                        <input type="checkbox" id="cbConsent">
+                        <div style="min-width:0;">
+                            <strong>ข้าพเจ้าได้อ่านสรุปข้อมูลและยอมรับเงื่อนไขการใช้งาน รวมถึงนโยบายความเป็นส่วนตัว</strong>
+                            <div style="color:var(--muted);font-size:12px;">
+                                สามารถเปิดดูรายละเอียดฉบับเต็มได้จากปุ่มด้านบนก่อนยืนยัน
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="check hidden" aria-hidden="true">
+                        <input type="checkbox" id="cbTerms" checked>
+                        <div style="min-width:0;">
+                            <strong>
+                                ข้าพเจ้ายอมรับ
+                                <span>ข้อกำหนดการใช้บริการ</span>
+                                <span class="badge ok" id="termsBadge">อ่านแล้ว</span>
+                            </strong>
+                        </div>
+                    </label>
+
+                    <label class="check hidden" aria-hidden="true">
+                        <input type="checkbox" id="cbPrivacy" checked>
+                        <div style="min-width:0;">
+                            <strong>
+                                ข้าพเจ้ารับทราบและยอมรับ
+                                <span>นโยบายความเป็นส่วนตัว</span>
+                                <span class="badge ok" id="privacyBadge">อ่านแล้ว</span>
+                            </strong>
+                        </div>
+                    </label>
+
+                    <div class="foot">
+                        เวอร์ชันการให้ความยินยอม: <span id="verTxt">v1</span><br>
+                        วันที่มีผลบังคับใช้: <span id="effectiveTxt">23 ก.พ. 2026</span> • วันที่ปรับปรุงล่าสุด:
+                        <span id="updatedTxt">23 ก.พ. 2026</span><br>
+                        การถอนความยินยอมหรือคำขอลบบัญชี ติดต่อ <a href="#" id="supportLink">support@autoparkx.app</a><br>
+                        หรือดำเนินการได้ที่เมนู “ตั้งค่า &gt; ความเป็นส่วนตัว” ภายในแอปพลิเคชัน
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <div class="actionbar" id="actionbar">
+            <div class="wrap">
+                <button class="btn primary" id="acceptBtn" disabled>ยืนยันและเริ่มใช้งาน</button>
+                <button class="btn secondary" id="backBtn" type="button">กลับไปยังหน้าคำแนะนำการใช้งาน</button>
+            </div>
+        </div>
+
+        <div id="toast" class="toast"></div>
+
+        <div class="modal-backdrop" id="readerBackdrop" aria-hidden="true">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
+                <div class="modal-head">
+                    <div class="modal-title" id="readerTitle">กำลังโหลด…</div>
+                    <button class="modal-btn" id="closeReaderBtn" type="button">ปิด</button>
+                </div>
+                <div class="modal-loading" id="readerLoading">กำลังโหลดเอกสาร…</div>
+                <div class="modal-body no-scrollbar" id="readerBody" style="display:none;"></div>
+
+                <div class="readbar" id="readBar" style="display:none;">
+                    <small id="readHint">เลื่อนอ่านรายละเอียดได้ตามต้องการ</small>
+                    <button class="mini" id="markReadBtn" type="button" disabled>ปิดเอกสาร</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ===== Config =====
+        const API_BASE = `${location.origin}/api`;
+
+        const ONBOARD_KEY = 'onboarding_done';
+        const CONSENT_VERSION = 'v1';
+        const TERMS_VERSION = 'v1';
+        const PRIVACY_VERSION = 'v1';
+        const EFFECTIVE_DATE_TEXT = '23 ก.พ. 2026';
+        const UPDATED_DATE_TEXT = '23 ก.พ. 2026';
+        const SUPPORT_EMAIL = 'support@autoparkx.app';
+
+        const qs = new URLSearchParams(location.search);
+        const NEXT_URL = qs.get('next') || 'index.html';
+
+        function normalizeEmail(s) {
+            return String(s || '').trim().toLowerCase();
+        }
+
+        function ensureTmpScope() {
+            let tmp = '';
+            try { tmp = sessionStorage.getItem('apx_tmp_scope') || ''; } catch { }
+            if (!tmp) {
+                const rand = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + '_' + Math.random().toString(16).slice(2);
+                tmp = 'tmp_' + rand;
+                try { sessionStorage.setItem('apx_tmp_scope', tmp); } catch { }
+            }
+            return tmp;
+        }
+
+        function getUserScope() {
+            const uid = (qs.get('uid') || '').trim();
+            if (uid) return 'uid_' + uid;
+
+            const email = normalizeEmail(qs.get('email'));
+            if (email) return 'email_' + email;
+
+            try {
+                const storedId = (localStorage.getItem('apx_user_id') || localStorage.getItem('user_id') || '').toString().trim();
+                if (storedId) return 'uid_' + storedId;
+            } catch { }
+
+            return ensureTmpScope();
+        }
+
+        const USER_SCOPE = getUserScope();
+        const IS_PERSISTENT_USER = !String(USER_SCOPE).startsWith('tmp_');
+
+        function S() { return IS_PERSISTENT_USER ? localStorage : sessionStorage; }
+
+        const CONSENT_KEY = `apx_${USER_SCOPE}_consent_${CONSENT_VERSION}`;
+        const READ_TERMS_KEY = `apx_${USER_SCOPE}_read_terms_${TERMS_VERSION}`;
+        const READ_PRIVACY_KEY = `apx_${USER_SCOPE}_read_privacy_${PRIVACY_VERSION}`;
+
+        const cbConsent = document.getElementById('cbConsent');
+        const cbTerms = document.getElementById('cbTerms');
+        const cbPrivacy = document.getElementById('cbPrivacy');
+        const acceptBtn = document.getElementById('acceptBtn');
+        const backBtn = document.getElementById('backBtn');
+        const termsBadge = document.getElementById('termsBadge');
+        const privacyBadge = document.getElementById('privacyBadge');
+        const hintLine = document.getElementById('hintLine');
+        const toastEl = document.getElementById('toast');
+
+        const contentScroll = document.getElementById('contentScroll');
+
+        const readerBackdrop = document.getElementById('readerBackdrop');
+        const readerTitle = document.getElementById('readerTitle');
+        const readerBody = document.getElementById('readerBody');
+        const readerLoading = document.getElementById('readerLoading');
+        const closeReaderBtn = document.getElementById('closeReaderBtn');
+        const readBar = document.getElementById('readBar');
+        const readHint = document.getElementById('readHint');
+        const markReadBtn = document.getElementById('markReadBtn');
+
+        document.getElementById('verTxt').textContent = CONSENT_VERSION;
+        document.getElementById('effectiveTxt').textContent = EFFECTIVE_DATE_TEXT;
+        document.getElementById('updatedTxt').textContent = UPDATED_DATE_TEXT;
+
+        document.getElementById('supportLink').addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await navigator.clipboard.writeText(SUPPORT_EMAIL);
+                showToast('คัดลอกอีเมลสำหรับติดต่อแล้ว');
+            } catch {
+                showToast(SUPPORT_EMAIL);
+            }
+        });
+
+        function showToast(msg, isError = false) {
+            toastEl.textContent = msg;
+            toastEl.classList.toggle('error', !!isError);
+            toastEl.classList.add('show');
+            clearTimeout(toastEl._timer);
+            toastEl._timer = setTimeout(() => toastEl.classList.remove('show'), 2400);
+        }
+
+        function tinyVibrate() {
+            try { if (navigator.vibrate) navigator.vibrate(10); } catch { }
+        }
+
+        function lockOverscroll(el) {
+            if (!el) return;
+            let startY = 0;
+
+            el.addEventListener('touchstart', (e) => {
+                if (!e.touches || !e.touches.length) return;
+                startY = e.touches[0].clientY;
+            }, { passive: true });
+
+            el.addEventListener('touchmove', (e) => {
+                if (!e.touches || !e.touches.length) return;
+
+                const y = e.touches[0].clientY;
+                const dy = y - startY;
+
+                const atTop = el.scrollTop <= 0;
+                const atBottom = (el.scrollTop + el.clientHeight) >= (el.scrollHeight - 1);
+
+                if ((atTop && dy > 0) || (atBottom && dy < 0)) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        }
+
+        function getUserIdForDB() {
+            try {
+                const a = (localStorage.getItem('apx_user_id') || '').trim();
+                const b = (localStorage.getItem('user_id') || '').trim();
+                if (a) return parseInt(a, 10);
+                if (b) return parseInt(b, 10);
+            } catch { }
+
+            try {
+                const u = JSON.parse(localStorage.getItem('parking_user') || 'null');
+                const uid = u?.id ?? u?.user_id ?? u?.uid;
+                if (uid != null && uid !== '') return parseInt(String(uid), 10);
+            } catch { }
+
+            try {
+                const s = String(USER_SCOPE || '');
+                if (s.startsWith('uid_')) {
+                    const n = parseInt(s.slice(4), 10);
+                    if (!Number.isNaN(n) && n > 0) return n;
+                }
+            } catch { }
+
+            return 0;
+        }
+
+        async function saveConsentToDB() {
+            const userId = getUserIdForDB();
+            if (!userId || Number.isNaN(userId)) {
+                throw new Error('no_user_id');
+            }
+
+            const res = await fetch(`${API_BASE}/consent_accept.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: userId,
+                    consent_version: CONSENT_VERSION
+                })
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.ok) {
+                throw new Error(data.error || `http_${res.status}`);
+            }
+            return true;
+        }
+
+        try {
+            const onboardDone = localStorage.getItem(ONBOARD_KEY) === '1';
+            if (!onboardDone) location.replace('onboarding.html');
+        } catch { }
+
+        try {
+            const consentOk = S().getItem(CONSENT_KEY) === 'accepted';
+            const hasNext = qs.has('next');
+            if (consentOk && hasNext) location.replace(NEXT_URL);
+        } catch { }
+
+        let currentDoc = null;
+        let loadingAccept = false;
+
+        function renderReadUI() {
+            if (cbTerms) {
+                cbTerms.disabled = false;
+                cbTerms.checked = true;
+            }
+            if (cbPrivacy) {
+                cbPrivacy.disabled = false;
+                cbPrivacy.checked = true;
+            }
+            if (termsBadge) {
+                termsBadge.textContent = 'อ่านแล้ว';
+                termsBadge.classList.add('ok');
+            }
+            if (privacyBadge) {
+                privacyBadge.textContent = 'อ่านแล้ว';
+                privacyBadge.classList.add('ok');
+            }
+            if (hintLine) {
+                hintLine.textContent = cbConsent.checked
+                    ? 'พร้อมแล้ว กดปุ่ม “ยืนยันและเริ่มใช้งาน” เพื่อดำเนินการต่อ'
+                    : 'ทำเครื่องหมายยืนยันด้านล่าง แล้วกดปุ่ม “ยืนยันและเริ่มใช้งาน”';
+            }
+            syncBtn();
+        }
+
+        function syncBtn() {
+            acceptBtn.disabled = loadingAccept || !cbConsent.checked;
+        }
+
+        cbConsent.addEventListener('change', () => { tinyVibrate(); renderReadUI(); });
+
+        acceptBtn.addEventListener('click', async () => {
+            if (loadingAccept) return;
+
+            if (!cbConsent.checked) {
+                showToast('โปรดทำเครื่องหมายยืนยันก่อนดำเนินการต่อ', true);
+                return;
+            }
+
+            loadingAccept = true;
+            syncBtn();
+
+            const originalText = acceptBtn.textContent;
+            acceptBtn.classList.add('loading');
+            acceptBtn.innerHTML = '<span class="spinner"></span>กำลังบันทึกการยินยอม…';
+
+            try {
+                await saveConsentToDB();
+
+                try {
+                    S().setItem(CONSENT_KEY, 'accepted');
+                    S().setItem(`apx_${USER_SCOPE}_consent_at`, String(Date.now()));
+                    S().setItem(`apx_${USER_SCOPE}_consent_version`, CONSENT_VERSION);
+                } catch { }
+
+                location.replace(NEXT_URL);
+
+            } catch (e) {
+                console.error(e);
+                showToast('บันทึกการยินยอมไม่สำเร็จ กรุณาลองใหม่', true);
+
+                loadingAccept = false;
+                acceptBtn.classList.remove('loading');
+                acceptBtn.textContent = originalText;
+                syncBtn();
+            }
+        });
+
+        backBtn.addEventListener('click', () => location.replace('onboarding.html?force=1'));
+
+        function openReader() {
+            readerBackdrop.classList.add('open');
+            readerBackdrop.setAttribute('aria-hidden', 'false');
+        }
+        function closeReader() {
+            readerBackdrop.classList.remove('open');
+            readerBackdrop.setAttribute('aria-hidden', 'true');
+            currentDoc = null;
+            readBar.style.display = 'none';
+        }
+
+        closeReaderBtn.addEventListener('click', closeReader);
+        readerBackdrop.addEventListener('click', (e) => { if (e.target === readerBackdrop) closeReader(); });
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && readerBackdrop.classList.contains('open')) closeReader();
+        });
+
+        function sanitizeExternalDoc(htmlText) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            doc.querySelectorAll('script, style, link, meta, iframe, noscript').forEach(n => n.remove());
+            doc.querySelectorAll('header, nav, footer, .nav, .tabbar, .tabs').forEach(n => n.remove());
+            doc.querySelectorAll('[style]').forEach(el => {
+                const s = (el.getAttribute('style') || '').toLowerCase();
+                if (s.includes('position:fixed') || s.includes('position: fixed') ||
+                    s.includes('position:sticky') || s.includes('position: sticky')) {
+                    el.remove();
+                }
+            });
+            return doc.body ? doc.body.innerHTML : '';
+        }
+
+        function setReadbarState() {
+            readBar.style.display = 'flex';
+            markReadBtn.disabled = false;
+            markReadBtn.textContent = 'ปิดเอกสาร';
+        }
+
+        function updateReadHint() {
+            if (!currentDoc) return;
+            const title = currentDoc === 'terms' ? 'ข้อกำหนดการใช้บริการ' : 'นโยบายความเป็นส่วนตัว';
+            readHint.textContent = `เปิดอ่าน “${title}” ได้ตามต้องการ`;
+        }
+
+        async function loadDocIntoReader(url, title, which) {
+            currentDoc = which;
+
+            readerTitle.textContent = title || 'เอกสาร';
+            readerBody.style.display = 'none';
+            readerLoading.style.display = 'block';
+            readerLoading.textContent = 'กำลังโหลดเอกสาร…';
+
+            openReader();
+            updateReadHint();
+            setReadbarState();
+
+            try {
+                const res = await fetch(url, { cache: 'no-store' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+
+                const text = await res.text();
+                const clean = sanitizeExternalDoc(text);
+                if (!clean || clean.trim().length < 30) throw new Error('EMPTY');
+
+                readerBody.innerHTML = clean;
+                readerLoading.style.display = 'none';
+                readerBody.style.display = 'block';
+
+                readerBody.scrollTop = 0;
+                setReadbarState();
+            } catch (e) {
+                console.error(e);
+                readerLoading.style.display = 'block';
+                readerBody.style.display = 'none';
+                setReadbarState();
+
+                readerLoading.innerHTML =
+                    'ไม่สามารถแสดงเอกสารในหน้านี้ได้<br>' +
+                    '<span style="font-size:12px;color:var(--muted);">หากเปิดด้วย file:// อาจถูกจำกัด กรุณาทดสอบผ่านโฮสต์/เซิร์ฟเวอร์</span>';
+                showToast('ไม่สามารถโหลดเอกสารได้', true);
+            }
+        }
+
+        readerBody.addEventListener('scroll', () => {
+            if (!currentDoc) return;
+            setReadbarState();
+        }, { passive: true });
+
+        markReadBtn.addEventListener('click', () => {
+            tinyVibrate();
+            closeReader();
+        });
+
+        document.getElementById('openTermsBtn').addEventListener('click', () =>
+            loadDocIntoReader('terms.html', 'ข้อกำหนดการใช้บริการ', 'terms')
+        );
+        document.getElementById('openPrivacyBtn').addEventListener('click', () =>
+            loadDocIntoReader('privacy.html', 'นโยบายความเป็นส่วนตัว', 'privacy')
+        );
+
+        readerBody.addEventListener('click', async (e) => {
+            const a = e.target.closest('a');
+            if (!a) return;
+
+            const href = (a.getAttribute('href') || '').trim();
+            if (!href) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (href.startsWith('#')) {
+                const el = readerBody.querySelector(href);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+
+            const h = href.toLowerCase();
+            if (h.includes('privacy')) {
+                await loadDocIntoReader('privacy.html', 'นโยบายความเป็นส่วนตัว', 'privacy');
+                return;
+            }
+            if (h.includes('terms')) {
+                await loadDocIntoReader('terms.html', 'ข้อกำหนดการใช้บริการ', 'terms');
+                return;
+            }
+
+            if (/^https?:\/\//i.test(href)) {
+                window.open(href, '_blank', 'noopener');
+                return;
+            }
+        }, true);
+
+        function updateActionBarHeight() {
+            const bar = document.getElementById('actionbar');
+            if (!bar) return;
+            const h = Math.ceil(bar.getBoundingClientRect().height);
+            document.documentElement.style.setProperty('--actionbar-h', h + 'px');
+        }
+        window.addEventListener('resize', updateActionBarHeight);
+
+        renderReadUI();
+        updateActionBarHeight();
+
+        lockOverscroll(contentScroll);
+        lockOverscroll(readerBody);
+    </script>
+</body>
+
+</html>

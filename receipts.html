@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking • ใบเสร็จ</title>
+
+    <!-- iOS PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e5e7eb;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+            --vh: 100dvh;
+            --nav-h: 0px;
+            --tab-h: 0px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e5e7eb;
+                --muted: #9aa4af;
+                --sep: #1f2937;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .55);
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+        }
+
+        input,
+        textarea,
+        select {
+            font-size: 16px;
+        }
+
+        /* กัน iOS ซูมเอง */
+
+        /* ===== Nav Bar (ยึดตาม settings.html) ===== */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-bottom: 1px solid var(--sep);
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .back-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .back-btn:active {
+            transform: scale(.94);
+        }
+
+        .nav-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-spacer {
+            width: 32px;
+        }
+
+        /* ===== Page ===== */
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 14px 14px calc(90px + var(--safe-btm));
+            min-height: calc(var(--vh) - var(--nav-h) - var(--tab-h));
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* ===== Cards / Lists (ยึดตาม settings.html) ===== */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--sep);
+            box-shadow: var(--shadow);
+            padding: 14px 14px 10px;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 2px;
+        }
+
+        .title {
+            margin: 0;
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        .badge-sec {
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            background: color-mix(in oklab, var(--tint)12%, transparent);
+            color: var(--tint);
+            white-space: nowrap;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 9px 10px;
+            border-radius: 14px;
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            border: 1px solid var(--sep);
+            text-decoration: none;
+            color: var(--text);
+            cursor: pointer;
+            transition: background .15s ease, border-color .15s ease, transform .08s ease;
+        }
+
+        .item:active {
+            transform: scale(.98);
+            background: color-mix(in oklab, var(--card)90%, transparent);
+        }
+
+        .item-main {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            background: color-mix(in oklab, var(--tint)9%, #ffffff);
+            border: 1px solid color-mix(in oklab, var(--tint)30%, transparent);
+            flex-shrink: 0;
+        }
+
+        .item-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            text-align: left;
+            align-items: flex-start;
+        }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: 800;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 56vw;
+        }
+
+        .item-sub {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 62vw;
+        }
+
+        .item-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            font-size: 12px;
+            color: var(--muted);
+            text-align: right;
+        }
+
+        .item-right .amt {
+            font-weight: 900;
+            color: var(--text);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .item-right .meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            align-items: flex-end;
+            min-width: 88px;
+        }
+
+        .item-right .date {
+            font-size: 11px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .item-right .chev {
+            font-size: 16px;
+            transform: translateX(1px);
+        }
+
+        /* ===== Controls (ค้นหา + ชิปฟิลเตอร์) ===== */
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+        }
+
+        .search input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+        }
+
+        .chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .chip.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint)10%, transparent);
+            border-color: color-mix(in oklab, var(--tint)35%, transparent);
+        }
+
+        .tools {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .meta-line {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .btn-mini {
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            color: var(--text);
+            font-weight: 800;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .btn-mini.primary {
+            border: none;
+            background: var(--tint);
+            color: #fff;
+        }
+
+        .btn-mini:active {
+            transform: scale(.98);
+        }
+
+        .btn-mini[disabled] {
+            opacity: .6;
+            cursor: default;
+        }
+
+        /* ===== Empty ===== */
+        .empty {
+            margin-top: 10px;
+            padding: 18px 12px;
+            border-radius: 14px;
+            border: 1px dashed color-mix(in oklab, var(--sep)70%, transparent);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty .big {
+            font-size: 30px;
+            margin-bottom: 6px;
+        }
+
+        .empty .head {
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        /* ===== Modal (ยึดตาม settings.html) ===== */
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-box {
+            position: relative;
+            z-index: 1000;
+            width: 90%;
+            max-width: 380px;
+            background: var(--card);
+            border-radius: 20px;
+            padding: 18px 18px 16px;
+            box-shadow: var(--shadow);
+            animation: pop .25s ease;
+            border: 1px solid var(--sep);
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(.86);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            background: color-mix(in oklab, var(--tint)12%, transparent);
+            color: var(--tint);
+            margin-bottom: 6px;
+        }
+
+        .modal-box h3 {
+            margin: 0 0 4px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-sub {
+            margin: 0 0 12px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .kv {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .kv-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            border: 1px solid var(--sep);
+        }
+
+        .kv-k {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .kv-v {
+            font-size: 13px;
+            font-weight: 800;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .modal-actions {
+            margin-top: 12px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 9px 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn.cancel {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .btn.save {
+            background: var(--tint);
+            color: white;
+        }
+
+        .btn.ghost {
+            background: transparent;
+            border: 1px solid var(--sep);
+            color: var(--text);
+        }
+
+        /* ===== Tabbar (ยึดตาม settings.html) ===== */
+        .tabbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint)10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px
+        }
+
+        /* Print (ให้พิมพ์เฉพาะ modal box) */
+        @media print {
+
+            .nav,
+            .tabbar {
+                display: none !important;
+            }
+
+            body {
+                background: #fff !important;
+            }
+
+            .page {
+                padding: 0 !important;
+                max-width: none !important;
+            }
+
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+            }
+
+            .modal-bg {
+                display: none !important;
+            }
+
+            .modal {
+                position: static !important;
+                display: block !important;
+            }
+
+            .modal-box {
+                width: 100% !important;
+                max-width: none !important;
+                border-radius: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .modal-actions {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <div class="nav">
+        <div class="row">
+            <button class="back-btn" type="button" onclick="location.href='account.html'">‹</button>
+            <div class="nav-title">ใบเสร็จ / รายการชำระเงิน</div>
+            <div class="nav-spacer"></div>
+        </div>
+    </div>
+
+    <main class="page">
+        <!-- Header card -->
+        <section class="card">
+            <div class="title-row">
+                <h3 class="title">ใบเสร็จของคุณ</h3>
+                <div class="badge-sec" id="badgeState">กำลังโหลด</div>
+            </div>
+            <p class="subtitle">ดูรายการ เติมเงิน / หักเงิน / คืนเงิน / ชำระค่าจอง (ถ้ามีข้อมูลในระบบ)</p>
+
+            <div class="controls">
+                <div class="search">
+                    <div style="font-size:14px">🔎</div>
+                    <input id="q" type="text" placeholder="ค้นหา: เลขอ้างอิง / booking_id / รายการ..." autocomplete="off">
+                </div>
+
+                <div class="chips" role="tablist" aria-label="Filters">
+                    <div class="chip active" data-type="ALL">ทั้งหมด</div>
+                    <div class="chip" data-type="WALLET">วอลเล็ต</div>
+                    <div class="chip" data-type="BOOKING">การจอง</div>
+                    <div class="chip" data-type="REFUND">คืนเงิน</div>
+                </div>
+
+                <div class="tools">
+                    <div class="meta-line" id="metaLine">—</div>
+                    <div style="display:flex; gap:8px">
+                        <button class="btn-mini" id="refreshBtn" type="button">รีเฟรช</button>
+                        <button class="btn-mini primary" id="loadMoreBtn" type="button" disabled>โหลดเพิ่ม</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- List card -->
+        <section class="card">
+            <div class="list" id="list"></div>
+
+            <div class="empty" id="empty" style="display:none">
+                <div class="big">🧾</div>
+                <div class="head">ยังไม่มีข้อมูลใบเสร็จ</div>
+                <div>ถ้ายังไม่มี API ใบเสร็จ หน้านี้จะโชว์ข้อมูลได้จาก “ประวัติวอลเล็ต/การจอง” เท่าที่ระบบมี</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal รายละเอียด -->
+    <div class="modal" id="detailModal">
+        <div class="modal-bg"></div>
+        <div class="modal-box">
+            <div class="modal-chip" id="mChip">รายละเอียด</div>
+            <h3 id="mTitle">—</h3>
+            <p class="modal-sub" id="mSub">—</p>
+
+            <div class="kv" id="kv"></div>
+
+            <div class="modal-actions">
+                <button class="btn ghost" type="button" id="copyBtn">คัดลอกอ้างอิง</button>
+                <button class="btn save" type="button" id="printBtn">พิมพ์/บันทึก PDF</button>
+                <button class="btn cancel" type="button" onclick="closeDetail()">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabbar -->
+    <nav class="tabbar">
+        <div class="tabs">
+            <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+            <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+            <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+            <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+        </div>
+    </nav>
+
+    <script>
+        const $ = s => document.querySelector(s);
+
+    // ===== user =====
+    let me = {};
+    try{ me = JSON.parse(localStorage.getItem('parking_user') || '{}'); }catch{}
+
+    // ถ้าไม่มี user -> เด้งไป login
+    if(!me?.id){
+      sessionStorage.setItem('after_login','receipts.html');
+      location.href = 'login.html';
+    }
+
+    // ===== API base ให้เข้ากับโครง ../api แบบ settings.html =====
+    const API_BASE = new URL('../api/', location.href).toString(); // จบด้วย "/"
+
+    // ===== state =====
+    const state = {
+      type: 'ALL',
+      q: '',
+      limit: 12,
+      offset: 0,
+      total: null,
+      loading: false,
+      allItems: [],   // ข้อมูลทั้งหมด
+      viewItems: [],  // ข้อมูลหลัง filter+search + paging
+      sourceNote: 'ไม่มีข้อมูล'
+    };
+
+    const listEl = $('#list');
+    const emptyEl = $('#empty');
+    const badgeState = $('#badgeState');
+    const metaLine = $('#metaLine');
+    const loadMoreBtn = $('#loadMoreBtn');
+    const refreshBtn = $('#refreshBtn');
+    const qEl = $('#q');
+
+    // ===== helpers =====
+    function escapeHtml(str){
+      return String(str ?? '')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#039;");
+    }
+    function fmtMoney(n){
+      const x = Number(n || 0);
+      const sign = x < 0 ? '-' : '';
+      return sign + '฿ ' + Math.abs(x).toLocaleString('th-TH',{minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+    function fmtDate(s){
+      if(!s) return '—';
+      const t = String(s).replace(' ', 'T');
+      const d = new Date(t);
+      if(isNaN(d.getTime())) return String(s);
+      return d.toLocaleString('th-TH',{year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+    }
+    function isRefundItem(it){
+      const t = (it.kind || it.type || '').toUpperCase();
+      const title = (it.title || '').toLowerCase();
+      if (t === 'REFUND') return true;
+      if (title.includes('คืน') || title.includes('refund')) return true;
+      if (Number(it.amount||0) > 0 && (t === 'WALLET' || t === 'BOOKING')) {
+        // บางระบบ refund เป็น +amount
+        return true;
+      }
+      return false;
+    }
+
+    function setBadge(text, tint=false){
+      badgeState.textContent = text;
+      badgeState.style.color = tint ? 'var(--tint)' : 'var(--muted)';
+      badgeState.style.background = tint ? 'color-mix(in oklab,var(--tint)12%,transparent)' : 'color-mix(in oklab,var(--card)96%,transparent)';
+      badgeState.style.border = '1px solid var(--sep)';
+      badgeState.style.padding = '3px 8px';
+      badgeState.style.borderRadius = '999px';
+      badgeState.style.fontWeight = '600';
+    }
+
+    function computeFiltered(){
+      const q = (state.q || '').trim().toLowerCase();
+      const type = (state.type || 'ALL').toUpperCase();
+
+      let arr = state.allItems.slice();
+
+      // filter type
+      if(type !== 'ALL'){
+        if(type === 'REFUND'){
+          arr = arr.filter(isRefundItem);
+        } else {
+          arr = arr.filter(it => String(it.type || it.kind || '').toUpperCase() === type);
+        }
+      }
+
+      // search
+      if(q){
+        arr = arr.filter(it => {
+          const hay = [
+            it.title, it.sub, it.ref, it.id, it.booking_id, it.slot_code, it.status
+          ].filter(Boolean).join(' | ').toLowerCase();
+          return hay.includes(q);
+        });
+      }
+
+      // sort by date desc
+      arr.sort((a,b) => {
+        const da = new Date(String(a.created_at||a.date||'').replace(' ', 'T')).getTime() || 0;
+        const db = new Date(String(b.created_at||b.date||'').replace(' ', 'T')).getTime() || 0;
+        return db - da;
+      });
+
+      return arr;
+    }
+
+    function render(){
+      // paging
+      const filtered = computeFiltered();
+      state.total = filtered.length;
+      const slice = filtered.slice(0, state.offset + state.limit);
+      state.viewItems = slice;
+
+      // meta
+      metaLine.textContent = `แสดง ${slice.length} / ${filtered.length} รายการ • ${state.sourceNote || '—'}`;
+      loadMoreBtn.disabled = state.loading || slice.length >= filtered.length;
+
+      // list
+      listEl.innerHTML = '';
+      if(!slice.length){
+        emptyEl.style.display = 'block';
+        return;
+      }
+      emptyEl.style.display = 'none';
+
+      const frag = document.createDocumentFragment();
+
+      slice.forEach(it => {
+        const a = document.createElement('button');
+        a.type = 'button';
+        a.className = 'item';
+
+        const icon = it.icon || (String(it.type||it.kind||'').toUpperCase()==='BOOKING' ? '📅' : '💳');
+        const title = it.title || 'รายการ';
+        const sub = it.sub || it.ref || '—';
+        const amount = fmtMoney(it.amount);
+        const date = fmtDate(it.created_at || it.date);
+
+        a.innerHTML = `
+          <div class="item-main">
+            <div class="item-icon">${escapeHtml(icon)}</div>
+            <div class="item-left">
+              <div class="item-title">${escapeHtml(title)}</div>
+              <div class="item-sub">${escapeHtml(sub)}</div>
+            </div>
+          </div>
+          <div class="item-right">
+            <div class="meta">
+              <div class="amt">${escapeHtml(amount)}</div>
+              <div class="date">${escapeHtml(date)}</div>
+            </div>
+            <span class="chev">›</span>
+          </div>
+        `;
+
+        a.addEventListener('click', () => openDetail(it));
+        frag.appendChild(a);
+      });
+
+      listEl.appendChild(frag);
+    }
+
+    // ===== data sources (ไม่มี API ใบเสร็จ: ดึงจากแหล่งที่ "อาจมีอยู่แล้ว") =====
+    async function tryFetchJSON(url){
+      try{
+        const res = await fetch(url, { cache:'no-store' });
+        const data = await res.json().catch(()=>null);
+        if(!res.ok || !data) return null;
+        // คาดหวัง ok true (แต่บางไฟล์ส่งเป็น array ก็รับ)
+        if (typeof data === 'object' && ('ok' in data) && data.ok === false) return null;
+        return data;
+      }catch{
+        return null;
+      }
+    }
+
+    async function loadFromWalletHistory(){
+      // ลองชื่อไฟล์ที่พบบ่อย (ถ้าไม่มีจะคืน null)
+      const candidates = [
+        `${API_BASE}wallet_history_my.php?user_id=${encodeURIComponent(me.id)}&limit=200&offset=0`,
+        `${API_BASE}wallet_history_list_my.php?user_id=${encodeURIComponent(me.id)}&limit=200&offset=0`,
+        `${API_BASE}wallet_history_list.php?user_id=${encodeURIComponent(me.id)}&limit=200&offset=0`,
+      ];
+
+      for (const url of candidates){
+        const out = await tryFetchJSON(url);
+        if(!out) continue;
+
+        const rows = out.items || out.rows || out.data || out.history || [];
+        if(!Array.isArray(rows)) continue;
+
+        const mapped = rows.map(r => {
+          const amount = Number(r.amount ?? r.delta ?? r.value ?? 0);
+          const created = r.created_at || r.time || r.createdAt || r.dt || r.date;
+          const ref = r.ref || r.ref_id || r.reference || r.note || r.remark || '';
+          const status = r.status || r.state || '';
+
+          // ตั้งชื่อให้สวย ๆ
+          let title = r.title || r.type_label || r.action || '';
+          const t = String(r.type || r.kind || r.action || '').toLowerCase();
+
+          if (!title){
+            if (amount > 0) title = 'เติมเงินวอลเล็ต';
+            else if (amount < 0) title = 'ชำระ/หักเงินวอลเล็ต';
+            else title = 'รายการวอลเล็ต';
+          }
+
+          return {
+            type: 'WALLET',
+            kind: 'WALLET',
+            icon: amount > 0 ? '➕' : (amount < 0 ? '➖' : '💳'),
+            id: r.id || r.wallet_history_id || r.history_id || '',
+            title,
+            sub: ref ? `อ้างอิง: ${String(ref)}` : (status ? `สถานะ: ${status}` : '—'),
+            ref: ref || '',
+            status,
+            amount,
+            created_at: created || ''
+          };
+        });
+
+        return mapped;
+      }
+      return null;
+    }
+
+    async function loadFromBookings(){
+      // booking_list_my.php คุณใช้อยู่แล้วในหน้า account (มีโอกาสมี)
+      const url = `${API_BASE}booking_list_my.php?user_id=${encodeURIComponent(me.id)}&time=all&limit=120&offset=0`;
+      const out = await tryFetchJSON(url);
+      if(!out) return null;
+
+      const rows = out.items || out.rows || out.data || [];
+      if(!Array.isArray(rows)) return null;
+
+      // โครง booking ของคุณอาจมี price/amount/total_cost ฯลฯ
+      const mapped = rows.map(b => {
+        const slot = b.slot_code || b.code || b.slot || '';
+        const bid = b.booking_id || b.id || '';
+        const status = b.status || b.state || '';
+
+        const amount =
+          Number(b.amount ?? b.total_amount ?? b.total_cost ?? b.cost ?? b.price ?? 0);
+
+        // ถ้าไม่รู้ราคา ก็โชว์ 0 แต่ยังดูรายละเอียดได้
+        const title = 'รายการจองที่จอด';
+        const subParts = [];
+        if (slot) subParts.push(`ช่อง ${slot}`);
+        if (bid) subParts.push(`Booking #${bid}`);
+        if (status) subParts.push(`สถานะ ${status}`);
+        const sub = subParts.join(' • ') || '—';
+
+        const created = b.created_at || b.createdAt || b.start_time || b.start || b.time || '';
+
+        // ถ้าราคา >0 ให้ถือเป็นการชำระค่าจอง (หักเงิน)
+        // ถ้าราคา 0 ก็ยังเป็นบันทึกรายการจอง
+        return {
+          type: 'BOOKING',
+          kind: 'BOOKING',
+          icon: '📅',
+          id: bid,
+          booking_id: bid,
+          slot_code: slot,
+          title,
+          sub,
+          ref: bid ? `booking:${bid}` : '',
+          status,
+          amount: amount ? -Math.abs(amount) : 0, // โทน “ชำระ” ให้เป็นลบ (หักเงิน)
+          created_at: created
+        };
+      });
+
+      return mapped;
+    }
+
+    async function loadAll(){
+      state.loading = true;
+      setBadge('กำลังโหลด', true);
+      loadMoreBtn.disabled = true;
+      refreshBtn.disabled = true;
+
+      state.allItems = [];
+      state.offset = 0;
+
+      // ดึงจาก 2 แหล่ง (ถ้ามี)
+      const [wallet, bookings] = await Promise.all([
+        loadFromWalletHistory(),
+        loadFromBookings()
+      ]);
+
+      let source = [];
+      let note = [];
+
+      if (Array.isArray(wallet) && wallet.length){
+        source = source.concat(wallet);
+        note.push('จากวอลเล็ต');
+      }
+      if (Array.isArray(bookings) && bookings.length){
+        source = source.concat(bookings);
+        note.push('จากการจอง');
+      }
+
+      state.allItems = source;
+      state.sourceNote = note.length ? `ข้อมูล ${note.join(' + ')}` : 'ไม่มี API/แหล่งข้อมูล';
+
+      if (state.allItems.length){
+        setBadge('พร้อมใช้งาน', true);
+      }else{
+        setBadge('ไม่มีข้อมูล', false);
+      }
+
+      state.loading = false;
+      refreshBtn.disabled = false;
+
+      render();
+    }
+
+    // ===== filter / search =====
+    document.querySelectorAll('.chip').forEach(ch => {
+      ch.addEventListener('click', ()=>{
+        document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        ch.classList.add('active');
+        state.type = ch.dataset.type || 'ALL';
+        state.offset = 0;
+        render();
+      });
+    });
+
+    let qTimer;
+    qEl.addEventListener('input', ()=>{
+      clearTimeout(qTimer);
+      qTimer = setTimeout(()=>{
+        state.q = (qEl.value || '').trim();
+        state.offset = 0;
+        render();
+      }, 260);
+    });
+
+    refreshBtn.addEventListener('click', loadAll);
+    loadMoreBtn.addEventListener('click', ()=>{
+      state.offset += state.limit;
+      render();
+    });
+
+    // ===== detail modal =====
+    const detailModal = $('#detailModal');
+    const kv = $('#kv');
+    const mChip = $('#mChip');
+    const mTitle = $('#mTitle');
+    const mSub = $('#mSub');
+    const copyBtn = $('#copyBtn');
+    const printBtn = $('#printBtn');
+
+    let current = null;
+
+    function kvRow(k, v){
+      const div = document.createElement('div');
+      div.className = 'kv-row';
+      div.innerHTML = `<div class="kv-k">${escapeHtml(k)}</div><div class="kv-v">${escapeHtml(v)}</div>`;
+      return div;
+    }
+
+    function openDetail(it){
+      current = it;
+      mChip.textContent = (String(it.type||it.kind||'DETAIL').toUpperCase() === 'WALLET') ? 'วอลเล็ต' :
+                          (String(it.type||it.kind||'').toUpperCase() === 'BOOKING') ? 'การจอง' :
+                          (isRefundItem(it) ? 'คืนเงิน' : 'รายการ');
+      mTitle.textContent = it.title || 'รายละเอียด';
+      mSub.textContent = it.sub || '—';
+
+      kv.innerHTML = '';
+      kv.appendChild(kvRow('ประเภท', it.type || it.kind || '—'));
+      kv.appendChild(kvRow('จำนวนเงิน', fmtMoney(it.amount)));
+      kv.appendChild(kvRow('วันที่', fmtDate(it.created_at || it.date)));
+      if (it.status) kv.appendChild(kvRow('สถานะ', String(it.status)));
+      if (it.ref) kv.appendChild(kvRow('อ้างอิง', String(it.ref)));
+      if (it.booking_id) kv.appendChild(kvRow('Booking ID', String(it.booking_id)));
+      if (it.slot_code) kv.appendChild(kvRow('ช่องจอด', String(it.slot_code)));
+      if (it.id) kv.appendChild(kvRow('ID', String(it.id)));
+
+      detailModal.classList.add('show');
+    }
+
+    function closeDetail(){
+      detailModal.classList.remove('show');
+      current = null;
+    }
+    window.closeDetail = closeDetail;
+
+    // ปิด modal เมื่อกดพื้นหลัง
+    detailModal.querySelector('.modal-bg').addEventListener('click', closeDetail);
+
+    copyBtn.addEventListener('click', async ()=>{
+      const ref = current?.ref || current?.id || current?.booking_id || '';
+      if(!ref) return alert('ไม่มีค่าอ้างอิงให้คัดลอก');
+      try{
+        await navigator.clipboard.writeText(String(ref));
+        alert('คัดลอกแล้ว');
+      }catch{
+        alert('คัดลอกไม่สำเร็จ');
+      }
+    });
+
+    printBtn.addEventListener('click', ()=>{
+      if(!current) return;
+      window.print();
+    });
+
+    // ===== init =====
+    loadAll();
+    </script>
+</body>
+
+</html>

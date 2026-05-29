@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking • ตั้งค่า</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e5e7eb;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+            --vh: 100dvh;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e5e7eb;
+                --muted: #9aa4af;
+                --sep: #1f2937;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .55);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            overflow: hidden;
+        }
+
+        body {
+            overscroll-behavior: none;
+        }
+
+        input,
+        textarea,
+        select,
+        button {
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        .app {
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav {
+            flex: 0 0 auto;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-bottom: 1px solid var(--sep);
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .back-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: var(--text);
+        }
+
+        .back-btn:active {
+            transform: scale(.94);
+        }
+
+        .nav-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-spacer {
+            width: 32px;
+        }
+
+        .page {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            max-width: 980px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 14px 14px 10px;
+            display: flex;
+        }
+
+        .content-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: calc(90px + var(--safe-btm));
+        }
+
+        .content-scroll::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--sep);
+            box-shadow: var(--shadow);
+            padding: 14px 14px 10px;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 2px;
+        }
+
+        .title {
+            margin: 0;
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        .badge-sec {
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            background: color-mix(in oklab, var(--tint)12%, transparent);
+            color: var(--tint);
+            white-space: nowrap;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 9px 10px;
+            border-radius: 14px;
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            border: 1px solid var(--sep);
+            text-decoration: none;
+            color: var(--text);
+            cursor: pointer;
+            transition: background .15s ease, border-color .15s ease, transform .08s ease;
+            width: 100%;
+        }
+
+        .item:active {
+            transform: scale(.98);
+            background: color-mix(in oklab, var(--card)90%, transparent);
+        }
+
+        .item[disabled] {
+            opacity: .65;
+            cursor: default;
+        }
+
+        .item-main {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            background: color-mix(in oklab, var(--tint)9%, #ffffff);
+            border: 1px solid color-mix(in oklab, var(--tint)30%, transparent);
+            flex-shrink: 0;
+        }
+
+        .item-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            text-align: left;
+            align-items: flex-start;
+        }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: 800;
+            text-align: left;
+        }
+
+        .item-sub {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: left;
+            word-break: break-word;
+        }
+
+        .item-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .item-right .chev {
+            font-size: 16px;
+            transform: translateX(1px);
+        }
+
+        .danger {
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, .35);
+            background: color-mix(in oklab, #ef4444 8%, var(--card));
+        }
+
+        .danger .item-icon {
+            background: rgba(248, 113, 113, .12);
+            border-color: rgba(248, 113, 113, .6);
+        }
+
+        .danger .item-title {
+            color: #b91c1c;
+        }
+
+        .danger .item-sub {
+            color: #b45309;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-box {
+            position: relative;
+            z-index: 1000;
+            width: 92%;
+            max-width: 390px;
+            background: var(--card);
+            border-radius: 20px;
+            padding: 18px 18px 16px;
+            box-shadow: var(--shadow);
+            animation: pop .25s ease;
+            border: 1px solid var(--sep);
+            max-height: min(88dvh, 720px);
+            overflow: auto;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(.86);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            background: color-mix(in oklab, var(--tint)12%, transparent);
+            color: var(--tint);
+            margin-bottom: 6px;
+        }
+
+        .modal-box h3 {
+            margin: 0 0 4px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-sub {
+            margin: 0 0 12px;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--sep);
+            font-size: 16px;
+            outline: none;
+            background: var(--card);
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .modal-note {
+            margin: 4px 0 10px;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+
+        .modal-actions {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 9px 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn.cancel {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .btn.save {
+            background: var(--tint);
+            color: white;
+        }
+
+        .modal-msg {
+            font-size: 13px;
+            margin: 2px 0 8px;
+            color: var(--muted);
+            line-height: 1.45;
+            min-height: 20px;
+        }
+
+        .modal-msg.err {
+            color: #dc2626;
+        }
+
+        .modal-msg.ok {
+            color: #16a34a;
+        }
+
+        .vehicle-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .vehicle-card {
+            border: 1px solid var(--sep);
+            border-radius: 14px;
+            padding: 10px;
+            background: color-mix(in oklab, var(--card)96%, transparent);
+        }
+
+        .vehicle-label {
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .tabbar {
+            flex: 0 0 auto;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint)10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="nav">
+            <div class="row">
+                <button class="back-btn" type="button" onclick="location.href='account.html'">‹</button>
+                <div class="nav-title">การตั้งค่าและความเป็นส่วนตัว</div>
+                <div class="nav-spacer"></div>
+            </div>
+        </div>
+
+        <main class="page">
+            <div class="content-scroll" id="contentScroll">
+                <div class="stack">
+
+                    <section class="card">
+                        <div class="title-row">
+                            <h3 class="title">บัญชีผู้ใช้</h3>
+                            <div class="badge-sec">โปรไฟล์ของคุณ</div>
+                        </div>
+                        <p class="subtitle">จัดการข้อมูลบัญชีของคุณได้ตลอดเวลา</p>
+
+                        <div class="list">
+                            <div class="item" style="cursor:default;">
+                                <div class="item-main">
+                                    <div class="item-icon">📧</div>
+                                    <div class="item-left">
+                                        <div class="item-title">อีเมลบัญชี</div>
+                                        <div class="item-sub" id="curEmail">—</div>
+                                    </div>
+                                </div>
+                                <div class="item-right"></div>
+                            </div>
+
+                            <button class="item" type="button" id="changeNameBtn">
+                                <div class="item-main">
+                                    <div class="item-icon">👤</div>
+                                    <div class="item-left">
+                                        <div class="item-title">เปลี่ยนชื่อผู้ใช้</div>
+                                        <div class="item-sub" id="curName">—</div>
+                                    </div>
+                                </div>
+                                <div class="item-right">
+                                    <span class="chev">›</span>
+                                </div>
+                            </button>
+
+                            <button class="item" type="button" id="changePhoneBtn">
+                                <div class="item-main">
+                                    <div class="item-icon">📱</div>
+                                    <div class="item-left">
+                                        <div class="item-title">เปลี่ยนเบอร์โทร</div>
+                                        <div class="item-sub" id="curPhone">—</div>
+                                    </div>
+                                </div>
+                                <div class="item-right">
+                                    <span class="chev">›</span>
+                                </div>
+                            </button>
+
+                            <button class="item" type="button" id="changeVehicleBtn">
+                                <div class="item-main">
+                                    <div class="item-icon">🚗</div>
+                                    <div class="item-left">
+                                        <div class="item-title">ทะเบียนรถ</div>
+                                        <div class="item-sub" id="curVehicles">ยังไม่ได้เพิ่มทะเบียนรถ</div>
+                                    </div>
+                                </div>
+                                <div class="item-right">
+                                    <span class="chev">›</span>
+                                </div>
+                            </button>
+
+                            <button class="item" type="button" id="changePassBtn">
+                                <div class="item-main">
+                                    <div class="item-icon">🔐</div>
+                                    <div class="item-left">
+                                        <div class="item-title">เปลี่ยนรหัสผ่าน</div>
+                                        <div class="item-sub">ตั้งรหัสผ่านใหม่</div>
+                                    </div>
+                                </div>
+                                <div class="item-right">
+                                    <span class="chev">›</span>
+                                </div>
+                            </button>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="title-row">
+                            <h3 class="title">การใช้งานระบบ</h3>
+                            <div class="badge-sec">อุปกรณ์นี้</div>
+                        </div>
+                        <p class="subtitle">ตั้งค่าการทำงานเฉพาะบนอุปกรณ์นี้</p>
+
+                        <div class="list">
+                            <a class="item" href="terms.html">
+                                <div class="item-main">
+                                    <div class="item-icon">📃</div>
+                                    <div class="item-left">
+                                        <div class="item-title">ข้อกำหนดการใช้งาน</div>
+                                        <div class="item-sub">สรุปเงื่อนไขและขอบเขตการใช้ AutoParkX</div>
+                                    </div>
+                                </div>
+                                <div class="item-right">
+                                    <span class="chev">›</span>
+                                </div>
+                            </a>
+
+                            <a class="item" href="privacy.html">
+                                <div class="item-main">
+                                    <div class="item-icon">🔏</div>
+                                    <div class="item-left">
+                                        <div class="item-title">นโยบายความเป็นส่วนตัว</div>
+                                        <div class="item-sub">อธิบายการเก็บและใช้ข้อมูลของคุณ</div>
+                                    </div>
+                                </div>
+                                <div class="item-right">
+                                    <span class="chev">›</span>
+                                </div>
+                            </a>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="title-row">
+                            <h3 class="title">ความปลอดภัย</h3>
+                            <div class="badge-sec">บัญชี</div>
+                        </div>
+                        <p class="subtitle">ออกจากระบบบนอุปกรณ์นี้เมื่อไม่ต้องการใช้งานต่อ</p>
+
+                        <div class="list">
+                            <button class="item danger" type="button" id="logoutBtn">
+                                <div class="item-main">
+                                    <div class="item-icon">🚪</div>
+                                    <div class="item-left">
+                                        <div class="item-title">ออกจากระบบ</div>
+                                        <div class="item-sub">ออกจากบัญชี AutoParkX บนอุปกรณ์นี้</div>
+                                    </div>
+                                </div>
+                                <div class="item-right">
+                                    <span class="chev">›</span>
+                                </div>
+                            </button>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </main>
+
+        <nav class="tabbar">
+            <div class="tabs">
+                <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+                <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+                <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+                <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+            </div>
+        </nav>
+    </div>
+
+    <div class="modal" id="nameModal">
+        <div class="modal-bg"></div>
+        <div class="modal-box">
+            <div class="modal-chip">โปรไฟล์</div>
+            <h3>เปลี่ยนชื่อผู้ใช้</h3>
+            <p class="modal-sub">ชื่อนี้จะแสดงในระบบ AutoParkX</p>
+            <input id="nameInput" type="text" placeholder="กรอกชื่อใหม่" maxlength="80" />
+            <div class="modal-msg err" id="nameErr"></div>
+            <div class="modal-actions">
+                <button class="btn cancel" type="button" onclick="closeNameModal()">ยกเลิก</button>
+                <button class="btn save" type="button" onclick="saveName()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="phoneModal">
+        <div class="modal-bg"></div>
+        <div class="modal-box">
+            <div class="modal-chip">ข้อมูลติดต่อ</div>
+            <h3>เปลี่ยนเบอร์โทร</h3>
+            <p class="modal-sub">กรอกเบอร์โทร 10 หลัก และต้องขึ้นต้นด้วย 0</p>
+            <input id="phoneInput" type="tel" inputmode="numeric" maxlength="10" placeholder="08xxxxxxxx" />
+            <div class="modal-msg err" id="phoneErr"></div>
+            <div class="modal-msg ok" id="phoneOk"></div>
+            <div class="modal-actions">
+                <button class="btn cancel" type="button" onclick="closePhoneModal()">ยกเลิก</button>
+                <button class="btn save" type="button" onclick="savePhone()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="vehicleModal">
+        <div class="modal-bg"></div>
+        <div class="modal-box">
+            <div class="modal-chip">ทะเบียนรถ</div>
+            <h3>จัดการทะเบียนรถ</h3>
+            <p class="modal-sub">แก้ไขได้สูงสุด 2 คัน ห้ามซ้ำกันเอง และควรตรวจซ้ำกับฐานข้อมูลก่อนบันทึก</p>
+
+            <div class="vehicle-grid">
+                <div class="vehicle-card">
+                    <div class="vehicle-label">ทะเบียนรถคันที่ 1</div>
+                    <input id="plate1Input" type="text" placeholder="เช่น กข1234" maxlength="30" />
+                </div>
+
+                <div class="vehicle-card">
+                    <div class="vehicle-label">ทะเบียนรถคันที่ 2 (ถ้ามี)</div>
+                    <input id="plate2Input" type="text" placeholder="เช่น 1กข1234" maxlength="30" />
+                </div>
+            </div>
+
+            <div class="modal-note">ถ้ามีรายการจองที่กำลังใช้งานอยู่
+                ฝั่งเซิร์ฟเวอร์ควรตรวจอีกชั้นก่อนอนุญาตให้เปลี่ยนทะเบียน</div>
+            <div class="modal-msg err" id="vehicleErr"></div>
+            <div class="modal-msg ok" id="vehicleOk"></div>
+            <div class="modal-actions">
+                <button class="btn cancel" type="button" onclick="closeVehicleModal()">ยกเลิก</button>
+                <button class="btn save" type="button" onclick="saveVehicles()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="passModal">
+        <div class="modal-bg"></div>
+        <div class="modal-box">
+            <div class="modal-chip">ความปลอดภัย</div>
+            <h3>เปลี่ยนรหัสผ่าน</h3>
+            <p class="modal-sub">เพื่อความปลอดภัย กรุณากรอกรหัสผ่านเดิม และตั้งรหัสใหม่</p>
+            <input id="oldPass" type="password" placeholder="รหัสผ่านเดิม" />
+            <input id="newPass" type="password" placeholder="รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)" />
+            <input id="newPass2" type="password" placeholder="ยืนยันรหัสผ่านใหม่" />
+            <div class="modal-msg err" id="passErr"></div>
+            <div class="modal-msg ok" id="passOk"></div>
+            <div class="modal-actions">
+                <button class="btn cancel" type="button" onclick="closePassModal()">ยกเลิก</button>
+                <button class="btn save" type="button" onclick="savePassword()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = s => document.querySelector(s);
+
+        function lockViewportScrollArea() {
+            document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
+        }
+
+        function normalizePhone(v) {
+            return String(v || '').replace(/\D/g, '').slice(0, 10);
+        }
+
+        function normalizePlate(v) {
+            return String(v || '').trim().replace(/\s+/g, '').toUpperCase();
+        }
+
+        function vehiclesFromUser(user) {
+            if (!Array.isArray(user?.vehicles)) return [];
+            return user.vehicles
+                .map(v => ({
+                    plate_number: normalizePlate(v?.plate_number || ''),
+                    plate_slot: Number(v?.plate_slot || 0)
+                }))
+                .filter(v => v.plate_number && (v.plate_slot === 1 || v.plate_slot === 2))
+                .sort((a, b) => a.plate_slot - b.plate_slot);
+        }
+
+        function sameVehicles(a, b) {
+            const aa = (Array.isArray(a) ? a : [])
+                .map(v => ({
+                    plate_number: normalizePlate(v?.plate_number || ''),
+                    plate_slot: Number(v?.plate_slot || 0)
+                }))
+                .filter(v => v.plate_number && (v.plate_slot === 1 || v.plate_slot === 2))
+                .sort((x, y) => x.plate_slot - y.plate_slot);
+
+            const bb = (Array.isArray(b) ? b : [])
+                .map(v => ({
+                    plate_number: normalizePlate(v?.plate_number || ''),
+                    plate_slot: Number(v?.plate_slot || 0)
+                }))
+                .filter(v => v.plate_number && (v.plate_slot === 1 || v.plate_slot === 2))
+                .sort((x, y) => x.plate_slot - y.plate_slot);
+
+            return JSON.stringify(aa) === JSON.stringify(bb);
+        }
+
+        function clearMessages() {
+            $('#nameErr').textContent = '';
+            $('#phoneErr').textContent = '';
+            $('#phoneOk').textContent = '';
+            $('#vehicleErr').textContent = '';
+            $('#vehicleOk').textContent = '';
+            $('#passErr').textContent = '';
+            $('#passOk').textContent = '';
+        }
+
+        function renderProfile() {
+            $('#curEmail').textContent = me.email || 'ไม่ได้ระบุอีเมล';
+            $('#curName').textContent = me.name || me.email || ('ID ' + me.id);
+            $('#curPhone').textContent = me.phone || 'ยังไม่ได้ระบุเบอร์โทร';
+
+            const vehicles = vehiclesFromUser(me);
+            if (!vehicles.length) {
+                $('#curVehicles').textContent = 'ยังไม่ได้เพิ่มทะเบียนรถ';
+                return;
+            }
+
+            const text = vehicles.map(v => `คันที่ ${v.plate_slot}: ${v.plate_number}`).join(' • ');
+            $('#curVehicles').textContent = text;
+        }
+
+        function mergeUserAndSave(user) {
+            me = { ...me, ...user };
+            localStorage.setItem('parking_user', JSON.stringify(me));
+            renderProfile();
+        }
+
+        let me = {};
+        try {
+            me = JSON.parse(localStorage.getItem('parking_user') || '{}');
+        } catch { }
+
+        if (!me?.id) {
+            location.href = 'login.html';
+        }
+
+        renderProfile();
+
+        async function updateNameAPI(newName) {
+            const res = await fetch('../api/user_update_name.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: me.id,
+                    name: newName
+                })
+            });
+
+            const out = await res.json().catch(() => {
+                throw new Error('ไม่สามารถอ่านข้อมูลจากเซิร์ฟเวอร์ได้');
+            });
+
+            if (out.ok === false) throw new Error(out.error || 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
+            return out;
+        }
+
+        async function updatePhoneAPI(phone) {
+            const res = await fetch('../api/user_update_phone.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: me.id,
+                    phone
+                })
+            });
+
+            const out = await res.json().catch(() => {
+                throw new Error('ไม่สามารถอ่านข้อมูลจากเซิร์ฟเวอร์ได้');
+            });
+
+            if (out.ok === false) throw new Error(out.error || 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
+            return out;
+        }
+
+        async function updateVehiclesAPI(vehicles) {
+            const res = await fetch('../api/user_update_vehicles.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: me.id,
+                    vehicles
+                })
+            });
+
+            const out = await res.json().catch(() => {
+                throw new Error('ไม่สามารถอ่านข้อมูลจากเซิร์ฟเวอร์ได้');
+            });
+
+            if (out.ok === false) throw new Error(out.error || 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
+            return out;
+        }
+
+        async function changePasswordAPI(oldPass, newPass) {
+            const res = await fetch('../api/user_change_password.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: me.id,
+                    old_password: oldPass,
+                    new_password: newPass
+                })
+            });
+
+            const out = await res.json().catch(() => {
+                throw new Error('ไม่สามารถอ่านข้อมูลจากเซิร์ฟเวอร์ได้');
+            });
+
+            if (out.ok === false) throw new Error(out.error || 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
+            return out;
+        }
+
+        function resolveUserPayload(out) {
+            return out.data?.user || out.user || out.data || null;
+        }
+
+        function openNameModal() {
+            clearMessages();
+            $('#nameInput').value = me.name || '';
+            $('#nameModal').classList.add('show');
+            setTimeout(() => $('#nameInput').focus(), 10);
+        }
+
+        function closeNameModal() {
+            $('#nameModal').classList.remove('show');
+        }
+
+        async function saveName() {
+            const newName = $('#nameInput').value.trim();
+            const currentName = String(me.name || '').trim();
+            $('#nameErr').textContent = '';
+
+            if (!newName) {
+                $('#nameErr').textContent = 'กรุณากรอกชื่อ';
+                return;
+            }
+            if (newName.length < 2) {
+                $('#nameErr').textContent = 'ชื่อผู้ใช้ควรมีอย่างน้อย 2 ตัวอักษร';
+                return;
+            }
+            if (newName === currentName) {
+                $('#nameErr').textContent = 'คุณกำลังใช้ชื่อนี้อยู่แล้ว';
+                return;
+            }
+
+            try {
+                const out = await updateNameAPI(newName);
+                const user = resolveUserPayload(out);
+
+ 
+
+                mergeUserAndSave(user);
+                closeNameModal();
+                alert('อัปเดตชื่อผู้ใช้เรียบร้อย');
+            } catch (e) {
+                $('#nameErr').textContent = e.message || 'ไม่สามารถอัปเดตชื่อได้ กรุณาลองใหม่อีกครั้ง';
+            }
+        }
+
+        function openPhoneModal() {
+            clearMessages();
+            $('#phoneInput').value = normalizePhone(me.phone || '');
+            $('#phoneModal').classList.add('show');
+            setTimeout(() => $('#phoneInput').focus(), 10);
+        }
+
+        function closePhoneModal() {
+            $('#phoneModal').classList.remove('show');
+        }
+
+        $('#phoneInput')?.addEventListener('input', (e) => {
+            e.target.value = normalizePhone(e.target.value);
+        });
+
+        async function savePhone() {
+            const phone = normalizePhone($('#phoneInput').value);
+            const currentPhone = normalizePhone(me.phone || '');
+            $('#phoneErr').textContent = '';
+            $('#phoneOk').textContent = '';
+
+            if (!/^0\d{9}$/.test(phone)) {
+                $('#phoneErr').textContent = 'กรุณากรอกเบอร์โทร 10 หลักให้ถูกต้อง';
+                return;
+            }
+            if (phone === currentPhone) {
+                $('#phoneErr').textContent = 'คุณกำลังใช้เบอร์นี้อยู่แล้ว';
+                return;
+            }
+
+            try {
+                const out = await updatePhoneAPI(phone);
+                const user = resolveUserPayload(out) || { phone };
+                mergeUserAndSave(user);
+                $('#phoneOk').textContent = 'อัปเดตเบอร์โทรเรียบร้อย';
+                setTimeout(() => {
+                    closePhoneModal();
+                    alert('อัปเดตเบอร์โทรเรียบร้อย');
+                }, 350);
+            } catch (e) {
+                $('#phoneErr').textContent = e.message || 'ไม่สามารถอัปเดตเบอร์โทรได้ กรุณาลองใหม่อีกครั้ง';
+            }
+        }
+
+        function openVehicleModal() {
+            clearMessages();
+            const vehicles = vehiclesFromUser(me);
+            const plate1 = vehicles.find(v => v.plate_slot === 1)?.plate_number || '';
+            const plate2 = vehicles.find(v => v.plate_slot === 2)?.plate_number || '';
+
+            $('#plate1Input').value = plate1;
+            $('#plate2Input').value = plate2;
+            $('#vehicleModal').classList.add('show');
+            setTimeout(() => $('#plate1Input').focus(), 10);
+        }
+
+        function closeVehicleModal() {
+            $('#vehicleModal').classList.remove('show');
+        }
+
+        async function saveVehicles() {
+            const plate1 = normalizePlate($('#plate1Input').value);
+            const plate2 = normalizePlate($('#plate2Input').value);
+
+            $('#vehicleErr').textContent = '';
+            $('#vehicleOk').textContent = '';
+
+            if (!plate1) {
+                $('#vehicleErr').textContent = 'กรุณากรอกทะเบียนรถคันที่ 1';
+                return;
+            }
+            if (plate1.length < 3) {
+                $('#vehicleErr').textContent = 'ทะเบียนรถคันที่ 1 สั้นเกินไป';
+                return;
+            }
+            if (plate2 && plate2.length < 3) {
+                $('#vehicleErr').textContent = 'ทะเบียนรถคันที่ 2 สั้นเกินไป';
+                return;
+            }
+            if (plate2 && plate1 === plate2) {
+                $('#vehicleErr').textContent = 'ทะเบียนรถทั้ง 2 คันห้ามซ้ำกัน';
+                return;
+            }
+
+            const vehicles = [
+                { plate_number: plate1, plate_slot: 1 }
+            ];
+
+            if (plate2) {
+                vehicles.push({ plate_number: plate2, plate_slot: 2 });
+            }
+
+            const currentVehicles = vehiclesFromUser(me);
+            if (sameVehicles(currentVehicles, vehicles)) {
+                $('#vehicleErr').textContent = 'ทะเบียนรถยังเป็นข้อมูลเดิมอยู่แล้ว';
+                return;
+            }
+
+            try {
+                const out = await updateVehiclesAPI(vehicles);
+                const user = resolveUserPayload(out) || { vehicles };
+                mergeUserAndSave(user);
+                $('#vehicleOk').textContent = 'อัปเดตทะเบียนรถเรียบร้อย';
+                setTimeout(() => {
+                    closeVehicleModal();
+                    alert('อัปเดตทะเบียนรถเรียบร้อย');
+                }, 350);
+            } catch (e) {
+                $('#vehicleErr').textContent = e.message || 'ไม่สามารถอัปเดตทะเบียนรถได้ กรุณาลองใหม่อีกครั้ง';
+            }
+        }
+
+        function openPassModal() {
+            clearMessages();
+            $('#oldPass').value = '';
+            $('#newPass').value = '';
+            $('#newPass2').value = '';
+            $('#passModal').classList.add('show');
+            setTimeout(() => $('#oldPass').focus(), 10);
+        }
+
+        function closePassModal() {
+            $('#passModal').classList.remove('show');
+        }
+
+        async function savePassword() {
+            const oldPass = $('#oldPass').value;
+            const newPass = $('#newPass').value;
+            const newPass2 = $('#newPass2').value;
+            $('#passErr').textContent = '';
+            $('#passOk').textContent = '';
+
+            if (!oldPass || !newPass || !newPass2) {
+                $('#passErr').textContent = 'กรุณากรอกข้อมูลให้ครบ';
+                return;
+            }
+            if (newPass.length < 6) {
+                $('#passErr').textContent = 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร';
+                return;
+            }
+            if (newPass !== newPass2) {
+                $('#passErr').textContent = 'รหัสผ่านใหม่ทั้งสองช่องต้องตรงกัน';
+                return;
+            }
+            if (oldPass === newPass) {
+                $('#passErr').textContent = 'รหัสผ่านใหม่ต้องไม่เหมือนกับรหัสผ่านเดิม';
+                return;
+            }
+
+            try {
+                await changePasswordAPI(oldPass, newPass);
+                $('#passOk').textContent = 'เปลี่ยนรหัสผ่านเรียบร้อย';
+                $('#passErr').textContent = '';
+                setTimeout(() => {
+                    closePassModal();
+                    alert('เปลี่ยนรหัสผ่านเรียบร้อย');
+                }, 400);
+
+            } catch (e) {
+                const msg = e.message || '';
+                if (msg === 'old_password_incorrect') {
+                    $('#passErr').textContent = 'รหัสผ่านเดิมไม่ถูกต้อง';
+                } else if (msg === 'new_password_same_as_old') {
+                    $('#passErr').textContent = 'รหัสผ่านใหม่ต้องไม่เหมือนกับรหัสผ่านเดิม';
+                } else {
+                    $('#passErr').textContent = msg || 'ไม่สามารถเปลี่ยนรหัสผ่านได้ กรุณาลองใหม่อีกครั้ง';
+                }
+            }
+        }
+
+        function logout() {
+            const ok = confirm('ต้องการออกจากระบบบนอุปกรณ์นี้ใช่หรือไม่');
+            if (!ok) return;
+
+            try {
+                localStorage.removeItem('parking_user');
+                localStorage.removeItem('parking_token');
+                localStorage.removeItem('parking_profile');
+                sessionStorage.removeItem('after_login');
+            } catch (e) { }
+
+            location.href = 'login.html';
+        }
+
+        document.querySelectorAll('.modal-bg').forEach(bg => {
+            bg.addEventListener('click', () => {
+                bg.parentElement.classList.remove('show');
+            });
+        });
+
+        $('#changeNameBtn').onclick = openNameModal;
+        $('#changePhoneBtn').onclick = openPhoneModal;
+        $('#changeVehicleBtn').onclick = openVehicleModal;
+        $('#changePassBtn').onclick = openPassModal;
+        $('#logoutBtn').onclick = logout;
+
+        lockViewportScrollArea();
+        window.addEventListener('resize', lockViewportScrollArea);
+        window.addEventListener('orientationchange', lockViewportScrollArea);
+    </script>
+</body>
+
+</html>

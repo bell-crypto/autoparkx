@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <title>AutoParkX • แนะนำการใช้งาน</title>
+
+  <!-- iOS / PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="AutoParkX">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #0b1220;
+      --muted: #7b8694;
+      --tint: #0a84ff;
+      --safe-top: env(safe-area-inset-top);
+      --safe-btm: env(safe-area-inset-bottom);
+
+      --maxw: 980px;
+      --pad: 14px;
+      --nav-h: calc(14px + var(--safe-top));
+      --bottom-h: calc(66px + var(--safe-btm));
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b0f14;
+        --text: #e9edf2;
+        --muted: #9aa4af;
+        --tint: #60a5fa;
+      }
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+      overflow: hidden;
+    }
+
+    .wrap {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-spacer {
+      height: var(--nav-h)
+    }
+
+    .main {
+      flex: 1;
+      padding: 0 var(--pad);
+      padding-bottom: calc(var(--bottom-h) + 8px);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      min-height: 0;
+    }
+
+    .viewport {
+      width: 100%;
+      max-width: var(--maxw);
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+
+    .slides {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .slides::-webkit-scrollbar {
+      display: none
+    }
+
+    .slide {
+      flex: 0 0 100%;
+      scroll-snap-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .inner {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 6px;
+    }
+
+    .anim {
+      width: min(300px, 72vw);
+      height: min(300px, 72vw);
+      min-height: 180px;
+      display: grid;
+      place-items: center;
+      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, .08));
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .anim {
+        filter: drop-shadow(0 18px 36px rgba(0, 0, 0, .35))
+      }
+    }
+
+    .lottie-box {
+      width: 100%;
+      height: 100%
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -.2px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 560px;
+    }
+
+    .bottom {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: var(--bottom-h);
+      padding: 10px var(--pad) calc(10px + var(--safe-btm));
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      background: linear-gradient(to top, var(--bg) 75%, transparent);
+    }
+
+    .bottom-inner {
+      width: 100%;
+      max-width: var(--maxw);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .progress {
+      display: flex;
+      gap: 8px
+    }
+
+    .bar {
+      width: 18px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, .15);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .bar {
+        background: rgba(255, 255, 255, .18)
+      }
+    }
+
+    .bar.active {
+      background: var(--tint)
+    }
+
+    .next {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      border: 1px solid rgba(10, 132, 255, .25);
+      background: transparent;
+      color: var(--tint);
+      font-size: 16px;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    @media (max-height: 640px) {
+      .anim {
+        width: min(240px, 64vw);
+        height: min(240px, 64vw);
+        min-height: 160px;
+      }
+
+      h1 {
+        font-size: 18px
+      }
+
+      p {
+        font-size: 13px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top-spacer"></div>
+
+    <main class="main">
+      <div class="viewport">
+        <div class="slides" id="slides">
+
+          <section class="slide">
+            <div class="inner">
+              <div class="anim">
+                <div id="l1" class="lottie-box"></div>
+              </div>
+              <h1>จองที่จอดรถง่ายในไม่กี่วินาที</h1>
+              <p>ค้นหา ตรวจสอบ และจองที่จอดรถล่วงหน้าได้แบบเรียลไทม์</p>
+            </div>
+          </section>
+
+          <section class="slide">
+            <div class="inner">
+              <div class="anim">
+                <div id="l2" class="lottie-box"></div>
+              </div>
+              <h1>ชำระเงินด้วย e-Wallet</h1>
+              <p>เห็นราคาก่อนจอง ยกเลิกตามเงื่อนไข พร้อมคืนเงินอัตโนมัติ</p>
+            </div>
+          </section>
+
+          <section class="slide">
+            <div class="inner">
+              <div class="anim">
+                <div id="l3" class="lottie-box"></div>
+              </div>
+              <h1>เริ่มใช้งาน AutoParkX</h1>
+              <p>จัดการที่จอดรถของคุณได้อย่างสะดวกและปลอดภัย</p>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </main>
+
+    <footer class="bottom">
+      <div class="bottom-inner">
+        <div class="progress">
+          <div class="bar active"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+        </div>
+        <button class="next" id="nextBtn">→</button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <script>
+    // ===== Gate: ถ้าทำ onboarding แล้ว -> ปกติจะข้ามไป index
+    // ✅ แต่ถ้าเข้ามาด้วย onboarding.html?force=1 ให้แสดง onboarding ได้ (ไม่เด้งไป index)
+    const ONBOARD_KEY = 'onboarding_done';
+    const qs = new URLSearchParams(location.search);
+    const force = qs.get('force') === '1';
+
+    try {
+      const onboardDone = localStorage.getItem(ONBOARD_KEY) === '1';
+      if (onboardDone && !force) {
+        location.replace('index.html');
+      }
+    } catch { /* ignore */ }
+
+    const slides = document.getElementById('slides');
+    const bars = document.querySelectorAll('.bar');
+    const nextBtn = document.getElementById('nextBtn');
+
+    const el1 = document.getElementById('l1');
+    const el2 = document.getElementById('l2');
+    const el3 = document.getElementById('l3');
+
+    /* ชื่อไฟล์ต้องตรงกับโฮสต์ */
+    const L1 = 'assets/lottie/digital%20bank.json';
+    const L2 = 'assets/lottie/Payments%20App%20Hero.json';
+    const L3 = 'assets/lottie/security-lock.json';
+
+    lottie.loadAnimation({ container: el1, renderer: 'svg', loop: true, autoplay: true, path: L1 });
+    lottie.loadAnimation({ container: el2, renderer: 'svg', loop: true, autoplay: true, path: L2 });
+    lottie.loadAnimation({ container: el3, renderer: 'svg', loop: true, autoplay: true, path: L3 });
+
+    function idx() {
+      return Math.round(slides.scrollLeft / slides.clientWidth);
+    }
+
+    function setActive(i) {
+      bars.forEach((b, n) => b.classList.toggle('active', n === i));
+      nextBtn.textContent = i === 2 ? 'เริ่ม' : '→';
+    }
+
+    function finish() {
+      // ✅ จบ onboarding แล้วตั้งค่าว่า done
+      try { localStorage.setItem(ONBOARD_KEY, '1'); } catch {}
+
+      // ✅ ถ้ามาจาก consent (force=1) ให้กลับไป consent ต่อ (ไม่เข้่า index ทันที)
+      if (force) {
+        location.replace('consent.html?next=index.html');
+      } else {
+        location.replace('index.html');
+      }
+    }
+
+    slides.addEventListener('scroll', () => setActive(idx()), { passive: true });
+
+    nextBtn.addEventListener('click', () => {
+      const i = idx();
+      if (i < 2) {
+        slides.scrollTo({ left: (i + 1) * slides.clientWidth, behavior: 'smooth' });
+      } else {
+        finish();
+      }
+    });
+
+    setActive(0);
+  </script>
+</body>
+
+</html>

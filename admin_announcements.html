@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Parking | Admin · ประกาศระบบ</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #0f172a;
+            --card: #111827;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --stroke: #1f2937;
+            --primary: #60a5fa;
+            --success: #10b981;
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --radius: 16px;
+            --shadow: 0 14px 28px rgba(0, 0, 0, .45);
+            --shadow-soft: 0 6px 16px rgba(0, 0, 0, .28);
+            --rail-w: 260px;
+            --rail-gap: 16px;
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f6f8fb;
+                --panel: #ffffff;
+                --card: #ffffff;
+                --text: #0f172a;
+                --muted: #64748b;
+                --stroke: #e8edf3;
+                --primary: #1d4ed8;
+                --success: #10b981;
+                --warn: #eab308;
+                --danger: #ef4444;
+                --shadow: 0 12px 24px rgba(15, 23, 42, .08);
+                --shadow-soft: 0 6px 14px rgba(15, 23, 42, .06);
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(120deg, color-mix(in oklab, var(--bg)92%, transparent), var(--panel));
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, "Noto Sans Thai", Sarabun, Arial, sans-serif;
+        }
+
+        input,
+        textarea,
+        select,
+        button {
+            font: inherit
+        }
+
+        .rail {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 80;
+            width: var(--rail-w);
+            background: color-mix(in oklab, var(--panel) 96%, transparent);
+            border-right: 1px solid var(--stroke);
+            display: flex;
+            flex-direction: column;
+            padding: 14px 10px;
+            transform: translateX(-100%);
+            transition: transform .22s ease;
+        }
+
+        .rail.open {
+            transform: none;
+        }
+
+        .rail .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px 12px;
+            font-weight: 900
+        }
+
+        .rail .logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: conic-gradient(from 220deg, #22d3ee, #6366f1, #22d3ee)
+        }
+
+        .rail .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card) 96%, transparent);
+            color: var(--muted);
+            font-weight: 800;
+            margin: 0 10px 10px;
+            font-size: 13px;
+        }
+
+        .rail nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 6px
+        }
+
+        .rail a.item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .rail a.item.active {
+            background: color-mix(in oklab, var(--primary) 18%, transparent);
+            color: #fff
+        }
+
+        .rail .sp {
+            margin: 8px 6px;
+            height: 1px;
+            background: color-mix(in oklab, var(--stroke) 70%, transparent)
+        }
+
+        .rail .foot {
+            margin-top: auto;
+            padding: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center
+        }
+
+        .rail-mask {
+            position: fixed;
+            inset: 0;
+            z-index: 79;
+            background: rgba(0, 0, 0, .26);
+            opacity: 0;
+            pointer-events: none;
+            transition: .2s;
+        }
+
+        .rail-mask.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @media (min-width:1000px) {
+            .rail {
+                transform: none;
+                transition: none;
+            }
+
+            body.has-rail main,
+            body.has-rail footer {
+                margin-left: calc(var(--rail-w) + var(--rail-gap));
+            }
+
+            body.has-rail #fabMenu {
+                display: none;
+            }
+
+            body.has-rail main {
+                max-width: min(1400px, calc(100vw - var(--rail-w) - var(--rail-gap) - 32px));
+            }
+
+            .rail-mask {
+                display: none !important;
+            }
+        }
+
+        #fabMenu {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 70;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card) 92%, transparent);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: var(--shadow-soft);
+        }
+
+        @media (min-width:1000px) {
+            #fabMenu {
+                display: none;
+            }
+        }
+
+        main {
+            max-width: min(1400px, 94vw);
+            margin: 16px auto;
+            display: grid;
+            gap: 16px;
+        }
+
+        .card {
+            background: color-mix(in oklab, var(--card) 96%, transparent);
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: clamp(14px, 3vw, 20px);
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: clamp(18px, 2.6vw, 24px);
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 18px
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .page-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .page-title {
+            margin: 0 0 4px;
+            font-size: clamp(18px, 2.6vw, 24px);
+            font-weight: 900;
+        }
+
+        .page-sub {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .quick {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .quick .tip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card) 96%, transparent);
+            color: var(--muted);
+            font-weight: 800;
+            font-size: 12px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 16px;
+            margin-top: 14px;
+            align-items: start;
+        }
+
+        .section-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .section-sub {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 4px;
+            margin-bottom: 14px;
+        }
+
+        .edit-banner {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid color-mix(in oklab, var(--primary) 35%, var(--stroke));
+            background: color-mix(in oklab, var(--primary) 10%, transparent);
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .edit-banner.show {
+            display: flex;
+        }
+
+        .edit-banner .left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .edit-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: var(--primary);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .full {
+            grid-column: 1/-1
+        }
+
+        .label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 900;
+            margin-bottom: 6px;
+        }
+
+        .hint-inline {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .field,
+        .select,
+        .textarea {
+            width: 100%;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel) 94%, transparent);
+            color: var(--text);
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .field,
+        .select {
+            height: 44px;
+            padding: 10px 12px;
+        }
+
+        .textarea {
+            min-height: 120px;
+            resize: vertical;
+            padding: 12px;
+            line-height: 1.5;
+        }
+
+        .field:focus,
+        .select:focus,
+        .textarea:focus {
+            border-color: color-mix(in oklab, var(--primary) 45%, var(--stroke));
+            box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent);
+        }
+
+        .helper-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .mini-note {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .count {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .choice {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .type-card {
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            background: color-mix(in oklab, var(--panel) 94%, transparent);
+            padding: 12px;
+            cursor: pointer;
+            transition: .15s ease;
+            min-height: 88px;
+            text-align: left;
+            color: var(--text);
+        }
+
+        .type-card.active {
+            border-color: color-mix(in oklab, var(--primary) 40%, var(--stroke));
+            box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 10%, transparent);
+        }
+
+        .type-card .cap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .type-card small {
+            display: block;
+            color: var(--muted);
+            line-height: 1.45;
+            font-size: 12px;
+        }
+
+        .switchline {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 44px;
+            padding: 0 4px;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .switchline input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .datetime-help {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 900;
+            border: 0;
+            cursor: pointer;
+            box-shadow: var(--shadow-soft);
+            background: color-mix(in oklab, var(--card) 84%, transparent);
+            color: var(--text);
+            border: 1px solid var(--stroke);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .btn.primary {
+            color: #fff;
+            border: 0;
+            background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 70%, #0a66cc));
+        }
+
+        .btn.ghost {
+            color: var(--text);
+            background: color-mix(in oklab, var(--card) 84%, transparent);
+            border: 1px solid var(--stroke);
+        }
+
+        .btn.soft {
+            color: var(--text);
+            background: color-mix(in oklab, var(--panel) 94%, transparent);
+            border: 1px solid var(--stroke);
+        }
+
+        .btn.danger {
+            color: #fff;
+            border: 0;
+            background: linear-gradient(135deg, var(--danger), #b91c1c);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            filter: brightness(.98);
+        }
+
+        .msg {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: none;
+            font-weight: 700;
+        }
+
+        .msg.ok {
+            display: block;
+            background: rgba(22, 163, 74, .12);
+            color: #16a34a;
+            border: 1px solid rgba(22, 163, 74, .25);
+        }
+
+        .msg.err {
+            display: block;
+            background: rgba(239, 68, 68, .12);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, .25);
+        }
+
+        .side-stack {
+            display: grid;
+            gap: 16px
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 0;
+        }
+
+        .stat {
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel) 94%, transparent);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .stat .k {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 800;
+            margin-bottom: 4px
+        }
+
+        .stat .v {
+            font-size: 26px;
+            font-weight: 1000
+        }
+
+        .preview-wrap {
+            display: grid;
+            gap: 12px;
+        }
+
+        .preview-card {
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel) 94%, transparent);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .preview-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .preview-title {
+            font-size: 15px;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .preview-body {
+            color: var(--text);
+            line-height: 1.5;
+            white-space: pre-wrap;
+            margin: 8px 0 10px;
+            font-size: 13px;
+        }
+
+        .preview-meta {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .p-info {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .p-warning {
+            background: linear-gradient(135deg, #f59e0b, #b45309);
+        }
+
+        .p-maint {
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+        }
+
+        .p-on {
+            background: linear-gradient(135deg, #0ea5e9, #0369a1);
+        }
+
+        .p-off {
+            background: linear-gradient(135deg, #6b7280, #374151);
+        }
+
+        .p-live {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .p-future {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        }
+
+        .p-expired {
+            background: linear-gradient(135deg, #94a3b8, #475569);
+        }
+
+        .tools {
+            display: grid;
+            gap: 12px;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            align-items: stretch;
+        }
+
+        .search {
+            flex: 1 1 220px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel) 94%, transparent);
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .search input {
+            all: unset;
+            width: 100%;
+            color: var(--text);
+        }
+
+        .filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: hidden;
+            margin-top: 10px;
+        }
+
+        .table {
+            width: 100%;
+            min-width: 0;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .thead th {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            padding: 0 10px 4px;
+            text-align: left;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .thead th:last-child {
+            text-align: right;
+        }
+
+        .row .td {
+            padding: 12px 10px;
+            font-size: 14px;
+            vertical-align: top;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .announce-text,
+        .announce-title,
+        .meta-list {
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            min-width: 0;
+        }
+
+        .op {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .mini {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 0;
+            font-weight: 900;
+            font-size: 12px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary), #1e40af);
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .mini.soft {
+            color: var(--text);
+            background: color-mix(in oklab, var(--card) 84%, transparent);
+            border: 1px solid var(--stroke);
+        }
+
+        .mini.primary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary), #1e40af);
+        }
+
+        .mini.danger {
+            background: linear-gradient(135deg, var(--danger), #991b1b);
+        }
+
+        .empty {
+            text-align: center;
+            color: var(--muted);
+            padding: 18px 0;
+            font-weight: 700;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(24px + var(--safe-bottom));
+            transform: translate(-50%, 16px);
+            opacity: 0;
+            background: var(--panel);
+            border: 1px solid var(--stroke);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 14px;
+            box-shadow: var(--shadow-soft);
+            font-weight: 900;
+            transition: .25s;
+            z-index: 90;
+            font-size: 13px;
+            min-width: 220px;
+            text-align: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0)
+        }
+
+        .toast.ok {
+            background: color-mix(in oklab, var(--success) 12%, var(--panel));
+            border-color: color-mix(in oklab, var(--success) 25%, var(--stroke));
+        }
+
+        .toast.err {
+            background: color-mix(in oklab, var(--danger) 12%, var(--panel));
+            border-color: color-mix(in oklab, var(--danger) 25%, var(--stroke));
+        }
+
+        footer {
+            max-width: min(1400px, 94vw);
+            margin: 8px auto 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        @media (max-width:1100px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width:980px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            .filter {
+                justify-content: flex-start;
+            }
+
+            .op {
+                justify-content: flex-start;
+            }
+
+            .choice {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width:900px) {
+            .row .td {
+                padding: 10px 12px;
+            }
+        }
+
+        @media (max-width:900px) {
+
+            .table,
+            .table thead,
+            .table tbody,
+            .table tr,
+            .table th,
+            .table td {
+                display: block;
+                width: 100%;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            #annTbody tr.row {
+                margin-bottom: 10px;
+                border-radius: 14px;
+                border: 1px solid var(--stroke);
+                background: color-mix(in oklab, var(--panel) 94%, transparent);
+                box-shadow: var(--shadow-soft);
+            }
+
+            #annTbody .td {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding: 6px 14px;
+                font-size: 13px;
+                gap: 8px;
+                word-break: break-word;
+            }
+
+            #annTbody .td::before {
+                content: attr(data-label);
+                font-size: 12px;
+                color: var(--muted);
+                min-width: 84px;
+                flex: 0 0 auto;
+            }
+
+            .op {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                gap: 6px;
+                margin-top: 4px;
+            }
+
+            .btn-row .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width:400px) {
+            main {
+                margin-top: 60px;
+            }
+
+            #fabMenu {
+                top: 10px;
+                left: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="rail" id="adminRail" aria-label="Admin navigation">
+        <div class="brand">
+            <div class="logo"></div>
+            <div>Admin</div>
+        </div>
+
+        <div class="chip" id="adminUser">—</div>
+
+        <nav id="railNav">
+            <a class="item" data-page="dashboard" href="admin.html"><span>🏠</span> Dashboard</a>
+            <a class="item" data-page="slots" href="admin_slots.html"><span>🅿️</span> ช่องจอด</a>
+            <a class="item" data-page="users" href="admin_users.html"><span>👥</span> ผู้ใช้</a>
+            <a class="item" data-page="issues" href="admin_issues.html"><span>🧯</span> แจ้งปัญหา</a>
+            <a class="item" data-page="wallet" href="wallet_admin.html"><span>💳</span> Wallet</a>
+            <a class="item" data-page="reports" href="admin_reports.html"><span>📊</span> รายงาน</a>
+            <a class="item" data-page="announcements" href="admin_announcements.html"><span>📢</span> ประกาศระบบ</a>
+            <div class="sp"></div>
+            <a class="item" href="index.html"><span>↩️</span> กลับหน้า User</a>
+            <a class="item" id="railLogout" href="#"><span>🚪</span> ออกจากระบบ</a>
+        </nav>
+
+        <div class="foot">© 2026 Parking</div>
+    </aside>
+
+    <div class="rail-mask" id="railMask"></div>
+    <button id="fabMenu" aria-label="เปิดเมนู">☰ เมนู</button>
+
+    <main>
+        <section class="card">
+            <div class="page-head">
+                <div>
+                    <h1 class="page-title">ประกาศระบบ</h1>
+                    <div class="page-sub">จัดการข้อความประกาศและการแจ้งเตือนที่ต้องการแสดงในระบบ</div>
+                </div>
+
+                <div class="quick">
+                    <div class="tip">💡 ใช้สำหรับข่าวสารระบบ</div>
+                    <div class="tip">🕒 ไม่ตั้งเวลา = แสดงทันที</div>
+                </div>
+            </div>
+
+            <div class="layout">
+                <div class="card" style="padding:16px;">
+                    <div class="edit-banner" id="editBanner">
+                        <div class="left">
+                            <span class="edit-dot"></span>
+                            <span id="editBannerText">กำลังแก้ไขประกาศ</span>
+                        </div>
+                        <button class="mini soft" type="button" id="btnCancelEdit">ยกเลิกการแก้ไข</button>
+                    </div>
+
+                    <h2 class="section-title" id="formTitle">สร้าง / แก้ไขประกาศ</h2>
+                    <div class="section-sub">กรอกข้อมูลประกาศ แล้วกดบันทึกเพื่ออัปเดตรายการด้านล่าง</div>
+
+                    <input type="hidden" id="annId">
+                    <input type="hidden" id="type" value="info">
+
+                    <div class="form-grid">
+                        <div class="full">
+                            <label class="label" for="title">
+                <span>หัวข้อประกาศ</span>
+                <span class="hint-inline">แนะนำไม่เกิน 80 ตัวอักษร</span>
+              </label>
+                            <input type="text" id="title" class="field" maxlength="120"
+                placeholder="เช่น แจ้งปิดปรับปรุงระบบคืนนี้">
+                            <div class="helper-row">
+                                <div class="mini-note" id="titleError"></div>
+                                <div class="count"><span id="titleCount">0</span>/120</div>
+                            </div>
+                        </div>
+
+                        <div class="full">
+                            <label class="label">
+                <span>ประเภทประกาศ</span>
+                <span class="hint-inline">เลือกให้ตรงกับผู้ใช้เห็นจริง</span>
+              </label>
+
+                            <div class="choice">
+                                <button class="type-card active" type="button" data-type="info">
+                  <div class="cap"><span class="pill p-info">INFO</span><span>แจ้งให้ทราบ</span></div>
+                  <small>ใช้กับข่าวสารทั่วไปและอัปเดตระบบ</small>
+                </button>
+
+                                <button class="type-card" type="button" data-type="warning">
+                  <div class="cap"><span class="pill p-warning">WARN</span><span>สำคัญ</span></div>
+                  <small>ใช้กับเรื่องเร่งด่วนหรือควรอ่านทันที</small>
+                </button>
+
+                                <button class="type-card" type="button" data-type="maintenance">
+                  <div class="cap"><span class="pill p-maint">MAINT</span><span>บำรุงรักษา</span></div>
+                  <small>ใช้กับปิดปรับปรุงระบบหรือปิดบริการชั่วคราว</small>
+                </button>
+                            </div>
+                        </div>
+
+                        <div class="full">
+                            <label class="label" for="message">
+                <span>รายละเอียด</span>
+                <span class="hint-inline">อธิบายให้จบในข้อความเดียว</span>
+              </label>
+                            <textarea id="message" class="textarea" maxlength="500"
+                placeholder="พิมพ์รายละเอียดประกาศ..."></textarea>
+                            <div class="helper-row">
+                                <div class="mini-note" id="messageError"></div>
+                                <div class="count"><span id="messageCount">0</span>/500</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label" for="start_at">เริ่มแสดง</label>
+                            <input type="datetime-local" id="start_at" class="field">
+                            <div class="datetime-help">เว้นว่างได้ ถ้าต้องการให้แสดงทันที</div>
+                        </div>
+
+                        <div>
+                            <label class="label" for="end_at">หมดอายุ</label>
+                            <input type="datetime-local" id="end_at" class="field">
+                            <div class="datetime-help">เว้นว่างได้ ถ้าต้องการให้แสดงต่อเนื่อง</div>
+                        </div>
+
+                        <div class="full">
+                            <div class="switchline">
+                                <input type="checkbox" id="is_active" checked>
+                                <label for="is_active">เปิดใช้งานประกาศนี้</label>
+                            </div>
+                            <div class="mini-note" id="timeError" style="margin-top:4px;"></div>
+                        </div>
+
+                        <div class="full btn-row">
+                            <button class="btn primary" id="btnSave" type="button">บันทึกประกาศ</button>
+                            <button class="btn ghost" id="btnReset" type="button">ล้างฟอร์ม</button>
+                        </div>
+                    </div>
+
+                    <div id="formMsg" class="msg"></div>
+                </div>
+
+                <div class="side-stack">
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="k">ประกาศทั้งหมด</div>
+                            <div class="v" id="statAll">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="k">เปิดใช้งาน</div>
+                            <div class="v" id="statOn">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="k">กำลังแสดงอยู่</div>
+                            <div class="v" id="statLive">0</div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding:16px;">
+                        <h2 class="section-title">ตัวอย่างการแสดงผล</h2>
+                        <div class="section-sub">ตัวอย่างหน้าที่ผู้ใช้จะเห็น</div>
+
+                        <div class="preview-wrap">
+                            <div class="preview-card">
+                                <div class="preview-head">
+                                    <div class="preview-title" id="previewTitle">หัวข้อประกาศ</div>
+                                    <span class="pill p-info" id="previewType">แจ้งให้ทราบ</span>
+                                </div>
+                                <div class="preview-body" id="previewMessage">รายละเอียดประกาศจะแสดงตรงนี้</div>
+                                <div class="preview-meta" id="previewTime">เวลาแสดง: ทันที · ไม่มีวันหมดอายุ</div>
+                            </div>
+
+                            <div class="preview-card">
+                                <div class="section-sub" style="margin-bottom:8px;">สถานะของประกาศนี้</div>
+                                <div id="previewStatusWrap" style="display:flex;gap:8px;flex-wrap:wrap;">
+                                    <span class="pill p-on" id="previewActive">เปิดใช้งาน</span>
+                                    <span class="pill p-live" id="previewRange">แสดงทันที</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card tools">
+            <div>
+                <h2 class="section-title">รายการประกาศทั้งหมด</h2>
+                <div class="section-sub">ค้นหา, กรอง, แก้ไข, เปิด/ปิดใช้งาน และลบประกาศ</div>
+            </div>
+
+            <div class="toolbar">
+                <div class="search">
+                    <span>🔎</span>
+                    <input id="q" type="text" placeholder="ค้นหา: หัวข้อ / รายละเอียด">
+                </div>
+
+                <div class="filter">
+                    <select id="filterType" class="select">
+            <option value="">ประเภททั้งหมด</option>
+            <option value="info">INFO</option>
+            <option value="warning">WARNING</option>
+            <option value="maintenance">MAINTENANCE</option>
+          </select>
+
+                    <select id="filterState" class="select">
+            <option value="">สถานะทั้งหมด</option>
+            <option value="live">กำลังแสดงอยู่</option>
+            <option value="future">ยังไม่ถึงเวลาแสดง</option>
+            <option value="expired">หมดอายุแล้ว</option>
+            <option value="on">เปิดใช้งาน</option>
+            <option value="off">ปิดใช้งาน</option>
+          </select>
+
+                    <button class="btn primary" id="btnReload" type="button">รีเฟรช</button>
+                </div>
+            </div>
+
+            <div class="summary-row">
+                <div id="tableSummary">กำลังโหลดข้อมูล...</div>
+                <div>เรียงตามรายการล่าสุด</div>
+            </div>
+
+            <div class="table-wrap">
+                <table class="table">
+                    <thead class="thead">
+                        <tr>
+                            <th>ID</th>
+                            <th>ประเภท</th>
+                            <th>หัวข้อ / รายละเอียด</th>
+                            <th>สถานะ</th>
+                            <th>ช่วงเวลา</th>
+                            <th style="text-align:right">การทำงาน</th>
+                        </tr>
+                    </thead>
+                    <tbody id="annTbody">
+                        <tr>
+                            <td class="td" colspan="6">กำลังโหลด...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="resultMsg" class="msg"></div>
+        </section>
+    </main>
+
+    <footer>© 2026 Parking</footer>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = `${location.origin}/api`;
+    const API = API_BASE + '/announcements.php';
+
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+
+    const rail = $('#adminRail');
+    const mask = $('#railMask');
+    const burger = $('#fabMenu');
+
+    function openRail() { rail.classList.add('open'); mask.classList.add('show'); }
+    function closeRail() { rail.classList.remove('open'); mask.classList.remove('show'); }
+
+    burger.addEventListener('click', () => {
+      if (rail.classList.contains('open')) closeRail(); else openRail();
+    });
+    mask.addEventListener('click', closeRail);
+    window.addEventListener('keydown', e => { if (e.key === 'Escape') closeRail(); });
+
+    function updateRailMode() {
+      if (window.innerWidth >= 1000) {
+        document.body.classList.add('has-rail');
+        closeRail();
+      } else {
+        document.body.classList.remove('has-rail');
+      }
+    }
+    updateRailMode();
+    window.addEventListener('resize', updateRailMode);
+
+    (function markActive() {
+      document.querySelectorAll('#railNav a.item').forEach(a => {
+        a.classList.toggle('active', a.dataset.page === 'announcements');
+      });
+    })();
+
+    const me = JSON.parse(localStorage.getItem('parking_user') || '{}');
+    $('#adminUser').textContent = me?.id
+      ? `ผู้ใช้: ${me.name || me.email || '-'} · ID ${me.id}`
+      : 'ยังไม่ล็อกอิน';
+
+    function doLogout() {
+      localStorage.removeItem('parking_user');
+      sessionStorage.removeItem('after_login');
+      location.href = 'login.html';
+    }
+    $('#railLogout').addEventListener('click', (e) => {
+      e.preventDefault();
+      doLogout();
+    });
+
+    let ALL_ITEMS = [];
+    let toastTimer = null;
+
+    function esc(s = '') {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function showMsg(targetId, kind, text) {
+      const el = document.getElementById(targetId);
+      el.className = 'msg' + (kind ? ' ' + kind : '');
+      el.textContent = text || '';
+      el.style.display = text ? 'block' : 'none';
+    }
+
+    function showToast(kind, text) {
+      const el = $('#toast');
+      el.className = 'toast ' + (kind || '');
+      el.textContent = text || '';
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    function normalizeType(raw) {
+      const t = String(raw || '').trim().toLowerCase();
+      if (['warn', 'warning', 'danger', 'important', 'urgent'].includes(t)) return 'warning';
+      if (['maint', 'maintenance', 'downtime'].includes(t)) return 'maintenance';
+      return 'info';
+    }
+
+    function typeMeta(type) {
+      const map = {
+        info: { label: 'แจ้งให้ทราบ', short: 'INFO', pill: 'p-info' },
+        warning: { label: 'สำคัญ', short: 'WARN', pill: 'p-warning' },
+        maintenance: { label: 'บำรุงรักษา', short: 'MAINT', pill: 'p-maint' }
+      };
+      return map[normalizeType(type)] || map.info;
+    }
+
+    function typePill(type) {
+      const meta = typeMeta(type);
+      return `<span class="pill ${meta.pill}">${meta.short}</span>`;
+    }
+
+    function statusPill(active) {
+      return Number(active) === 1
+        ? '<span class="pill p-on">เปิดใช้งาน</span>'
+        : '<span class="pill p-off">ปิดใช้งาน</span>';
+    }
+
+    function dtForInput(value) {
+      if (!value) return '';
+      return String(value).replace(' ', 'T').slice(0, 16);
+    }
+
+    function humanDate(dt) {
+      if (!dt) return '—';
+      const d = new Date(String(dt).replace(' ', 'T'));
+      if (isNaN(d)) return dt;
+      return d.toLocaleString('th-TH', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function computeState(item) {
+      const now = new Date();
+      const start = item.start_at ? new Date(String(item.start_at).replace(' ', 'T')) : null;
+      const end = item.end_at ? new Date(String(item.end_at).replace(' ', 'T')) : null;
+      const active = Number(item.is_active) === 1;
+
+      if (!active) return 'off';
+      if (start && start > now) return 'future';
+      if (end && end < now) return 'expired';
+      return 'live';
+    }
+
+    function statePill(item) {
+      const state = computeState(item);
+      if (state === 'future') return '<span class="pill p-future">รอเวลาแสดง</span>';
+      if (state === 'expired') return '<span class="pill p-expired">หมดอายุแล้ว</span>';
+      if (state === 'off') return '<span class="pill p-off">ปิดใช้งาน</span>';
+      return '<span class="pill p-live">กำลังแสดงอยู่</span>';
+    }
+
+    function renderCounts() {
+      $('#statAll').textContent = ALL_ITEMS.length;
+      $('#statOn').textContent = ALL_ITEMS.filter(x => Number(x.is_active) === 1).length;
+      $('#statLive').textContent = ALL_ITEMS.filter(x => computeState(x) === 'live').length;
+    }
+
+    function updateTypeCards() {
+      const type = normalizeType($('#type').value);
+      $$('.type-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.type === type);
+      });
+    }
+
+    function validateForm(showInline = true) {
+      const title = $('#title').value.trim();
+      const message = $('#message').value.trim();
+      const start_at = $('#start_at').value;
+      const end_at = $('#end_at').value;
+
+      let ok = true;
+      let titleError = '';
+      let messageError = '';
+      let timeError = '';
+
+      if (!title) {
+        ok = false;
+        titleError = 'กรุณากรอกหัวข้อประกาศ';
+      } else if (title.length > 80) {
+        titleError = 'หัวข้อยาวเกิน แนะนำให้สั้นลง';
+      }
+
+      if (!message) {
+        ok = false;
+        messageError = 'กรุณากรอกรายละเอียด';
+      } else if (message.length < 8) {
+        messageError = 'รายละเอียดสั้นไป ควรอธิบายเพิ่มอีกนิด';
+      }
+
+      if (start_at && end_at && new Date(end_at) < new Date(start_at)) {
+        ok = false;
+        timeError = 'วันหมดอายุต้องไม่น้อยกว่าวันเริ่มแสดง';
+      }
+
+      if (showInline) {
+        $('#titleError').textContent = titleError;
+        $('#messageError').textContent = messageError;
+        $('#timeError').textContent = timeError;
+      }
+
+      return ok;
+    }
+
+    function updateCounts() {
+      $('#titleCount').textContent = $('#title').value.length;
+      $('#messageCount').textContent = $('#message').value.length;
+    }
+
+    function updatePreview() {
+      const title = $('#title').value.trim() || 'หัวข้อประกาศ';
+      const message = $('#message').value.trim() || 'รายละเอียดประกาศจะแสดงตรงนี้';
+      const type = normalizeType($('#type').value);
+      const meta = typeMeta(type);
+      const active = $('#is_active').checked;
+      const start_at = $('#start_at').value;
+      const end_at = $('#end_at').value;
+
+      $('#previewTitle').textContent = title;
+      $('#previewMessage').textContent = message;
+
+      const pType = $('#previewType');
+      pType.className = 'pill ' + meta.pill;
+      pType.textContent = meta.label;
+
+      let timeText = 'เวลาแสดง: ทันที · ไม่มีวันหมดอายุ';
+      if (start_at && end_at) timeText = `เวลาแสดง: ${humanDate(start_at)} ถึง ${humanDate(end_at)}`;
+      else if (start_at) timeText = `เวลาแสดง: เริ่ม ${humanDate(start_at)} · ไม่มีวันหมดอายุ`;
+      else if (end_at) timeText = `เวลาแสดง: ทันที · หมดอายุ ${humanDate(end_at)}`;
+      $('#previewTime').textContent = timeText;
+
+      const activeEl = $('#previewActive');
+      activeEl.className = 'pill ' + (active ? 'p-on' : 'p-off');
+      activeEl.textContent = active ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+
+      const tempItem = {
+        is_active: active ? 1 : 0,
+        start_at: start_at || null,
+        end_at: end_at || null
+      };
+      const state = computeState(tempItem);
+      const rangeEl = $('#previewRange');
+      if (state === 'future') {
+        rangeEl.className = 'pill p-future';
+        rangeEl.textContent = 'รอเวลาแสดง';
+      } else if (state === 'expired') {
+        rangeEl.className = 'pill p-expired';
+        rangeEl.textContent = 'หมดอายุแล้ว';
+      } else if (state === 'off') {
+        rangeEl.className = 'pill p-off';
+        rangeEl.textContent = 'ยังไม่แสดง';
+      } else {
+        rangeEl.className = 'pill p-live';
+        rangeEl.textContent = 'แสดงได้ทันที';
+      }
+
+      updateTypeCards();
+      updateCounts();
+      validateForm(true);
+    }
+
+    function setEditMode(item) {
+      const isEdit = !!item;
+      $('#editBanner').classList.toggle('show', isEdit);
+      $('#formTitle').textContent = isEdit ? 'แก้ไขประกาศ' : 'สร้าง / แก้ไขประกาศ';
+      $('#btnSave').textContent = isEdit ? 'บันทึกการแก้ไข' : 'บันทึกประกาศ';
+
+      if (isEdit) {
+        $('#editBannerText').textContent = `กำลังแก้ไขประกาศ #${item.id}`;
+      }
+    }
+
+    function resetForm(scrollTop = false) {
+      $('#annId').value = '';
+      $('#title').value = '';
+      $('#message').value = '';
+      $('#type').value = 'info';
+      $('#start_at').value = '';
+      $('#end_at').value = '';
+      $('#is_active').checked = true;
+
+      setEditMode(null);
+      updatePreview();
+      showMsg('formMsg', '', '');
+      $('#titleError').textContent = '';
+      $('#messageError').textContent = '';
+      $('#timeError').textContent = '';
+
+      if (scrollTop) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function fillForm(item) {
+      $('#annId').value = item.id || '';
+      $('#title').value = item.title || '';
+      $('#message').value = item.message || '';
+      $('#type').value = normalizeType(item.type);
+      $('#start_at').value = dtForInput(item.start_at);
+      $('#end_at').value = dtForInput(item.end_at);
+      $('#is_active').checked = Number(item.is_active) === 1;
+
+      setEditMode(item);
+      updatePreview();
+      showMsg('formMsg', '', '');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function rowTemplate(item) {
+      return `
+        <tr class="row" data-id="${item.id}">
+          <td class="td" data-label="ID">#${item.id}</td>
+          <td class="td" data-label="ประเภท">${typePill(item.type)}</td>
+          <td class="td" data-label="หัวข้อ / รายละเอียด">
+            <div class="announce-title">${esc(item.title || '-')}</div>
+            <div class="announce-text">${esc(item.message || '-')}</div>
+          </td>
+          <td class="td" data-label="สถานะ">
+            <div class="meta-list">
+              <div>${statusPill(item.is_active)}</div>
+              <div>${statePill(item)}</div>
+            </div>
+          </td>
+          <td class="td" data-label="ช่วงเวลา">
+            <div class="meta-list">
+              <div>เริ่ม: ${item.start_at ? esc(humanDate(item.start_at)) : 'ทันที'}</div>
+              <div>สิ้นสุด: ${item.end_at ? esc(humanDate(item.end_at)) : 'ไม่กำหนด'}</div>
+              <div>สร้าง: ${item.created_at ? esc(humanDate(item.created_at)) : '—'}</div>
+            </div>
+          </td>
+          <td class="td op" data-label="การทำงาน">
+            <button class="mini soft toggleBtn" type="button">${Number(item.is_active) === 1 ? 'ปิดใช้งาน' : 'เปิดใช้งาน'}</button>
+            <button class="mini primary editBtn" type="button">แก้ไข</button>
+            <button class="mini danger deleteBtn" type="button">ลบ</button>
+          </td>
+        </tr>
+      `;
+    }
+
+    function bindRowActions() {
+      $$('#annTbody .editBtn').forEach(btn => {
+        btn.onclick = () => {
+          const tr = btn.closest('tr');
+          const id = Number(tr.dataset.id);
+          const item = ALL_ITEMS.find(x => Number(x.id) === id);
+          if (!item) return;
+          fillForm(item);
+        };
+      });
+
+      $$('#annTbody .deleteBtn').forEach(btn => {
+        btn.onclick = async () => {
+          const tr = btn.closest('tr');
+          const id = Number(tr.dataset.id);
+          if (!confirm('ต้องการลบประกาศนี้ใช่ไหม?')) return;
+
+          try {
+            const res = await fetch(API, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'delete', id })
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.ok) throw new Error(data.error || 'ลบไม่สำเร็จ');
+
+            showMsg('resultMsg', 'ok', 'ลบประกาศเรียบร้อย');
+            showToast('ok', 'ลบประกาศเรียบร้อย');
+            await loadAnnouncements();
+            resetForm();
+          } catch (err) {
+            console.error(err);
+            showMsg('resultMsg', 'err', 'ลบไม่สำเร็จ: ' + (err.message || 'เกิดข้อผิดพลาด'));
+            showToast('err', 'ลบประกาศไม่สำเร็จ');
+          }
+        };
+      });
+
+      $$('#annTbody .toggleBtn').forEach(btn => {
+        btn.onclick = async () => {
+          const tr = btn.closest('tr');
+          const id = Number(tr.dataset.id);
+          const item = ALL_ITEMS.find(x => Number(x.id) === id);
+          if (!item) return;
+
+          try {
+            const res = await fetch(API, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'update',
+                id,
+                title: item.title,
+                message: item.message,
+                type: normalizeType(item.type),
+                is_active: Number(item.is_active) === 1 ? 0 : 1,
+                start_at: item.start_at || null,
+                end_at: item.end_at || null
+              })
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.ok) throw new Error(data.error || 'เปลี่ยนสถานะไม่สำเร็จ');
+
+            showMsg('resultMsg', 'ok', 'อัปเดตสถานะประกาศเรียบร้อย');
+            showToast('ok', 'อัปเดตสถานะประกาศเรียบร้อย');
+            await loadAnnouncements();
+
+            const currentEditId = Number($('#annId').value || 0);
+            if (currentEditId === id) {
+              const fresh = ALL_ITEMS.find(x => Number(x.id) === id);
+              if (fresh) fillForm(fresh);
+            }
+          } catch (err) {
+            console.error(err);
+            showMsg('resultMsg', 'err', 'อัปเดตสถานะไม่สำเร็จ: ' + (err.message || 'เกิดข้อผิดพลาด'));
+            showToast('err', 'อัปเดตสถานะไม่สำเร็จ');
+          }
+        };
+      });
+    }
+
+    function renderTable() {
+      const q = $('#q').value.trim().toLowerCase();
+      const filterType = $('#filterType').value;
+      const filterState = $('#filterState').value;
+
+      let filtered = ALL_ITEMS.filter(item => {
+        const type = normalizeType(item.type);
+        const state = computeState(item);
+
+        const matchQ = !q
+          || String(item.title || '').toLowerCase().includes(q)
+          || String(item.message || '').toLowerCase().includes(q);
+
+        const matchType = !filterType || type === filterType;
+
+        let matchState = true;
+        if (filterState === 'live') matchState = state === 'live';
+        else if (filterState === 'future') matchState = state === 'future';
+        else if (filterState === 'expired') matchState = state === 'expired';
+        else if (filterState === 'on') matchState = Number(item.is_active) === 1;
+        else if (filterState === 'off') matchState = Number(item.is_active) !== 1;
+
+        return matchQ && matchType && matchState;
+      });
+
+      filtered.sort((a, b) => {
+        const aTime = new Date(String(a.created_at || '').replace(' ', 'T')).getTime() || 0;
+        const bTime = new Date(String(b.created_at || '').replace(' ', 'T')).getTime() || 0;
+        return bTime - aTime || Number(b.id || 0) - Number(a.id || 0);
+      });
+
+      renderCounts();
+
+      $('#tableSummary').textContent = `พบ ${filtered.length} รายการ จากทั้งหมด ${ALL_ITEMS.length} รายการ`;
+
+      $('#annTbody').innerHTML = filtered.length
+        ? filtered.map(rowTemplate).join('')
+        : '<tr><td class="td" colspan="6"><div class="empty">— ไม่พบข้อมูลประกาศ —</div></td></tr>';
+
+      bindRowActions();
+    }
+
+    async function loadAnnouncements() {
+      try {
+        $('#tableSummary').textContent = 'กำลังโหลดข้อมูล...';
+        const res = await fetch(API + '?mode=all', { cache: 'no-store' });
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) throw new Error(data.error || 'โหลดข้อมูลไม่สำเร็จ');
+
+        ALL_ITEMS = (data.items || []).map(item => ({
+          ...item,
+          type: normalizeType(item.type)
+        }));
+
+        renderTable();
+      } catch (err) {
+        console.error(err);
+        $('#annTbody').innerHTML = `<tr><td colspan="6" class="td">❌ ${esc(err.message || 'โหลดข้อมูลไม่สำเร็จ')}</td></tr>`;
+        $('#tableSummary').textContent = 'โหลดข้อมูลไม่สำเร็จ';
+      }
+    }
+
+    async function saveAnnouncement() {
+      const id = $('#annId').value.trim();
+      const title = $('#title').value.trim();
+      const message = $('#message').value.trim();
+      const type = normalizeType($('#type').value);
+      const is_active = $('#is_active').checked ? 1 : 0;
+      const start_at = $('#start_at').value || null;
+      const end_at = $('#end_at').value || null;
+
+      if (!validateForm(true)) {
+        showMsg('formMsg', 'err', 'กรุณาตรวจสอบข้อมูลในฟอร์มก่อนบันทึก');
+        showToast('err', 'กรอกข้อมูลยังไม่ครบ');
+        return;
+      }
+
+      try {
+        const payload = {
+          action: id ? 'update' : 'create',
+          title,
+          message,
+          type,
+          is_active,
+          start_at,
+          end_at
+        };
+        if (id) payload.id = Number(id);
+
+        const res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'บันทึกไม่สำเร็จ');
+
+        showMsg('formMsg', 'ok', id ? 'แก้ไขประกาศเรียบร้อย' : 'เพิ่มประกาศเรียบร้อย');
+        showToast('ok', id ? 'แก้ไขประกาศเรียบร้อย' : 'เพิ่มประกาศเรียบร้อย');
+
+        await loadAnnouncements();
+
+        if (id) {
+          const fresh = ALL_ITEMS.find(x => Number(x.id) === Number(id));
+          if (fresh) fillForm(fresh);
+        } else {
+          resetForm();
+        }
+      } catch (err) {
+        console.error(err);
+        showMsg('formMsg', 'err', 'บันทึกไม่สำเร็จ: ' + (err.message || 'เกิดข้อผิดพลาด'));
+        showToast('err', 'บันทึกประกาศไม่สำเร็จ');
+      }
+    }
+
+    $$('.type-card').forEach(card => {
+      card.addEventListener('click', () => {
+        $('#type').value = card.dataset.type;
+        updatePreview();
+      });
+    });
+
+    ['title', 'message', 'start_at', 'end_at'].forEach(id => {
+      $('#' + id).addEventListener('input', updatePreview);
+      $('#' + id).addEventListener('change', updatePreview);
+    });
+
+    $('#is_active').addEventListener('change', updatePreview);
+
+    $('#btnSave').addEventListener('click', saveAnnouncement);
+    $('#btnReset').addEventListener('click', () => resetForm());
+    $('#btnCancelEdit').addEventListener('click', () => resetForm(true));
+    $('#btnReload').addEventListener('click', async () => {
+      await loadAnnouncements();
+      showToast('ok', 'รีเฟรชข้อมูลแล้ว');
+    });
+
+    $('#q').addEventListener('input', renderTable);
+    $('#filterType').addEventListener('change', renderTable);
+    $('#filterState').addEventListener('change', renderTable);
+
+    resetForm();
+    loadAnnouncements();
+    </script>
+</body>
+
+</html>

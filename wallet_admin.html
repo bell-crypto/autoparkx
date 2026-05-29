@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
+  <title>Parking | Admin · Wallet</title>
+
+  <!-- ✅ กัน cache สำหรับไฟล์หน้าเว็บ (ช่วยเวลาแก้แล้วไม่อัปเดต) -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --stroke: #1f2937;
+      --primary: #60a5fa;
+      --ok: #10b981;
+      --warn: #eab308;
+      --danger: #ef4444;
+      --radius: 16px;
+      --shadow: 0 14px 28px rgba(0, 0, 0, .45);
+      --shadow-soft: 0 6px 16px rgba(0, 0, 0, .28);
+      --rail-w: 260px;
+      --rail-gap: 16px;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f7f8fb;
+        --panel: #ffffff;
+        --card: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --stroke: #e8ecf3;
+        --primary: #1d4ed8;
+        --ok: #16a34a;
+        --warn: #eab308;
+        --danger: #ef4444;
+        --shadow: 0 12px 24px rgba(15, 23, 42, .08);
+        --shadow-soft: 0 6px 14px rgba(15, 23, 42, .06);
+      }
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(120deg, color-mix(in oklab, var(--bg)92%, transparent), var(--panel));
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, "Noto Sans Thai", Sarabun, Arial, sans-serif;
+    }
+
+    /* ===== Sidebar / Drawer ===== */
+    .rail {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 80;
+      width: var(--rail-w);
+      background: color-mix(in oklab, var(--panel) 96%, transparent);
+      border-right: 1px solid var(--stroke);
+      display: flex;
+      flex-direction: column;
+      padding: 14px 10px;
+      transform: translateX(-100%);
+      transition: transform .22s ease;
+    }
+
+    .rail.open {
+      transform: none;
+    }
+
+    .rail .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px 12px;
+      font-weight: 900
+    }
+
+    .rail .logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: conic-gradient(from 220deg, #22d3ee, #6366f1, #22d3ee)
+    }
+
+    .rail .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: color-mix(in oklab, var(--card) 96%, transparent);
+      color: var(--muted);
+      font-weight: 800;
+      margin: 0 10px 10px;
+      font-size: 13px;
+    }
+
+    .rail nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 6px
+    }
+
+    .rail a.item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .rail a.item .ico {
+      width: 20px;
+      text-align: center
+    }
+
+    .rail a.item.active {
+      background: color-mix(in oklab, var(--primary) 18%, transparent);
+      color: #fff
+    }
+
+    .rail .sp {
+      margin: 8px 6px;
+      height: 1px;
+      background: color-mix(in oklab, var(--stroke) 70%, transparent)
+    }
+
+    .rail .foot {
+      margin-top: auto;
+      padding: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center
+    }
+
+    .rail-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 79;
+      background: rgba(0, 0, 0, .26);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s;
+    }
+
+    .rail-mask.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Desktop: pin sidebar + เผื่อช่องว่าง */
+    @media (min-width:1000px) {
+      .rail {
+        transform: none;
+        transition: none;
+      }
+
+      body.has-rail main,
+      body.has-rail footer {
+        margin-left: calc(var(--rail-w) + var(--rail-gap));
+      }
+
+      body.has-rail #fabMenu {
+        display: none;
+      }
+
+      body.has-rail main {
+        max-width: min(1320px, calc(100vw - var(--rail-w) - var(--rail-gap) - 32px));
+      }
+
+      .rail-mask {
+        display: none !important;
+      }
+    }
+
+    /* ปุ่มแฮมเบอร์เกอร์ลอย (มือถือ/แท็บเล็ต) */
+    #fabMenu {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 70;
+      border: 1px solid var(--stroke);
+      background: color-mix(in oklab, var(--card) 92%, transparent);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: var(--shadow-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+
+    @media (min-width:1000px) {
+      #fabMenu {
+        display: none;
+      }
+    }
+
+    /* ===== Main layout ===== */
+    main {
+      max-width: min(1320px, 94vw);
+      margin: 16px auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .card {
+      background: color-mix(in oklab, var(--card) 96%, transparent);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(14px, 3vw, 20px);
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: clamp(18px, 2.6vw, 24px);
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: clamp(16px, 2.4vw, 20px);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    footer {
+      max-width: min(1320px, 94vw);
+      margin: 8px auto 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    /* ===== Wallet Stat boxes ===== */
+    .walletStat {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .ws {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: color-mix(in oklab, var(--card) 94%, transparent);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .ws label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .ws span {
+      font-weight: 900;
+      font-size: 22px;
+    }
+
+    .ws-total span {
+      color: #38bdf8;
+    }
+
+    .ws-topup span {
+      color: #10b981;
+    }
+
+    .ws-use span {
+      color: #f59e0b;
+    }
+
+    .ws-refund span {
+      color: #e11d48;
+    }
+
+    @media (max-width:900px) {
+      .walletStat {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width:520px) {
+      .walletStat {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ===== Toolbar ===== */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+      align-items: stretch;
+    }
+
+    .input {
+      padding: 9px 11px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: color-mix(in oklab, var(--panel) 94%, transparent);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 13px;
+      font-family: inherit;
+      min-width: 0;
+      flex: 1 1 220px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 13px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 900;
+      border: 0;
+      cursor: pointer;
+      box-shadow: var(--shadow-soft);
+      background: color-mix(in oklab, var(--card) 84%, transparent);
+      color: var(--text);
+      border: 1px solid var(--stroke);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      color: #fff;
+      border: 0;
+      background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 70%, #0a66cc));
+    }
+
+    .btn.alt {
+      color: #fff;
+      border: 0;
+      background: linear-gradient(135deg, #475569, #334155);
+    }
+
+    .btn.danger {
+      color: #fff;
+      border: 0;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+    }
+
+    .btn.small {
+      padding: 7px 10px;
+      font-size: 12px;
+      border-radius: 999px;
+      box-shadow: none;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      filter: brightness(.98);
+    }
+
+    @media (max-width:900px) {
+      .toolbar {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* ===== Two-column: list + user card ===== */
+    .walletGrid {
+      display: grid;
+      grid-template-columns: 1.65fr .85fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width:1100px) {
+      .walletGrid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ===== Table ===== */
+    .tableWrap {
+      margin-top: 12px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;
+      margin-top: 4px;
+    }
+
+    .thead th {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      padding: 0 10px 4px;
+      text-align: left;
+    }
+
+    .thead th:last-child {
+      text-align: right;
+    }
+
+    .row {
+      background: color-mix(in oklab, var(--panel) 92%, transparent);
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      box-shadow: var(--shadow-soft);
+      cursor: pointer;
+      transition: transform .08s ease, filter .08s ease, border-color .12s ease;
+    }
+
+    .row:hover {
+      filter: brightness(1.02);
+    }
+
+    .row:active {
+      transform: translateY(1px);
+    }
+
+    .row.selected {
+      border-color: color-mix(in oklab, var(--primary) 52%, var(--stroke));
+      box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 22%, transparent), var(--shadow-soft);
+    }
+
+    .row .td {
+      padding: 10px 14px;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    .row .td:last-child {
+      text-align: right;
+    }
+
+    .amountPlus {
+      color: #10b981;
+      font-weight: 800;
+    }
+
+    .amountMinus {
+      color: #ef4444;
+      font-weight: 800;
+    }
+
+    .typeTag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .mutedSmall {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .idBadge {
+      font-weight: 800;
+      font-size: 12px;
+      color: #cbd5f5;
+    }
+
+    .empty {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: color-mix(in oklab, var(--card) 97%, transparent);
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .msgErr {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      background: rgba(239, 68, 68, .1);
+      border: 1px solid rgba(239, 68, 68, .25);
+      color: #e11d48;
+      display: none;
+    }
+
+    /* ===== Responsive: mobile card table ===== */
+    @media (max-width:600px) {
+
+      .table,
+      .table thead,
+      .table tbody,
+      .table tr,
+      .table th,
+      .table td {
+        display: block;
+        width: 100%;
+      }
+
+      .table thead {
+        display: none;
+      }
+
+      #walletTbody tr.row {
+        margin-bottom: 10px;
+        border-radius: 14px;
+        border: 1px solid var(--stroke);
+        background: color-mix(in oklab, var(--panel) 94%, transparent);
+        box-shadow: var(--shadow-soft);
+      }
+
+      #walletTbody .td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 6px 14px;
+        font-size: 13px;
+        gap: 8px;
+        word-break: break-word;
+      }
+
+      #walletTbody .td::before {
+        content: attr(data-label);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      #walletTbody .td:last-child {
+        text-align: left;
+      }
+    }
+
+    @media (max-width:400px) {
+      main {
+        margin-top: 60px;
+      }
+
+      /* กันชนปุ่มเมนู */
+      #fabMenu {
+        top: 10px;
+        left: 10px;
+      }
+
+      #walletTbody .td {
+        padding: 5px 12px;
+        font-size: 12.5px;
+      }
+    }
+
+    /* ===== User Wallet Card (Side panel) ===== */
+    .userCard {
+      position: sticky;
+      top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    @media (max-width:1100px) {
+      .userCard {
+        display: none;
+      }
+    }
+
+    .ucHead {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ucTitle {
+      font-weight: 900;
+      font-size: 16px;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: color-mix(in oklab, var(--panel) 92%, transparent);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .ucGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .ucBox {
+      border: 1px solid var(--stroke);
+      background: color-mix(in oklab, var(--panel) 92%, transparent);
+      border-radius: 14px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .ucBox label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .ucBox div {
+      font-weight: 900;
+      font-size: 16px;
+    }
+
+    .ucBig {
+      grid-column: 1 / -1;
+      border: 1px solid color-mix(in oklab, var(--primary) 38%, var(--stroke));
+      background: color-mix(in oklab, var(--primary) 10%, var(--panel));
+    }
+
+    .ucBig div {
+      font-size: 22px;
+    }
+
+    .ucActions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .ucHint {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* ===== Mobile User Drawer ===== */
+    .userDrawerMask {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .62);
+      display: none;
+      z-index: 130;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .userDrawerMask.show {
+      display: flex;
+    }
+
+    .userDrawer {
+      width: min(560px, 100%);
+      max-height: 78vh;
+      overflow: auto;
+      border-radius: 18px;
+      border: 1px solid var(--stroke);
+      background: color-mix(in oklab, var(--card) 96%, transparent);
+      box-shadow: var(--shadow);
+      padding: 14px 14px 12px;
+    }
+
+    .dragBar {
+      width: 54px;
+      height: 5px;
+      border-radius: 999px;
+      background: color-mix(in oklab, var(--stroke) 70%, transparent);
+      margin: 2px auto 10px;
+    }
+
+    .drawerCloseRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .drawerCloseRow .xbtn {
+      border: 1px solid var(--stroke);
+      background: color-mix(in oklab, var(--panel) 92%, transparent);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    @media (min-width:1101px) {
+      .userDrawerMask {
+        display: none !important;
+      }
+    }
+
+    /* ===== Modal ปรับยอด Wallet ===== */
+    .modalMask {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .70);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 120;
+      padding: 16px;
+    }
+
+    .modalMask.show {
+      display: flex;
+    }
+
+    .modalCard {
+      width: min(480px, 100%);
+      background: color-mix(in oklab, var(--card)96%, transparent);
+      border-radius: 18px;
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      padding: 18px 18px 16px;
+    }
+
+    .modalHead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .modalTitle {
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .modalClose {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px 6px;
+      border-radius: 999px;
+    }
+
+    .modalClose:hover {
+      background: color-mix(in oklab, var(--panel)90%, transparent);
+      color: var(--text);
+    }
+
+    .modalBody {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+    }
+
+    .field label {
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 13px;
+      background: color-mix(in oklab, var(--panel)94%, transparent);
+      color: var(--text);
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 64px;
+    }
+
+    .modalFoot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .badgeMode {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, .4);
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 🧭 Sidebar (เมนูแอดมิน) -->
+  <aside class="rail" id="adminRail" aria-label="Admin navigation">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>Admin</div>
+    </div>
+    <div class="chip" id="adminUser">—</div>
+    <nav id="railNav">
+      <a class="item" data-page="dashboard" href="admin.html"><span class="ico">🏠</span> Dashboard</a>
+      <a class="item" data-page="slots" href="admin_slots.html"><span class="ico">🅿️</span> ช่องจอด</a>
+      <a class="item" data-page="users" href="admin_users.html"><span class="ico">👥</span> ผู้ใช้</a>
+      <a class="item" data-page="issues" href="admin_issues.html"><span class="ico">🧯</span> แจ้งปัญหา</a>
+      <a class="item active" data-page="wallet" href="wallet_admin.html"><span class="ico">💳</span> Wallet</a>
+      <a class="item" data-page="reports" href="admin_reports.html"><span class="ico">📊</span> รายงาน</a>
+    <a class="item" data-page="announcements" href="admin_announcements.html"><span>📢</span>ประกาศระบบ</a>
+      <div class="sp"></div>
+      <a class="item" href="index.html"><span class="ico">↩️</span> กลับหน้า User</a>
+      <a class="item" id="railLogout" href="#"><span class="ico">🚪</span> ออกจากระบบ</a>
+    </nav>
+    <div class="foot">© 2026 Parking </div>
+  </aside>
+  <div class="rail-mask" id="railMask"></div>
+
+  <!-- 🍔 ปุ่มเมนู (มือถือ) -->
+  <button id="fabMenu" aria-label="เปิดเมนู">☰ เมนู</button>
+
+  <!-- 📋 เนื้อหาหลัก -->
+  <main>
+    <!-- การ์ดสรุประบบ -->
+    <section class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div>
+          <h1>กระเป๋าเงินระบบ (Wallet Dashboard)</h1>
+          <div class="muted">ภาพรวมยอดเงินในระบบ และธุรกรรมล่าสุดของผู้ใช้</div>
+        </div>
+        <button class="btn alt small" id="btnRefreshTop">รีเฟรช</button>
+      </div>
+
+      <div class="walletStat">
+        <div class="ws ws-total">
+          <label>ยอดเงินทั้งหมดในระบบ (รวม wallet ผู้ใช้ทุกคน)</label>
+          <span id="walletTotal">-</span>
+        </div>
+        <div class="ws ws-topup">
+          <label>ยอดเติมเงิน (วันนี้)</label>
+          <span id="walletTopToday">-</span>
+        </div>
+        <div class="ws ws-use">
+          <label>ยอดตัดเงิน (Charge) วันนี้</label>
+          <span id="walletUseToday">-</span>
+        </div>
+        <div class="ws ws-refund">
+          <label>ยอดคืนเงิน (Refund) วันนี้</label>
+          <span id="walletRefundToday">-</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== List + User Card ====== -->
+    <section class="walletGrid">
+      <!-- ซ้าย: รายการธุรกรรม -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <div>
+            <h2>รายการธุรกรรมกระเป๋าเงิน</h2>
+            <div class="muted">เลือกผู้ใช้เพื่อดู “การ์ดยอดเงิน” แบบรายคน (ซ้ายจะกรองอัตโนมัติ)</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <span class="pill" id="activeUserPill">ยังไม่ได้เลือกผู้ใช้</span>
+            <button class="btn alt small" id="btnClearUser" style="display:none">ล้างการเลือก</button>
+            <button class="btn alt small" id="btnOpenDrawer" style="display:none">ดูการ์ดผู้ใช้</button>
+          </div>
+        </div>
+
+        <!-- ✅ เหลือแค่ "ค้นหา/เลือก User ID" แถบล่าง -->
+        <div class="toolbar" style="margin-top:10px">
+          <input id="pickUserId" class="input" type="number" min="1" placeholder="ค้นหาโดย User ID (เช่น 3)">
+          <button class="btn" id="btnPickUser">เปิดการ์ดผู้ใช้</button>
+          <button class="btn primary" id="btnAdd">+ เติม/หักเงินผู้ใช้</button>
+          <button class="btn danger" id="btnPickClear">ล้าง</button>
+        </div>
+
+        <div class="tableWrap" id="walletTableWrap">
+          <div class="empty">กำลังโหลดข้อมูล...</div>
+        </div>
+
+        <div id="walletError" class="msgErr"></div>
+      </div>
+
+      <!-- ขวา: User Wallet Card (Desktop) -->
+      <aside class="card userCard" id="userCardDesktop" aria-label="User wallet card">
+        <div class="ucHead">
+          <div>
+            <div class="ucTitle">💳 การ์ดกระเป๋าผู้ใช้</div>
+            <div class="ucHint" id="ucHintDesktop">คลิกแถวในตาราง หรือกรอก User ID เพื่อดูข้อมูลรายคน</div>
+          </div>
+          <button class="btn small" id="btnUserCardClearDesktop" style="display:none">ล้าง</button>
+        </div>
+
+        <div id="userCardBodyDesktop">
+          <div class="empty">ยังไม่ได้เลือกผู้ใช้</div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer>© 2026 Parking </footer>
+
+  <!-- ===== Mobile Drawer: User Card ===== -->
+  <div class="userDrawerMask" id="userDrawerMask">
+    <div class="userDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <div class="dragBar"></div>
+      <div class="drawerCloseRow">
+        <div style="font-weight:900" id="drawerTitle">💳 การ์ดกระเป๋าผู้ใช้</div>
+        <button class="xbtn" id="btnDrawerClose" type="button">ปิด</button>
+      </div>
+
+      <div id="userCardBodyMobile">
+        <div class="empty">ยังไม่ได้เลือกผู้ใช้</div>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn" id="btnUserCardClearMobile" style="display:none">ล้างการเลือก</button>
+        <button class="btn primary" id="btnDrawerAdjust" style="display:none">ปรับยอดผู้ใช้นี้</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🧾 Modal ปรับยอด Wallet -->
+  <div class="modalMask" id="adjustMask">
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="adjustTitle">
+      <div class="modalHead">
+        <div>
+          <div class="modalTitle" id="adjustTitle">ปรับยอดกระเป๋าเงินผู้ใช้</div>
+          <div class="mutedSmall">ใช้สำหรับเติมเงินหรือหักเงินจาก wallet ของผู้ใช้จากฝั่งแอดมิน</div>
+        </div>
+        <button class="modalClose" type="button" id="btnAdjustClose" aria-label="ปิด">✕</button>
+      </div>
+
+      <form id="adjustForm">
+        <div class="modalBody">
+          <div class="field">
+            <label for="adj-user-id">User ID</label>
+            <input id="adj-user-id" name="user_id" type="number" min="1" placeholder="กรอก ID ผู้ใช้ที่ต้องการปรับยอด"
+              required>
+          </div>
+
+          <div class="field">
+            <label for="adj-mode">โหมดการปรับยอด</label>
+            <select id="adj-mode" name="mode">
+              <option value="plus">เติมเงิน (+)</option>
+              <option value="minus">หักเงิน (–)</option>
+            </select>
+            <div class="badgeMode">* เติม = เพิ่มยอดในกระเป๋า / หัก = ลดยอด (ระบบไม่ให้ยอดติดลบ)</div>
+          </div>
+
+          <div class="field">
+            <label for="adj-amount">จำนวนเงิน (฿)</label>
+            <input id="adj-amount" name="amount" type="number" step="0.01" min="0" placeholder="เช่น 100 หรือ 50.50"
+              required>
+          </div>
+
+          <div class="field">
+            <label for="adj-note">หมายเหตุ</label>
+            <textarea id="adj-note" name="note" placeholder="เช่น เติมเงินให้จากโปรโมชัน / ปรับยอดตามแจ้งปัญหา"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="adj-ref">รหัสอ้างอิง (Ref)</label>
+            <input id="adj-ref" name="ref" placeholder="เช่น ADMIN-ADJUST-001 (ไม่ใส่ก็ได้)">
+          </div>
+        </div>
+
+        <div class="modalFoot">
+          <button type="button" class="btn" id="btnAdjustCancel">ยกเลิก</button>
+          <button type="submit" class="btn primary" id="btnAdjustSubmit">ยืนยันปรับยอด</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ====== VERSION STAMP ======
+    console.log('wallet_admin.html loaded ✅ v2025-12-16-REMOVE-TOP-SEARCH');
+
+    const API_BASE = `${location.origin}/api`;
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const moneyFmt = new Intl.NumberFormat('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    /* ===== Sidebar ===== */
+    const rail = $('#adminRail');
+    const mask = $('#railMask');
+    const burger = $('#fabMenu');
+
+    function openRail() { rail.classList.add('open'); mask.classList.add('show'); }
+    function closeRail() { rail.classList.remove('open'); mask.classList.remove('show'); }
+
+    burger.addEventListener('click', () => {
+      if (rail.classList.contains('open')) closeRail(); else openRail();
+    });
+    mask.addEventListener('click', closeRail);
+    window.addEventListener('keydown', e => { if (e.key === 'Escape') closeRail(); });
+
+    function updateRailMode() {
+      if (window.innerWidth >= 1000) {
+        document.body.classList.add('has-rail');
+        closeRail();
+      } else {
+        document.body.classList.remove('has-rail');
+      }
+    }
+    updateRailMode();
+    window.addEventListener('resize', updateRailMode);
+
+    (function markActive() {
+      const p = location.pathname;
+      const active =
+        /admin_slots\.html$/i.test(p) ? 'slots' :
+          /admin_users\.html$/i.test(p) ? 'users' :
+            /admin_reports\.html$/i.test(p) ? 'reports' :
+              /admin_issues\.html$/i.test(p) ? 'issues' :
+                /wallet_admin\.html$/i.test(p) ? 'wallet' : 'dashboard';
+      document.querySelectorAll('#railNav a.item').forEach(a => {
+        a.classList.toggle('active', a.dataset.page === active);
+      });
+    })();
+
+    /* ===== Auth admin ===== */
+    let me = {};
+    try { me = JSON.parse(localStorage.getItem('parking_user') || '{}'); } catch { }
+    if (!me?.id || (me.role && me.role.toLowerCase() !== 'admin')) {
+      sessionStorage.setItem('after_login', 'wallet_admin.html');
+      location.href = 'login.html';
+    }
+    $('#adminUser').textContent = me?.id
+      ? `ผู้ใช้: ${me.name || me.email || '-'} · ID ${me.id}`
+      : 'ยังไม่ล็อกอิน';
+
+    $('#railLogout').addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.removeItem('parking_user');
+      sessionStorage.removeItem('after_login');
+      location.href = 'login.html';
+    });
+
+    /* ===== Fetch JSON ===== */
+    async function fetchJSON(url, options) {
+      const res = await fetch(url, { cache: 'no-store', ...options });
+      const text = await res.text();
+      console.log('[API RAW]', url, text);
+
+      let data = {};
+      try { data = JSON.parse(text); }
+      catch { throw new Error('API ตอบไม่เป็น JSON: ' + text.slice(0, 300)); }
+
+      const okFlag = (
+        data.ok === true ||
+        data.ok === 1 ||
+        String(data.ok || '').toLowerCase() === 'ok'
+      );
+
+      if (!res.ok || !okFlag) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      return data;
+    }
+
+    /* ===== State: selected user ===== */
+    let ACTIVE_USER_ID = 0;
+
+    function setActiveUser(userId) {
+      const uid = Number(userId || 0);
+      ACTIVE_USER_ID = uid;
+
+      const pill = $('#activeUserPill');
+      const btnClear = $('#btnClearUser');
+      const btnDrawer = $('#btnOpenDrawer');
+      const btnClearDesk = $('#btnUserCardClearDesktop');
+      const btnClearMob = $('#btnUserCardClearMobile');
+      const btnDrawerAdjust = $('#btnDrawerAdjust');
+
+      if (uid > 0) {
+        pill.textContent = `กำลังดู: User ID #${uid}`;
+        btnClear.style.display = '';
+        btnDrawer.style.display = (window.innerWidth <= 1100) ? '' : 'none';
+        btnClearDesk.style.display = '';
+        btnClearMob.style.display = '';
+        btnDrawerAdjust.style.display = '';
+        $('#pickUserId').value = uid;
+
+        loadUserCard(uid);
+      } else {
+        pill.textContent = 'ยังไม่ได้เลือกผู้ใช้';
+        btnClear.style.display = 'none';
+        btnDrawer.style.display = 'none';
+        btnClearDesk.style.display = 'none';
+        btnClearMob.style.display = 'none';
+        btnDrawerAdjust.style.display = 'none';
+
+        $('#pickUserId').value = '';
+        renderUserCard(null);
+      }
+
+      highlightSelectedRows();
+      loadWalletList();
+    }
+
+    function highlightSelectedRows() {
+      const uid = ACTIVE_USER_ID;
+      $$('#walletTbody tr.row').forEach(tr => {
+        const trUid = Number(tr.getAttribute('data-user-id') || 0);
+        tr.classList.toggle('selected', uid > 0 && trUid === uid);
+      });
+    }
+
+    /* ===== Summary ===== */
+    async function loadWalletSummary() {
+      try {
+        const data = await fetchJSON(`${API_BASE}/wallet_admin_summary.php?_=${Date.now()}`, { cache: 'no-store' });
+        const total = Number(data.total_in_system ?? data.total ?? 0);
+        const topT = Number(data.topup_today ?? 0);
+        const useT = Number(data.charge_today ?? 0);
+        const refundT = Number(data.refund_today ?? 0);
+
+        $('#walletTotal').textContent = moneyFmt.format(total) + ' ฿';
+        $('#walletTopToday').textContent = moneyFmt.format(topT) + ' ฿';
+        $('#walletUseToday').textContent = moneyFmt.format(useT) + ' ฿';
+        $('#walletRefundToday').textContent = moneyFmt.format(refundT) + ' ฿';
+      } catch (e) {
+        console.error(e);
+        $('#walletTotal').textContent = '-';
+        $('#walletTopToday').textContent = '-';
+        $('#walletUseToday').textContent = '-';
+        $('#walletRefundToday').textContent = '-';
+      }
+    }
+
+    /* ===== User Card ===== */
+    function renderUserCard(model) {
+      const desk = $('#userCardBodyDesktop');
+      const mob = $('#userCardBodyMobile');
+
+      if (!model) {
+        const html = `<div class="empty">ยังไม่ได้เลือกผู้ใช้</div>`;
+        desk.innerHTML = html;
+        mob.innerHTML = html;
+        $('#ucHintDesktop').textContent = 'คลิกแถวในตาราง หรือกรอก User ID เพื่อดูข้อมูลรายคน';
+        return;
+      }
+
+      const uid = Number(model.user_id || 0);
+      const wallet = Number(model.wallet ?? model.wallet_balance ?? 0);
+      const topAll = Number(model.topup_total ?? 0);
+      const chgAll = Number(model.charge_total ?? 0);
+      const refAll = Number(model.refund_total ?? 0);
+      const cntAll = Number(model.tx_count ?? 0);
+
+      const topToday = Number(model.topup_today ?? 0);
+      const chgToday = Number(model.charge_today ?? 0);
+      const refToday = Number(model.refund_today ?? 0);
+
+      const name = (model.user_name || model.name || '').trim();
+      const email = (model.email || '').trim();
+
+      const infoLine = (name || email)
+        ? `<div class="ucHint">${name ? `<b>${escapeHtml(name)}</b>` : ''}${name && email ? ' · ' : ''}${email ? escapeHtml(email) : ''}</div>`
+        : `<div class="ucHint">ข้อมูลผู้ใช้จากฐาน (ถ้ามี name/email)</div>`;
+
+      const html = `
+        <div class="ucHead">
+          <div>
+            <div class="ucTitle">👤 User ID #${uid} <span class="pill">โหมดรายคน</span></div>
+            ${infoLine}
+          </div>
+        </div>
+
+        <div class="ucGrid">
+          <div class="ucBox ucBig">
+            <label>ยอดเงินคงเหลือ (ปัจจุบัน)</label>
+            <div>${moneyFmt.format(wallet)} ฿</div>
+          </div>
+
+          <div class="ucBox">
+            <label>เติมเงินสะสม</label>
+            <div style="color:var(--ok)">${moneyFmt.format(topAll)} ฿</div>
+          </div>
+
+          <div class="ucBox">
+            <label>ตัดเงินสะสม</label>
+            <div style="color:var(--warn)">${moneyFmt.format(chgAll)} ฿</div>
+          </div>
+
+          <div class="ucBox">
+            <label>คืนเงินสะสม</label>
+            <div style="color:var(--danger)">${moneyFmt.format(refAll)} ฿</div>
+          </div>
+
+          <div class="ucBox">
+            <label>จำนวนธุรกรรม</label>
+            <div>${cntAll} รายการ</div>
+          </div>
+
+          <div class="ucBox" style="grid-column:1 / -1">
+            <label>วันนี้ (Topup / Charge / Refund)</label>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+              <span class="pill">เติม: <b style="color:var(--ok)">${moneyFmt.format(topToday)}</b> ฿</span>
+              <span class="pill">ตัด: <b style="color:var(--warn)">${moneyFmt.format(chgToday)}</b> ฿</span>
+              <span class="pill">คืน: <b style="color:var(--danger)">${moneyFmt.format(refToday)}</b> ฿</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ucHint">* คลิกแถวในตารางเพื่อสลับผู้ใช้เร็ว ๆ / กด “ล้าง” เพื่อกลับไปดูทั้งหมด</div>
+      `;
+
+      desk.innerHTML = html;
+      mob.innerHTML = html;
+      $('#ucHintDesktop').textContent = 'เลือกผู้ใช้แล้ว — ตารางด้านซ้ายถูกกรองเฉพาะธุรกรรมของผู้ใช้นี้';
+    }
+
+    async function loadUserCard(userId) {
+      const uid = Number(userId || 0);
+      if (!uid) {
+        renderUserCard(null);
+        return;
+      }
+
+      $('#userCardBodyDesktop').innerHTML = `<div class="empty">กำลังโหลดการ์ดผู้ใช้...</div>`;
+      $('#userCardBodyMobile').innerHTML = `<div class="empty">กำลังโหลดการ์ดผู้ใช้...</div>`;
+
+      try {
+        const data = await fetchJSON(`${API_BASE}/wallet_admin_summary.php?user_id=${encodeURIComponent(uid)}&_=${Date.now()}`);
+        renderUserCard(data);
+      } catch (e) {
+        console.error(e);
+        const html = `<div class="empty">โหลดการ์ดผู้ใช้ไม่สำเร็จ<br><span class="mutedSmall">${escapeHtml(e.message || String(e))}</span></div>`;
+        $('#userCardBodyDesktop').innerHTML = html;
+        $('#userCardBodyMobile').innerHTML = html;
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    /* ===== รายการธุรกรรม ===== */
+    let ALL_TX = [];
+    let loading = false;
+
+    function fmtDT(s) {
+      if (!s) return '-';
+      const d = new Date(String(s).replace(' ', 'T'));
+      if (!Number.isFinite(d.getTime())) return s;
+      return new Intl.DateTimeFormat('th-TH', { dateStyle: 'short', timeStyle: 'short' }).format(d);
+    }
+
+    function typeLabel(t) {
+      const key = String(t || '');
+      const map = {
+        topup: 'เติมเงิน (topup)',
+        charge: 'ตัดเงิน (charge)',
+        refund: 'คืนเงิน (refund)'
+      };
+      return map[key] || key || 'ไม่ระบุ';
+    }
+
+    function renderWalletTable() {
+      const wrap = $('#walletTableWrap');
+      let list = [...ALL_TX];
+
+      // ✅ เรียงล่าสุดก่อนตลอด (เพราะตัด dropdown เรียงออกแล้ว)
+      list.sort((a, b) => {
+        const ta = new Date(a.created_at || a.timestamp || 0).getTime();
+        const tb = new Date(b.created_at || b.timestamp || 0).getTime();
+        return tb - ta;
+      });
+
+      if (!list.length) {
+        wrap.innerHTML = '<div class="empty">ยังไม่มีรายการธุรกรรม</div>';
+        return;
+      }
+
+      const rows = list.map(it => {
+        const id = it.id ?? it.tx_id ?? '-';
+        const userId = it.user_id ?? '-';
+        const type = String(it.type || '').toLowerCase();
+        const amount = Number(it.amount ?? 0);
+        const balance = (it.balance_after ?? it.balance ?? null);
+        const note = it.note || '';
+        const ref = it.ref || '';
+        const bookingId = it.booking_id ?? null;
+        const created = fmtDT(it.created_at || it.timestamp);
+
+        const clsAmt = amount >= 0 ? 'amountPlus' : 'amountMinus';
+        const amtStr = (amount >= 0 ? '+' : '') + moneyFmt.format(amount) + ' ฿';
+
+        return `
+          <tr class="row" data-user-id="${escapeHtml(userId)}" title="คลิกเพื่อดูการ์ด User #${escapeHtml(userId)}">
+            <td class="td" data-label="TX ID"><span class="idBadge">#${escapeHtml(id)}</span></td>
+            <td class="td" data-label="ผู้ใช้">
+              <div class="mutedSmall">User ID: #${escapeHtml(userId)}</div>
+              ${bookingId ? `<div class="mutedSmall">Booking: #${escapeHtml(bookingId)}</div>` : ''}
+            </td>
+            <td class="td" data-label="ประเภท">
+              <span class="typeTag">${escapeHtml(typeLabel(type))}</span>
+            </td>
+            <td class="td" data-label="จำนวน">
+              <div class="${clsAmt}">${escapeHtml(amtStr)}</div>
+            </td>
+            <td class="td" data-label="คงเหลือหลังรายการ">
+              ${balance !== null && balance !== undefined
+            ? `<span>${escapeHtml(moneyFmt.format(Number(balance)))} ฿</span>`
+            : `<span class="mutedSmall">- ไม่ได้ส่งมาจาก API -</span>`}
+            </td>
+            <td class="td" data-label="หมายเหตุ / อ้างอิง">
+              ${note ? `<div>${escapeHtml(note)}</div>` : ''}
+              ${ref ? `<div class="mutedSmall">Ref: ${escapeHtml(ref)}</div>` : ''}
+            </td>
+            <td class="td" data-label="เวลา">
+              <div class="mutedSmall">${escapeHtml(created)}</div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      wrap.innerHTML = `
+        <table class="table">
+          <thead class="thead">
+            <tr>
+              <th>TX</th>
+              <th>ผู้ใช้</th>
+              <th>ประเภท</th>
+              <th>จำนวน</th>
+              <th>คงเหลือหลังรายการ</th>
+              <th>หมายเหตุ / อ้างอิง</th>
+              <th>เวลา</th>
+            </tr>
+          </thead>
+          <tbody id="walletTbody">
+            ${rows}
+          </tbody>
+        </table>
+      `;
+
+      $$('#walletTbody tr.row').forEach(tr => {
+        tr.addEventListener('click', () => {
+          const uid = Number(tr.getAttribute('data-user-id') || 0);
+          if (uid > 0) setActiveUser(uid);
+          if (window.innerWidth <= 1100) {
+            openUserDrawer();
+          }
+        });
+      });
+
+      highlightSelectedRows();
+    }
+
+    async function loadWalletList() {
+      if (loading) return;
+      loading = true;
+
+      const wrap = $('#walletTableWrap');
+      const errBox = $('#walletError');
+      errBox.style.display = 'none';
+      wrap.innerHTML = '<div class="empty">กำลังโหลดข้อมูล...</div>';
+
+      const params = new URLSearchParams();
+      params.set('limit', '200');
+
+      // ✅ ถ้าเลือก user แล้ว ให้ดึงเฉพาะ user นั้น
+      if (ACTIVE_USER_ID > 0) {
+        params.set('user_id', String(ACTIVE_USER_ID));
+      }
+
+      try {
+        const data = await fetchJSON(`${API_BASE}/wallet_admin_list.php?${params.toString()}&_=${Date.now()}`, { cache: 'no-store' });
+        ALL_TX = Array.isArray(data.transactions) ? data.transactions : [];
+        renderWalletTable();
+      } catch (e) {
+        console.error(e);
+        wrap.innerHTML = '<div class="empty">ไม่สามารถโหลดรายการธุรกรรมได้</div>';
+        errBox.textContent = 'เกิดข้อผิดพลาด: ' + (e.message || e);
+        errBox.style.display = 'block';
+      } finally {
+        loading = false;
+      }
+    }
+
+    /* ===== Mobile Drawer control ===== */
+    const drawerMask = $('#userDrawerMask');
+    const btnOpenDrawer = $('#btnOpenDrawer');
+    const btnDrawerClose = $('#btnDrawerClose');
+
+    function openUserDrawer() { drawerMask.classList.add('show'); }
+    function closeUserDrawer() { drawerMask.classList.remove('show'); }
+
+    drawerMask.addEventListener('click', e => {
+      if (e.target === drawerMask) closeUserDrawer();
+    });
+    btnDrawerClose.addEventListener('click', closeUserDrawer);
+
+    function updateDrawerButton() {
+      const show = (window.innerWidth <= 1100) && (ACTIVE_USER_ID > 0);
+      btnOpenDrawer.style.display = show ? '' : 'none';
+    }
+    window.addEventListener('resize', updateDrawerButton);
+
+    btnOpenDrawer.addEventListener('click', () => {
+      if (ACTIVE_USER_ID > 0) openUserDrawer();
+    });
+
+    /* ===== Modal ปรับยอด Wallet ===== */
+    const adjustMask = $('#adjustMask');
+    const adjustForm = $('#adjustForm');
+    const adjUserIdEl = $('#adj-user-id');
+    const adjModeEl = $('#adj-mode');
+    const adjAmountEl = $('#adj-amount');
+    const adjNoteEl = $('#adj-note');
+    const adjRefEl = $('#adj-ref');
+    const btnAdjClose = $('#btnAdjustClose');
+    const btnAdjCancel = $('#btnAdjustCancel');
+
+    function openAdjustModal(presetUserId) {
+      if (presetUserId) adjUserIdEl.value = presetUserId;
+      adjustMask.classList.add('show');
+      setTimeout(() => adjUserIdEl.focus(), 10);
+    }
+
+    function closeAdjustModal() {
+      adjustMask.classList.remove('show');
+      adjustForm.reset();
+    }
+
+    async function submitAdjust() {
+      const user_id = Number(adjUserIdEl.value || 0);
+      const mode = adjModeEl.value || 'plus';
+      const amount = Number(adjAmountEl.value || 0);
+      const note = adjNoteEl.value.trim();
+      const ref = adjRefEl.value.trim();
+
+      if (!user_id || amount <= 0) {
+        alert('กรุณากรอก User ID และจำนวนเงินให้ถูกต้อง');
+        return;
+      }
+
+      const confirmText =
+        mode === 'plus'
+          ? `ต้องการ "เติมเงิน" ให้ User ID ${user_id} จำนวน ${moneyFmt.format(amount)} ฿ ใช่หรือไม่?`
+          : `ต้องการ "หักเงิน" จาก User ID ${user_id} จำนวน ${moneyFmt.format(amount)} ฿ ใช่หรือไม่?`;
+
+      if (!confirm(confirmText)) return;
+
+      const btn = $('#btnAdjustSubmit');
+      btn.disabled = true;
+      btn.textContent = 'กำลังปรับยอด...';
+
+      try {
+        const payload = { user_id, mode, amount, note };
+        if (ref) payload.ref = ref;
+
+        const data = await fetchJSON(`${API_BASE}/wallet_admin_adjust.php?_=${Date.now()}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const newBal = typeof data.wallet !== 'undefined'
+          ? moneyFmt.format(Number(data.wallet)) + ' ฿'
+          : 'สำเร็จ';
+
+        alert('✅ ปรับยอดสำเร็จ\nยอดใหม่: ' + newBal);
+
+        closeAdjustModal();
+        loadWalletSummary();
+
+        if (ACTIVE_USER_ID === user_id) {
+          loadUserCard(ACTIVE_USER_ID);
+        }
+
+        loadWalletList();
+      } catch (e) {
+        console.error(e);
+        alert('❌ ปรับยอดไม่สำเร็จ: ' + (e.message || e));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'ยืนยันปรับยอด';
+      }
+    }
+
+    adjustMask.addEventListener('click', e => { if (e.target === adjustMask) closeAdjustModal(); });
+    btnAdjClose.addEventListener('click', closeAdjustModal);
+    btnAdjCancel.addEventListener('click', closeAdjustModal);
+
+    adjustForm.addEventListener('submit', e => {
+      e.preventDefault();
+      submitAdjust();
+    });
+
+    // ปุ่ม + เติม/หักเงินผู้ใช้ เปิด modal (ย้ายมาอยู่แถบล่างแล้ว)
+    $('#btnAdd').addEventListener('click', () => {
+      openAdjustModal(ACTIVE_USER_ID > 0 ? ACTIVE_USER_ID : null);
+    });
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && adjustMask.classList.contains('show')) closeAdjustModal();
+      if (e.key === 'Escape' && drawerMask.classList.contains('show')) closeUserDrawer();
+    });
+
+    window.__openAdjustForActive = () => {
+      if (ACTIVE_USER_ID > 0) openAdjustModal(ACTIVE_USER_ID);
+      else openAdjustModal();
+    };
+    window.__copyActiveUser = async () => {
+      if (ACTIVE_USER_ID <= 0) return;
+      try {
+        await navigator.clipboard.writeText(String(ACTIVE_USER_ID));
+        alert('คัดลอก User ID แล้ว: ' + ACTIVE_USER_ID);
+      } catch {
+        prompt('คัดลอก User ID:', String(ACTIVE_USER_ID));
+      }
+    };
+
+    /* ===== Events ===== */
+    $('#btnRefreshTop').onclick = () => { loadWalletSummary(); loadWalletList(); if (ACTIVE_USER_ID > 0) loadUserCard(ACTIVE_USER_ID); };
+
+    // Quick pick user
+    $('#btnPickUser').addEventListener('click', () => {
+      const uid = Number($('#pickUserId').value || 0);
+      if (!uid) {
+        alert('กรุณากรอก User ID');
+        return;
+      }
+      setActiveUser(uid);
+      updateDrawerButton();
+      if (window.innerWidth <= 1100) openUserDrawer();
+    });
+    $('#pickUserId').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        $('#btnPickUser').click();
+      }
+    });
+
+    $('#btnPickClear').addEventListener('click', () => {
+      $('#pickUserId').value = '';
+      setActiveUser(0);
+      updateDrawerButton();
+    });
+
+    function clearActiveUser() {
+      setActiveUser(0);
+      updateDrawerButton();
+    }
+    $('#btnClearUser').addEventListener('click', clearActiveUser);
+    $('#btnUserCardClearDesktop').addEventListener('click', clearActiveUser);
+    $('#btnUserCardClearMobile').addEventListener('click', () => {
+      clearActiveUser();
+      closeUserDrawer();
+    });
+
+    $('#btnDrawerAdjust').addEventListener('click', () => {
+      if (ACTIVE_USER_ID > 0) {
+        closeUserDrawer();
+        openAdjustModal(ACTIVE_USER_ID);
+      }
+    });
+
+    /* ===== Init ===== */
+    loadWalletSummary();
+    loadWalletList();
+    setActiveUser(0);
+    updateDrawerButton();
+  </script>
+</body>
+
+</html>

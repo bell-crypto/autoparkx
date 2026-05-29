@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Parking | Admin · จัดการผู้ใช้</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #0f172a;
+            --card: #111827;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --stroke: #1f2937;
+            --primary: #60a5fa;
+            --success: #10b981;
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --radius: 16px;
+            --shadow: 0 14px 28px rgba(0, 0, 0, .45);
+            --shadow-soft: 0 6px 16px rgba(0, 0, 0, .28);
+            --rail-w: 260px;
+            --rail-gap: 16px;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f6f8fb;
+                --panel: #ffffff;
+                --card: #ffffff;
+                --text: #0f172a;
+                --muted: #64748b;
+                --stroke: #e8edf3;
+                --primary: #1d4ed8;
+                --success: #10b981;
+                --warn: #eab308;
+                --danger: #ef4444;
+                --shadow: 0 12px 24px rgba(15, 23, 42, .08);
+                --shadow-soft: 0 6px 14px rgba(15, 23, 42, .06);
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(120deg, color-mix(in oklab, var(--bg)92%, transparent), var(--panel));
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, "Noto Sans Thai", Sarabun, Arial, sans-serif;
+        }
+
+        .rail {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 80;
+            width: var(--rail-w);
+            background: color-mix(in oklab, var(--panel) 96%, transparent);
+            border-right: 1px solid var(--stroke);
+            display: flex;
+            flex-direction: column;
+            padding: 14px 10px;
+            transform: translateX(-100%);
+            transition: transform .22s ease;
+        }
+
+        .rail.open {
+            transform: none;
+        }
+
+        .rail .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px 12px;
+            font-weight: 900
+        }
+
+        .rail .logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: conic-gradient(from 220deg, #22d3ee, #6366f1, #22d3ee)
+        }
+
+        .rail .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card) 96%, transparent);
+            color: var(--muted);
+            font-weight: 800;
+            margin: 0 10px 10px;
+            font-size: 13px;
+        }
+
+        .rail nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 6px
+        }
+
+        .rail a.item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .rail a.item .ico {
+            width: 20px;
+            text-align: center
+        }
+
+        .rail a.item.active {
+            background: color-mix(in oklab, var(--primary) 18%, transparent);
+            color: #fff
+        }
+
+        .rail .sp {
+            margin: 8px 6px;
+            height: 1px;
+            background: color-mix(in oklab, var(--stroke) 70%, transparent)
+        }
+
+        .rail .foot {
+            margin-top: auto;
+            padding: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center
+        }
+
+        .rail-mask {
+            position: fixed;
+            inset: 0;
+            z-index: 79;
+            background: rgba(0, 0, 0, .26);
+            opacity: 0;
+            pointer-events: none;
+            transition: .2s;
+        }
+
+        .rail-mask.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @media (min-width:1000px) {
+            .rail {
+                transform: none;
+                transition: none;
+            }
+
+            body.has-rail main,
+            body.has-rail footer {
+                margin-left: calc(var(--rail-w) + var(--rail-gap));
+            }
+
+            body.has-rail #fabMenu {
+                display: none;
+            }
+
+            body.has-rail main {
+                max-width: min(1400px, calc(100vw - var(--rail-w) - var(--rail-gap) - 32px));
+            }
+
+            .rail-mask {
+                display: none !important;
+            }
+        }
+
+        #fabMenu {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 70;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card) 92%, transparent);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: var(--shadow-soft);
+        }
+
+        @media (min-width:1000px) {
+            #fabMenu {
+                display: none;
+            }
+        }
+
+        main {
+            max-width: min(1400px, 94vw);
+            margin: 16px auto;
+            display: grid;
+            gap: 16px;
+        }
+
+        .card {
+            background: color-mix(in oklab, var(--card) 96%, transparent);
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: clamp(14px, 3vw, 20px);
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: clamp(18px, 2.6vw, 24px);
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            align-items: stretch;
+        }
+
+        .search {
+            flex: 1 1 220px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel) 94%, transparent);
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .search input {
+            all: unset;
+            width: 100%;
+            color: var(--text);
+        }
+
+        .filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 9px 12px;
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            background: color-mix(in oklab, var(--panel) 94%, transparent);
+            color: var(--text);
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 13px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 900;
+            border: 0;
+            cursor: pointer;
+            box-shadow: var(--shadow-soft);
+            background: color-mix(in oklab, var(--card) 84%, transparent);
+            color: var(--text);
+            border: 1px solid var(--stroke);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .btn.primary {
+            color: #fff;
+            border: 0;
+            background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 70%, #0a66cc));
+        }
+
+        .btn.ghost {
+            color: var(--text);
+            background: color-mix(in oklab, var(--card) 84%, transparent);
+            border: 1px solid var(--stroke);
+        }
+
+        .btn.danger {
+            color: #fff;
+            border: 0;
+            background: linear-gradient(135deg, var(--danger), #b91c1c);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            filter: brightness(.98);
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        .table {
+            width: 100%;
+            min-width: 1180px;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .thead th {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            padding: 0 10px 4px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .thead th:last-child {
+            text-align: right;
+        }
+
+        .row {
+            background: color-mix(in oklab, var(--panel) 92%, transparent);
+            border: 1px solid var(--stroke);
+            border-radius: 14px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .row .td {
+            padding: 12px 14px;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .id {
+            width: 80px
+        }
+
+        .name {
+            min-width: 160px
+        }
+
+        .email {
+            min-width: 220px
+        }
+
+        .phone {
+            min-width: 120px
+        }
+
+        .vehicles {
+            min-width: 220px
+        }
+
+        .op {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .subtext {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .role-admin {
+            background: linear-gradient(135deg, #6366f1, #4338ca);
+        }
+
+        .role-user {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .st-active {
+            background: linear-gradient(135deg, #0ea5e9, #0369a1);
+        }
+
+        .st-block {
+            background: linear-gradient(135deg, var(--danger), #991b1b);
+        }
+
+        .skeleton {
+            height: 54px;
+            border-radius: 12px;
+            background:
+                linear-gradient(90deg,
+                    color-mix(in oklab, var(--panel) 82%, transparent) 0%,
+                    color-mix(in oklab, var(--panel) 66%, transparent) 50%,
+                    color-mix(in oklab, var(--panel) 82%, transparent) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 0 0
+            }
+
+            100% {
+                background-position: -200% 0
+            }
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translate(-50%, 16px);
+            opacity: 0;
+            background: var(--panel);
+            border: 1px solid var(--stroke);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 14px;
+            box-shadow: var(--shadow-soft);
+            font-weight: 900;
+            transition: .25s;
+            z-index: 90;
+            font-size: 13px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0)
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            place-items: center;
+            background: rgba(0, 0, 0, .45);
+            z-index: 95;
+        }
+
+        .modal.show {
+            display: grid
+        }
+
+        .modal .box {
+            width: min(460px, 92vw);
+            background: var(--panel);
+            border: 1px solid var(--stroke);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+            font-size: 14px;
+        }
+
+        footer {
+            max-width: min(1400px, 94vw);
+            margin: 8px auto 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        @media (max-width:900px) {
+            .toolbar {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            .filter {
+                justify-content: flex-start;
+            }
+
+            .row .td {
+                padding: 10px 12px;
+            }
+
+            .op {
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width:600px) {
+            .table-wrap {
+                overflow: visible;
+            }
+
+            .table,
+            .table thead,
+            .table tbody,
+            .table tr,
+            .table th,
+            .table td {
+                display: block;
+                width: 100%;
+            }
+
+            .table {
+                min-width: 0;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            #userTbody tr.row {
+                margin-bottom: 10px;
+                border-radius: 14px;
+                border: 1px solid var(--stroke);
+                background: color-mix(in oklab, var(--panel) 94%, transparent);
+                box-shadow: var(--shadow-soft);
+            }
+
+            #userTbody .td {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding: 6px 14px;
+                font-size: 13px;
+                gap: 8px;
+                word-break: break-word;
+            }
+
+            #userTbody .td::before {
+                content: attr(data-label);
+                font-size: 12px;
+                color: var(--muted);
+                flex: 0 0 92px;
+            }
+
+            .id,
+            .name,
+            .email,
+            .phone,
+            .vehicles {
+                min-width: 0;
+            }
+
+            .op {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                gap: 6px;
+                margin-top: 4px;
+            }
+
+            .btn {
+                padding: 7px 10px;
+                font-size: 12px;
+                box-shadow: none;
+            }
+        }
+
+        @media (max-width:400px) {
+            main {
+                margin-top: 60px;
+            }
+
+            #fabMenu {
+                top: 10px;
+                left: 10px;
+            }
+
+            #userTbody .td {
+                padding: 5px 12px;
+                font-size: 12.5px;
+            }
+
+            .pill {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="rail" id="adminRail" aria-label="Admin navigation">
+        <div class="brand">
+            <div class="logo"></div>
+            <div>Admin</div>
+        </div>
+        <div class="chip" id="adminUser">—</div>
+        <nav id="railNav">
+            <a class="item" data-page="dashboard" href="admin.html"><span class="ico">🏠</span> Dashboard</a>
+            <a class="item" data-page="slots" href="admin_slots.html"><span class="ico">🅿️</span> ช่องจอด</a>
+            <a class="item" data-page="users" href="admin_users.html"><span class="ico">👥</span> ผู้ใช้</a>
+            <a class="item" data-page="issues" href="admin_issues.html"><span class="ico">🧯</span> แจ้งปัญหา</a>
+            <a class="item" data-page="wallet" href="wallet_admin.html"><span class="ico">💳</span> Wallet</a>
+            <a class="item" data-page="reports" href="admin_reports.html"><span class="ico">📊</span> รายงาน</a>
+            <a class="item" data-page="announcements" href="admin_announcements.html"><span>📢</span>ประกาศระบบ</a>
+            <div class="sp"></div>
+            <a class="item" href="index.html"><span class="ico">↩️</span> กลับหน้า User</a>
+            <a class="item" id="railLogout" href="#"><span class="ico">🚪</span> ออกจากระบบ</a>
+        </nav>
+        <div class="foot">© 2026 Parking </div>
+    </aside>
+    <div class="rail-mask" id="railMask"></div>
+
+    <button id="fabMenu" aria-label="เปิดเมนู">☰ เมนู</button>
+
+    <main>
+        <section class="card">
+            <h1>รายการผู้ใช้</h1>
+            <div class="muted">จัดการสิทธิ์ สถานะ เบอร์โทร และทะเบียนรถของผู้ใช้ในระบบ</div>
+
+            <div class="toolbar">
+                <div class="search">
+                    <span>🔎</span>
+                    <input id="q" type="text" placeholder="ค้นหา: ชื่อ / อีเมล / เบอร์ / ทะเบียน…"/>
+                </div>
+                <div class="filter">
+                    <select id="roleFilter" class="select">
+          <option value="">Role: ทั้งหมด</option>
+          <option value="admin">Admin</option>
+          <option value="user">User</option>
+        </select>
+                    <select id="statusFilter" class="select">
+          <option value="">สถานะ: ทั้งหมด</option>
+          <option value="active">Active</option>
+          <option value="blocked">Blocked</option>
+        </select>
+                    <button class="btn primary" id="refreshBtn">รีเฟรช</button>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table class="table">
+                    <thead class="thead">
+                        <tr>
+                            <th class="th id">ID</th>
+                            <th class="th name">ชื่อ</th>
+                            <th class="th email">อีเมล</th>
+                            <th class="th phone">เบอร์โทร</th>
+                            <th class="th vehicles">ทะเบียนรถ</th>
+                            <th class="th">Role</th>
+                            <th class="th">สถานะ</th>
+                            <th class="th" style="text-align:right">การทำงาน</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTbody">
+                        <tr>
+                            <td colspan="8">
+                                <div class="skeleton"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                <div class="skeleton"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                <div class="skeleton"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>© 2026 Parking </footer>
+
+    <div id="toast" class="toast">บันทึกสำเร็จ</div>
+
+    <div id="confirm" class="modal" aria-hidden="true">
+        <div class="box">
+            <h3 style="margin:0 0 6px;font-weight:900">ยืนยันการทำงาน</h3>
+            <p id="confirmText" style="margin:0 0 12px; color:var(--muted)">…</p>
+            <div style="display:flex; gap:10px; justify-content:flex-end">
+                <button class="btn ghost" id="cfCancel">ยกเลิก</button>
+                <button class="btn primary" id="cfOk">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = `${location.origin}/api`;
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+
+  const rail   = $('#adminRail');
+  const mask   = $('#railMask');
+  const burger = $('#fabMenu');
+
+  function openRail(){ rail.classList.add('open'); mask.classList.add('show'); }
+  function closeRail(){ rail.classList.remove('open'); mask.classList.remove('show'); }
+
+  burger.addEventListener('click', ()=> {
+    if (rail.classList.contains('open')) closeRail(); else openRail();
+  });
+  mask.addEventListener('click', closeRail);
+  window.addEventListener('keydown', e=>{ if(e.key==='Escape') closeRail(); });
+
+  function updateRailMode(){
+    if (window.innerWidth >= 1000) {
+      document.body.classList.add('has-rail');
+      closeRail();
+    } else {
+      document.body.classList.remove('has-rail');
+    }
+  }
+  updateRailMode();
+  window.addEventListener('resize', updateRailMode);
+
+  (function markActive(){
+    const p = location.pathname;
+    const active =
+      /admin_slots\.html$/i.test(p)   ? 'slots'   :
+      /admin_users\.html$/i.test(p)   ? 'users'   :
+      /admin_reports\.html$/i.test(p) ? 'reports' : 'dashboard';
+    document.querySelectorAll('#railNav a.item').forEach(a=>{
+      a.classList.toggle('active', a.dataset.page===active);
+    });
+  })();
+
+  const me = JSON.parse(localStorage.getItem('parking_user') || '{}');
+  $('#adminUser').textContent = me?.id
+    ? `ผู้ใช้: ${me.name || me.email || '-'} · ID ${me.id}`
+    : 'ยังไม่ล็อกอิน';
+
+  function doLogout(){
+    localStorage.removeItem('parking_user');
+    sessionStorage.removeItem('after_login');
+    location.href = 'login.html';
+  }
+  $('#railLogout').addEventListener('click', (e)=>{ e.preventDefault(); doLogout(); });
+
+  function toast(msg){
+    const t = $('#toast');
+    t.textContent = msg || 'สำเร็จ';
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 1800);
+  }
+
+  function confirmBox(message){
+    return new Promise(resolve=>{
+      const m = $('#confirm');
+      const txt = $('#confirmText');
+      const okBtn = $('#cfOk');
+      const cancelBtn = $('#cfCancel');
+
+      txt.textContent = message;
+      m.classList.add('show');
+      m.setAttribute('aria-hidden','false');
+
+      const cleanup = ()=>{
+        okBtn.removeEventListener('click', onOk);
+        cancelBtn.removeEventListener('click', onCancel);
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden','true');
+      };
+      const onOk = ()=>{ cleanup(); resolve(true); };
+      const onCancel = ()=>{ cleanup(); resolve(false); };
+
+      okBtn.addEventListener('click', onOk);
+      cancelBtn.addEventListener('click', onCancel);
+      m.addEventListener('click', e=>{ if(e.target===m) onCancel(); }, {once:true});
+    });
+  }
+
+  let ALL_USERS = [];
+
+  function pillRole(role){
+    return role === 'admin'
+      ? '<span class="pill role-admin">Admin</span>'
+      : '<span class="pill role-user">User</span>';
+  }
+
+  function pillStatus(st){
+    return st === 'blocked'
+      ? '<span class="pill st-block">Blocked</span>'
+      : '<span class="pill st-active">Active</span>';
+  }
+
+  function escapeHtml(s){
+    return String(s ?? '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  function normalizePlate(v){
+    return String(v || '').trim().replace(/\s+/g,'').toUpperCase();
+  }
+
+  function getPhoneText(u){
+    const phone = String(u?.phone || '').trim();
+    return phone || '-';
+  }
+
+  function getVehiclesText(u){
+    if (Array.isArray(u?.vehicles) && u.vehicles.length) {
+      const arr = u.vehicles
+        .map(v => ({
+          plate_slot: Number(v?.plate_slot || 0),
+          plate_number: normalizePlate(v?.plate_number || '')
+        }))
+        .filter(v => v.plate_number)
+        .sort((a,b) => a.plate_slot - b.plate_slot);
+
+      if (arr.length) {
+        return arr.map(v => v.plate_number).join(' • ');
+      }
+    }
+
+    if (Array.isArray(u?.vehicle_plates) && u.vehicle_plates.length) {
+      const arr = u.vehicle_plates
+        .map(v => normalizePlate(v))
+        .filter(Boolean);
+      if (arr.length) return arr.join(' • ');
+    }
+
+    if (typeof u?.plate_number === 'string' && u.plate_number.trim()) {
+      return normalizePlate(u.plate_number);
+    }
+
+    return '-';
+  }
+
+  function rowTemplate(u){
+    const nextRole = (u.role === 'admin') ? 'user' : 'admin';
+    const nextSt   = (u.status === 'blocked') ? 'active' : 'blocked';
+    const phoneText = getPhoneText(u);
+    const vehiclesText = getVehiclesText(u);
+
+    return `
+      <tr class="row" data-id="${u.id}">
+        <td class="td id"       data-label="ID">#${u.id}</td>
+        <td class="td name"     data-label="ชื่อ">${escapeHtml(u.name || '-')}</td>
+        <td class="td email"    data-label="อีเมล">${escapeHtml(u.email || '-')}</td>
+        <td class="td phone"    data-label="เบอร์โทร">${escapeHtml(phoneText)}</td>
+        <td class="td vehicles" data-label="ทะเบียนรถ"><div class="subtext">${escapeHtml(vehiclesText)}</div></td>
+        <td class="td"          data-label="Role">${pillRole(u.role || 'user')}</td>
+        <td class="td"          data-label="สถานะ">${pillStatus(u.status || 'active')}</td>
+        <td class="td op"       data-label="การทำงาน">
+          <button class="btn ghost roleBtn" data-next="${nextRole}">
+            ${u.role === 'admin' ? 'ทำเป็น User' : 'ทำเป็น Admin'}
+          </button>
+          <button class="btn ${u.status === 'blocked' ? 'primary' : 'danger'} blockBtn" data-next="${nextSt}">
+            ${u.status === 'blocked' ? 'ปลดบล็อก' : 'บล็อก'}
+          </button>
+        </td>
+      </tr>`;
+  }
+
+  function renderTable(){
+    const q  = $('#q').value.trim().toLowerCase();
+    const rf = $('#roleFilter').value;
+    const sf = $('#statusFilter').value;
+
+    const filtered = ALL_USERS.filter(u=>{
+      const name = String(u.name || '').toLowerCase();
+      const email = String(u.email || '').toLowerCase();
+      const phone = String(u.phone || '').toLowerCase();
+      const vehicles = getVehiclesText(u).toLowerCase();
+
+      const matchQ = !q ||
+        name.includes(q) ||
+        email.includes(q) ||
+        phone.includes(q) ||
+        vehicles.includes(q);
+
+      const matchR = !rf || (String(u.role || 'user') === rf);
+      const matchS = !sf || (String(u.status || 'active') === sf);
+      return matchQ && matchR && matchS;
+    });
+
+    $('#userTbody').innerHTML = filtered.length
+      ? filtered.map(rowTemplate).join('')
+      : '<tr><td class="td" colspan="8" style="text-align:center;color:var(--muted)">— ไม่พบข้อมูล —</td></tr>';
+
+    $$('#userTbody .roleBtn').forEach(btn=>{
+      btn.onclick = async ()=>{
+        const tr   = btn.closest('tr');
+        const id   = tr.getAttribute('data-id');
+        const next = btn.getAttribute('data-next');
+        const ok = await confirmBox('ยืนยันเปลี่ยนสิทธิ์ผู้ใช้ #'+id+' เป็น '+next.toUpperCase()+' ?');
+        if (!ok) return;
+        await updateRole(id, next);
+      };
+    });
+
+    $$('#userTbody .blockBtn').forEach(btn=>{
+      btn.onclick = async ()=>{
+        const tr   = btn.closest('tr');
+        const id   = tr.getAttribute('data-id');
+        const next = btn.getAttribute('data-next');
+        const text = (next === 'blocked') ? 'บล็อก' : 'ปลดบล็อก';
+        const ok = await confirmBox('ยืนยัน'+text+'ผู้ใช้ #'+id+' ?');
+        if (!ok) return;
+        await toggleBlock(id, next);
+      };
+    });
+  }
+
+  async function loadUsers(){
+    try{
+      const res  = await fetch(API_BASE + '/users_list.php', {cache:'no-store'});
+      const data = await res.json();
+      if(!res.ok || !data.ok) throw new Error(data.error || 'โหลดไม่สำเร็จ');
+      ALL_USERS = Array.isArray(data.users) ? data.users : [];
+      renderTable();
+    }catch(err){
+      console.error(err);
+      $('#userTbody').innerHTML =
+        '<tr><td colspan="8" class="td">❌ ' + escapeHtml(err.message || 'ผิดพลาด') + '</td></tr>';
+    }
+  }
+
+  async function updateRole(id, role){
+    try{
+      const res  = await fetch(API_BASE + '/user_update_role.php', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ id:id, role:role })
+      });
+      const data = await res.json();
+      if(!res.ok || !data.ok) throw new Error(data.error || 'เปลี่ยน Role ไม่สำเร็จ');
+      toast('เปลี่ยนผู้ใช้ #'+id+' เป็น '+role.toUpperCase()+' แล้ว');
+      await loadUsers();
+    }catch(err){
+      console.error(err);
+      toast('❌ ' + (err.message || 'ผิดพลาด'));
+    }
+  }
+
+  async function toggleBlock(id, status){
+    try{
+      const res  = await fetch(API_BASE + '/user_toggle_status.php', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ id:id, status:status })
+      });
+      const data = await res.json();
+      if(!res.ok || !data.ok) throw new Error(data.error || 'อัปเดตสถานะไม่สำเร็จ');
+      toast('อัปเดตผู้ใช้ #'+id+' เป็น '+status.toUpperCase()+' แล้ว');
+      await loadUsers();
+    }catch(err){
+      console.error(err);
+      toast('❌ ' + (err.message || 'ผิดพลาด'));
+    }
+  }
+
+  $('#q').oninput = renderTable;
+  $('#roleFilter').onchange = renderTable;
+  $('#statusFilter').onchange = renderTable;
+  $('#refreshBtn').onclick = loadUsers;
+
+  loadUsers();
+    </script>
+</body>
+
+</html>

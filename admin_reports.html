@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Parking | Admin · รายงาน/สถิติ</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #0f172a;
+            --card: #111827;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --stroke: #1f2937;
+            --primary: #60a5fa;
+            --ok: #10b981;
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --maint: #6b7280;
+            --radius: 16px;
+            --shadow: 0 14px 28px rgba(0, 0, 0, .45);
+            --shadow-soft: 0 6px 16px rgba(0, 0, 0, .28);
+            --rail-w: 260px;
+            --rail-gap: 16px;
+            --chip: #0b1220;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f6f8fb;
+                --panel: #ffffff;
+                --card: #ffffff;
+                --text: #0f172a;
+                --muted: #64748b;
+                --stroke: #e8edf3;
+                --primary: #1d4ed8;
+                --ok: #10b981;
+                --warn: #eab308;
+                --danger: #ef4444;
+                --maint: #6b7280;
+                --shadow: 0 12px 24px rgba(15, 23, 42, .08);
+                --shadow-soft: 0 6px 14px rgba(15, 23, 42, .06);
+                --chip: #f1f5f9;
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+            * {
+                animation: none !important;
+                transition: none !important
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(120deg, color-mix(in oklab, var(--bg)92%, transparent), var(--panel));
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, "Noto Sans Thai", "Sarabun", Arial, sans-serif;
+        }
+
+        .no-anim .rail,
+        .no-anim .rail-mask {
+            transition: none !important
+        }
+
+        /* ===== Sidebar / Drawer ===== */
+        .rail {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 80;
+            width: var(--rail-w);
+            background: color-mix(in oklab, var(--panel)96%, transparent);
+            border-right: 1px solid var(--stroke);
+            display: flex;
+            flex-direction: column;
+            padding: 14px 10px;
+            transform: translateX(-100%);
+            transition: transform .22s ease;
+        }
+
+        .rail.open {
+            transform: none;
+        }
+
+        .rail .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px 12px;
+            font-weight: 900
+        }
+
+        .rail .logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: conic-gradient(from 220deg, #22d3ee, #6366f1, #22d3ee)
+        }
+
+        .rail .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            color: var(--muted);
+            font-weight: 800;
+            margin: 0 10px 10px;
+            font-size: 13px;
+        }
+
+        .rail nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 6px
+        }
+
+        .rail a.item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .rail a.item .ico {
+            width: 20px;
+            text-align: center
+        }
+
+        .rail a.item.active {
+            background: color-mix(in oklab, var(--primary)18%, transparent);
+            color: #fff
+        }
+
+        .rail .sp {
+            margin: 8px 6px;
+            height: 1px;
+            background: rgba(148, 163, 184, .25)
+        }
+
+        .rail .foot {
+            margin-top: auto;
+            padding: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center
+        }
+
+        .rail-mask {
+            position: fixed;
+            inset: 0;
+            z-index: 79;
+            background: rgba(0, 0, 0, .26);
+            opacity: 0;
+            pointer-events: none;
+            transition: .2s;
+        }
+
+        .rail-mask.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Desktop pin */
+        @media (min-width:1000px) {
+            .rail {
+                transform: none;
+                transition: none;
+            }
+
+            .rail-mask {
+                display: none !important;
+            }
+
+            body.has-rail main,
+            body.has-rail footer {
+                margin-left: calc(var(--rail-w) + var(--rail-gap));
+            }
+
+            body.has-rail #fabMenu {
+                display: none;
+            }
+
+            body.has-rail main {
+                max-width: min(1280px, calc(100vw - var(--rail-w) - var(--rail-gap) - 32px));
+            }
+
+            body.has-rail footer {
+                max-width: min(1280px, calc(100vw - var(--rail-w) - var(--rail-gap) - 32px));
+            }
+        }
+
+        /* ปุ่มเมนูมือถือ */
+        #fabMenu {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 70;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card)92%, transparent);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: var(--shadow-soft);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        @media (min-width:1000px) {
+            #fabMenu {
+                display: none;
+            }
+        }
+
+        /* ===== Content ===== */
+        main {
+            max-width: min(1280px, 94vw);
+            margin: 16px auto;
+            display: grid;
+            gap: 16px;
+        }
+
+        .card {
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: clamp(14px, 3vw, 20px);
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: clamp(18px, 2.6vw, 24px);
+        }
+
+        h2 {
+            margin: 0 0 6px;
+            font-size: clamp(16px, 2.3vw, 20px);
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace
+        }
+
+        footer {
+            max-width: min(1280px, 94vw);
+            margin: 8px auto 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* ===== Stat box ===== */
+        .statbox {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .pillStat {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card)94%, transparent);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-height: 72px;
+        }
+
+        .pillStat label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 800;
+            letter-spacing: .2px;
+        }
+
+        .pillStat span {
+            font-weight: 1000;
+            font-size: 22px;
+            line-height: 1.15;
+        }
+
+        .pill-all span {
+            color: var(--text);
+        }
+
+        .pill-book span {
+            color: var(--warn);
+        }
+
+        .pill-occ span {
+            color: var(--danger);
+        }
+
+        .pill-maint span {
+            color: var(--maint);
+        }
+
+        .pill-ok span {
+            color: var(--ok);
+        }
+
+        .kpiGrid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .kpi {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 76px;
+        }
+
+        .kpi .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .kpi .name {
+            font-weight: 900;
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .kpi .badge {
+            font-size: 11px;
+            font-weight: 900;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: color-mix(in oklab, var(--chip)88%, transparent);
+            border: 1px solid var(--stroke);
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .kpi .val {
+            font-weight: 1000;
+            font-size: 20px
+        }
+
+        .kpi .sub {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .kpi.ok .val {
+            color: var(--ok)
+        }
+
+        .kpi.warn .val {
+            color: var(--warn)
+        }
+
+        .kpi.danger .val {
+            color: var(--danger)
+        }
+
+        .kpi.maint .val {
+            color: var(--maint)
+        }
+
+        @media(max-width:1050px) {
+            .kpiGrid {
+                grid-template-columns: repeat(3, 1fr)
+            }
+        }
+
+        @media(max-width:720px) {
+            .statbox {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .kpiGrid {
+                grid-template-columns: repeat(2, 1fr)
+            }
+        }
+
+        @media(max-width:520px) {
+            .statbox {
+                grid-template-columns: 1fr;
+            }
+
+            .kpiGrid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        /* ===== Toolbar ===== */
+        .toolbar {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        @media (min-width:860px) {
+            .toolbar {
+                grid-template-columns: 1.05fr 1.05fr 1fr 1fr auto auto;
+                align-items: end;
+            }
+        }
+
+        .toolWrap {
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .toolLabel {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 800
+        }
+
+        input[type="date"],
+        select.tool,
+        input.tool {
+            padding: 9px 11px;
+            border-radius: 12px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            color: var(--text);
+            font-weight: 800;
+            font-size: 13px;
+            font-family: inherit;
+            min-width: 0;
+            outline: none;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            opacity: .65
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 1000;
+            font-size: 13px;
+            border: 0;
+            cursor: pointer;
+            box-shadow: var(--shadow-soft);
+            background: linear-gradient(135deg, var(--primary), #1e40af);
+            color: #fff;
+            white-space: nowrap;
+        }
+
+        .btn.alt {
+            background: linear-gradient(135deg, #475569, #334155);
+        }
+
+        .btn.ghost {
+            background: transparent;
+            border: 1px solid var(--stroke);
+            box-shadow: none;
+            color: var(--text);
+        }
+
+        .btn.small {
+            padding: 7px 10px;
+            font-size: 12px;
+            border-radius: 999px;
+            box-shadow: none;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            filter: brightness(.98);
+        }
+
+        .btn[disabled] {
+            opacity: .6;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .quickRow {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        /* ===== Messages ===== */
+        .msg {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: none;
+            border: 1px solid transparent;
+        }
+
+        .msg.err {
+            display: block;
+            background: rgba(239, 68, 68, .12);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, .25);
+        }
+
+        .msg.warn {
+            display: block;
+            background: rgba(245, 158, 11, .12);
+            color: color-mix(in oklab, var(--warn)80%, #fff);
+            border-color: rgba(245, 158, 11, .25);
+        }
+
+        .msg.ok {
+            display: block;
+            background: rgba(16, 185, 129, .10);
+            color: color-mix(in oklab, var(--ok)85%, #fff);
+            border-color: rgba(16, 185, 129, .20);
+        }
+
+        .msg .mono {
+            font-weight: 900
+        }
+
+        /* ===== Charts ===== */
+        canvas {
+            width: 100%;
+            height: auto;
+            max-height: 420px;
+        }
+
+        #slotsPie {
+            max-height: 260px;
+        }
+
+        .skel {
+            animation: pulse 1.1s infinite ease-in-out;
+            background: linear-gradient(90deg, #0000, #0002, #0000);
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: .55
+            }
+
+            50% {
+                opacity: .95
+            }
+
+            100% {
+                opacity: .55
+            }
+        }
+
+        /* ===== Grid layout for charts ===== */
+        .twoCol {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        @media(min-width:980px) {
+            .twoCol {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+
+        .chartCard {
+            border-radius: 14px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            padding: 12px;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chartHead {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .chartHead .title {
+            font-weight: 1000
+        }
+
+        .chartHead .sub {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        /* ===== Insights ===== */
+        .insights {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .insItem {
+            border-radius: 14px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            padding: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .insIcon {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--chip)88%, transparent);
+            font-size: 16px;
+            flex: 0 0 auto;
+        }
+
+        .insBody {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0
+        }
+
+        .insTitle {
+            font-weight: 1000
+        }
+
+        .insDesc {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.45
+        }
+
+        .insMeta {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .insTag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            font-weight: 900;
+            font-size: 11px;
+            color: var(--muted);
+            background: color-mix(in oklab, var(--chip)88%, transparent);
+            margin-left: auto;
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        /* ===== Table ===== */
+        .tableWrap {
+            margin-top: 12px;
+            border: 1px solid var(--stroke);
+            border-radius: 14px;
+            overflow: hidden;
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 10px 12px;
+            font-weight: 1000;
+            color: var(--muted);
+            background: color-mix(in oklab, var(--card)92%, transparent);
+            border-bottom: 1px solid var(--stroke);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        tbody td {
+            padding: 10px 12px;
+            border-bottom: 1px solid color-mix(in oklab, var(--stroke)70%, transparent);
+            vertical-align: top;
+        }
+
+        tbody tr:hover {
+            background: color-mix(in oklab, var(--primary)10%, transparent);
+            cursor: pointer
+        }
+
+        .tdRight {
+            text-align: right
+        }
+
+        .nowrap {
+            white-space: nowrap
+        }
+
+        .statusPill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            font-weight: 1000;
+            font-size: 12px;
+            background: color-mix(in oklab, var(--chip)88%, transparent);
+        }
+
+        .s-PENDING {
+            color: var(--warn)
+        }
+
+        .s-CONFIRMED {
+            color: var(--ok)
+        }
+
+        .s-CANCELLED {
+            color: var(--danger)
+        }
+
+        .s-EXPIRED {
+            color: var(--maint)
+        }
+
+        .s-UNKNOWN {
+            color: var(--muted)
+        }
+
+        .tableFoot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            background: color-mix(in oklab, var(--card)92%, transparent);
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .pager {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .pager .btn {
+            box-shadow: none
+        }
+
+        .pager .btn.small {
+            border: 1px solid var(--stroke)
+        }
+
+        .pager .info {
+            font-weight: 900
+        }
+
+        /* ===== Modal ===== */
+        .modalMask {
+            position: fixed;
+            inset: 0;
+            z-index: 120;
+            background: rgba(0, 0, 0, .45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modalMask.show {
+            display: flex
+        }
+
+        .modal {
+            width: min(720px, 94vw);
+            border-radius: 18px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card)98%, transparent);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .modalHead {
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            border-bottom: 1px solid var(--stroke);
+        }
+
+        .modalHead .t {
+            font-weight: 1000
+        }
+
+        .modalBody {
+            padding: 14px
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        @media(min-width:720px) {
+            .grid2 {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+
+        .kv {
+            border: 1px solid var(--stroke);
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 64px;
+        }
+
+        .kv .k {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 900
+        }
+
+        .kv .v {
+            font-weight: 1000
+        }
+
+        .modalActions {
+            padding: 12px 14px;
+            border-top: 1px solid var(--stroke);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            background: color-mix(in oklab, var(--panel)94%, transparent);
+        }
+
+        @media(max-width:400px) {
+            main {
+                margin-top: 60px;
+            }
+
+            #fabMenu {
+                top: 10px;
+                left: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body class="no-anim">
+    <!-- Sidebar -->
+    <aside class="rail" id="adminRail" aria-label="Admin navigation">
+        <div class="brand">
+            <div class="logo"></div>
+            <div>Admin</div>
+        </div>
+        <div class="chip" id="adminUser">—</div>
+        <nav id="railNav">
+            <a class="item" data-page="dashboard" href="admin.html"><span class="ico">🏠</span> Dashboard</a>
+            <a class="item" data-page="slots" href="admin_slots.html"><span class="ico">🅿️</span> ช่องจอด</a>
+            <a class="item" data-page="users" href="admin_users.html"><span class="ico">👥</span> ผู้ใช้</a>
+            <a class="item" data-page="issues" href="admin_issues.html"><span class="ico">🧯</span> แจ้งปัญหา</a>
+            <a class="item" data-page="wallet" href="wallet_admin.html"><span class="ico">💳</span> Wallet</a>
+            <a class="item" data-page="reports" href="admin_reports.html"><span class="ico">📊</span> รายงาน</a>
+            <a class="item" data-page="announcements" href="admin_announcements.html"><span>📢</span>ประกาศระบบ</a>
+            <div class="sp"></div>
+            <a class="item" href="index.html"><span class="ico">↩️</span> กลับหน้า User</a>
+            <a class="item" id="railLogout" href="#"><span class="ico">🚪</span> ออกจากระบบ</a>
+        </nav>
+        <div class="foot">© 2026 Parking</div>
+    </aside>
+    <div class="rail-mask" id="railMask"></div>
+
+    <!-- ปุ่มเมนู (มือถือ) -->
+    <button id="fabMenu" aria-label="เปิดเมนู">☰ เมนู</button>
+
+    <!-- เนื้อหา -->
+    <main>
+        <!-- การ์ดตัวกรอง + KPI -->
+        <section class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div>
+                    <h1>รายงาน/สถิติ (Admin)</h1>
+                    <div class="muted">เลือกช่วงเวลา + ตัวกรอง แล้วระบบจะอัปเดต KPI / กราฟ ให้พร้อมใช้งานจริง
+                    </div>
+                </div>
+                <small class="muted">Time zone: <span class="mono">Asia/Bangkok</span></small>
+            </div>
+
+            <div class="toolbar">
+                <div class="toolWrap">
+                    <div class="toolLabel">ตั้งแต่วันที่</div>
+                    <input type="date" id="fromDate">
+                </div>
+                <div class="toolWrap">
+                    <div class="toolLabel">ถึงวันที่</div>
+                    <input type="date" id="toDate">
+                </div>
+                <div class="toolWrap">
+                    <div class="toolLabel">ชั้น/โซน</div>
+                    <select id="levelFilter" class="tool">
+                        <option value="ALL">ทั้งหมด</option>
+                        <option value="1">ชั้น 1</option>
+                        <option value="2">ชั้น 2</option>
+                    </select>
+                </div>
+                <div class="toolWrap">
+                    <div class="toolLabel">ประเภทการใช้งาน</div>
+                    <select id="modeFilter" class="tool">
+                        <option value="ALL">ทั้งหมด</option>
+                        <option value="BOOKING">จอง (Booking)</option>
+                        <option value="WALKIN">วอล์กอิน (Walk-in)</option>
+                    </select>
+                </div>
+                <button class="btn" id="applyAllBtn">ใช้ตัวกรอง</button>
+                <button class="btn alt" id="refreshBtn">รีเฟรช</button>
+            </div>
+
+            <div class="quickRow" style="margin-top:10px">
+                <button class="btn alt small" id="todayBtn">วันนี้</button>
+                <button class="btn alt small" id="w7Btn">7 วัน</button>
+                <button class="btn alt small" id="w30Btn">30 วัน</button>
+                <span class="muted" id="rangeHint" style="align-self:center">—</span>
+            </div>
+
+            <div class="kpiGrid" id="kpiGrid" aria-label="KPI">
+                <div class="kpi">
+                    <div class="top">
+                        <div class="name">จำนวนการจองทั้งหมด</div>
+                        <div class="badge">ALL</div>
+                    </div>
+                    <div class="val" id="k_total">–</div>
+                    <div class="sub">รวมทุกสถานะในช่วงที่เลือก</div>
+                </div>
+                <div class="kpi ok">
+                    <div class="top">
+                        <div class="name">ยืนยันแล้ว (CONFIRMED)</div>
+                        <div class="badge">%</div>
+                    </div>
+                    <div class="val" id="k_confirmed">–</div>
+                    <div class="sub" id="k_confirmed_p">—</div>
+                </div>
+                <div class="kpi warn">
+                    <div class="top">
+                        <div class="name">รอดำเนินการ (PENDING)</div>
+                        <div class="badge">%</div>
+                    </div>
+                    <div class="val" id="k_pending">–</div>
+                    <div class="sub" id="k_pending_p">—</div>
+                </div>
+                <div class="kpi danger">
+                    <div class="top">
+                        <div class="name">ยกเลิก (CANCELLED)</div>
+                        <div class="badge">Cancel rate</div>
+                    </div>
+                    <div class="val" id="k_cancelled">–</div>
+                    <div class="sub" id="k_cancel_rate">—</div>
+                </div>
+                <div class="kpi maint">
+                    <div class="top">
+                        <div class="name">หมดอายุ (EXPIRED)</div>
+                        <div class="badge">%</div>
+                    </div>
+                    <div class="val" id="k_expired">–</div>
+                    <div class="sub" id="k_expired_p">—</div>
+                </div>
+                <div class="kpi">
+                    <div class="top">
+                        <div class="name">Utilization</div>
+                        <div class="badge">โดยประมาณ</div>
+                    </div>
+                    <div class="val" id="k_util">–</div>
+                    <div class="sub" id="k_avg_dur">—</div>
+                </div>
+            </div>
+
+            <div class="msg warn" id="kpiWarn">
+                ยังไม่มี API <span class="mono">reports_kpi.php</span> — KPI จะแสดงเป็น “–” จนกว่าจะเพิ่ม API
+                (หน้าอื่นยังใช้ได้)
+            </div>
+        </section>
+
+        <!-- การ์ดภาพรวมช่องจอด -->
+        <section class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div>
+                    <h2>ภาพรวมสถานะช่องจอด (Real-time)</h2>
+                    <div class="muted">แสดงจำนวนช่องจอดแยกตามสถานะ — อัปเดตอัตโนมัติ</div>
+                </div>
+                <div class="muted" id="slotUpdated">—</div>
+            </div>
+
+            <div class="statbox">
+                <div class="pillStat pill-ok">
+                    <label>AVAILABLE (ว่าง)</label>
+                    <span id="nAvail">–</span>
+                </div>
+                <div class="pillStat pill-book">
+                    <label>BOOKED (จองแล้ว)</label>
+                    <span id="nBooked">–</span>
+                </div>
+                <div class="pillStat pill-occ">
+                    <label>OCCUPIED (ใช้งานอยู่)</label>
+                    <span id="nOccupied">–</span>
+                </div>
+                <div class="pillStat pill-maint">
+                    <label>MAINTENANCE (ปิดปรับปรุง)</label>
+                    <span id="nMaint">–</span>
+                </div>
+            </div>
+
+            <div id="pieWrap" style="margin-top:12px;">
+                <div id="pieSkel" class="skel" style="height:220px;border-radius:12px"></div>
+                <canvas id="slotsPie" style="display:none"></canvas>
+            </div>
+        </section>
+
+        <!-- การ์ดกราฟแนวโน้ม -->
+        <section class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div>
+                    <h2>แนวโน้มการจองรายวัน</h2>
+                    <div class="muted">PENDING / CONFIRMED / CANCELLED / EXPIRED (ใช้ตัวกรองจากด้านบน)</div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <button class="btn ghost small" id="statusAllBtn">ทั้งหมด</button>
+                    <button class="btn ghost small" data-s="PENDING">PENDING</button>
+                    <button class="btn ghost small" data-s="CONFIRMED">CONFIRMED</button>
+                    <button class="btn ghost small" data-s="CANCELLED">CANCELLED</button>
+                    <button class="btn ghost small" data-s="EXPIRED">EXPIRED</button>
+                </div>
+            </div>
+
+            <div style="margin-top:14px;min-height:260px;">
+                <canvas id="bookingLine"></canvas>
+            </div>
+
+            <div class="msg warn" id="lineWarn">
+                ยังไม่มี API <span class="mono">reports_timeseries.php</span> — กราฟรายวันจะยังไม่แสดงจนกว่าจะเพิ่ม API
+            </div>
+        </section>
+    </main>
+
+    <footer>© 2026 Parking</footer>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        // กันเฟรมแรกเด้ง animation
+        window.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.remove('no-anim');
+        });
+
+        // ===== Const / Utils =====
+        const API_BASE = `${location.origin}/api`;
+        const $ = s => document.querySelector(s);
+        const $$ = s => Array.from(document.querySelectorAll(s));
+        const nf = new Intl.NumberFormat('th-TH');
+        const tz = 'Asia/Bangkok';
+
+        function cssVar(name, fallback) {
+            const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+            return v || fallback;
+        }
+        const C_OK = cssVar('--ok', '#16a34a');
+        const C_WARN = cssVar('--warn', '#f59e0b');
+        const C_DANG = cssVar('--danger', '#ef4444');
+        const C_MAINT = cssVar('--maint', '#6b7280');
+
+        const pct = (n) => {
+            const x = Number(n || 0);
+            return `${x.toFixed(1)}%`;
+        };
+
+        function toInput(d) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function setRange(days) {
+            const to = new Date();
+            to.setHours(0, 0, 0, 0);
+            const from = new Date(to);
+            from.setDate(from.getDate() - (days - 1));
+
+            const maxStr = toInput(to);
+            $('#fromDate').max = $('#toDate').max = maxStr;
+            $('#fromDate').value = toInput(from);
+            $('#toDate').value = maxStr;
+
+            updateRangeHint();
+        }
+
+        function updateRangeHint() {
+            const f = $('#fromDate').value;
+            const t = $('#toDate').value;
+            const lv = $('#levelFilter').value;
+            const md = $('#modeFilter').value;
+
+            const levelTxt = (lv === 'ALL') ? 'ทุกชั้น' : `ชั้น ${lv}`;
+            const modeTxt = (md === 'ALL') ? 'ทุกประเภท' : (md === 'BOOKING' ? 'จอง' : 'วอล์กอิน');
+
+            $('#rangeHint').textContent = `ช่วง: ${f || '—'} ถึง ${t || '—'} · ${levelTxt} · ${modeTxt}`;
+        }
+
+        function setMsg(id, show, text) {
+            const el = $(id);
+            if (!el) return;
+            el.style.display = show ? 'block' : 'none';
+            if (text) el.innerHTML = text;
+        }
+
+        function qsAll() {
+            const from = $('#fromDate').value;
+            const to = $('#toDate').value;
+            const level = $('#levelFilter').value;
+            const mode = $('#modeFilter').value;
+            const sp = new URLSearchParams();
+            if (from) sp.set('from', from);
+            if (to) sp.set('to', to);
+            sp.set('tz', tz);
+            if (level && level !== 'ALL') sp.set('level', level);
+            if (mode && mode !== 'ALL') sp.set('mode', mode);
+            return sp.toString();
+        }
+
+        async function fetchJSON(url, opt) {
+            const res = await fetch(url, opt || {});
+            if (res.status === 404) return { __404: true };
+            let data = null;
+            try { data = await res.json(); } catch { data = null; }
+            return { res, data };
+        }
+
+        /* ===== Sidebar ===== */
+        const rail = $('#adminRail');
+        const mask = $('#railMask');
+        const burger = $('#fabMenu');
+
+        const openRail = () => { rail.classList.add('open'); mask.classList.add('show'); };
+        const closeRail = () => { rail.classList.remove('open'); mask.classList.remove('show'); };
+
+        burger.addEventListener('click', () => rail.classList.contains('open') ? closeRail() : openRail());
+        mask.addEventListener('click', closeRail);
+        window.addEventListener('keydown', e => { if (e.key === 'Escape') closeRail(); });
+
+        function updateRailMode() {
+            if (window.innerWidth >= 1000) {
+                document.body.classList.add('has-rail');
+                closeRail();
+            } else {
+                document.body.classList.remove('has-rail');
+            }
+        }
+        updateRailMode();
+        window.addEventListener('resize', updateRailMode);
+
+        (function markActive() {
+            const p = location.pathname;
+            const active =
+                /admin_slots\.html$/i.test(p) ? 'slots' :
+                    /admin_users\.html$/i.test(p) ? 'users' :
+                        /admin_issues\.html$/i.test(p) ? 'issues' :
+                            /admin_reports\.html$/i.test(p) ? 'reports' : 'dashboard';
+            $$('#railNav a.item').forEach(a => {
+                a.classList.toggle('active', a.dataset.page === active);
+            });
+        })();
+
+        /* ===== Auth guard (ต้องเป็น admin) ===== */
+        let me = {};
+        try { me = JSON.parse(localStorage.getItem('parking_user') || '{}'); } catch { }
+        if (!me?.id || (me.role && String(me.role).toLowerCase() !== 'admin')) {
+            sessionStorage.setItem('after_login', 'admin_reports.html');
+            location.href = 'login.html';
+        }
+        $('#adminUser').textContent = me?.id
+            ? `ผู้ใช้: ${me.name || me.email || '-'} · ID ${me.id}`
+            : 'ยังไม่ล็อกอิน';
+
+        $('#railLogout').addEventListener('click', e => {
+            e.preventDefault();
+            localStorage.removeItem('parking_user');
+            sessionStorage.removeItem('after_login');
+            location.href = 'login.html';
+        });
+
+        /* ===== Quick buttons / filters ===== */
+        $('#todayBtn').addEventListener('click', () => { setRange(1); loadAll(); });
+        $('#w7Btn').addEventListener('click', () => { setRange(7); loadAll(); });
+        $('#w30Btn').addEventListener('click', () => { setRange(30); loadAll(); });
+
+        $('#fromDate').addEventListener('change', () => {
+            if ($('#fromDate').value > $('#toDate').value) $('#toDate').value = $('#fromDate').value;
+            updateRangeHint();
+        });
+        $('#toDate').addEventListener('change', () => {
+            if ($('#toDate').value < $('#fromDate').value) $('#fromDate').value = $('#toDate').value;
+            updateRangeHint();
+        });
+        $('#levelFilter').addEventListener('change', updateRangeHint);
+        $('#modeFilter').addEventListener('change', updateRangeHint);
+
+        $('#applyAllBtn').addEventListener('click', loadAll);
+        $('#refreshBtn').addEventListener('click', loadAll);
+
+        /* ===== Slots Pie (Real-time) ===== */
+        let slotsPie = null;
+        let pieTimer = null;
+
+        async function loadSlotsPie() {
+            const skel = $('#pieSkel');
+            const cvs = $('#slotsPie');
+            try {
+                skel.style.display = 'block';
+                cvs.style.display = 'none';
+
+                const out = await fetchJSON(`${API_BASE}/slots_list.php?tz=${encodeURIComponent(tz)}`, { cache: 'no-store' });
+                if (out.__404) throw new Error('slots_list.php not found');
+                const { res, data } = out;
+                if (!res.ok || !data || !data.ok) throw new Error((data && data.error) || 'โหลดข้อมูลไม่สำเร็จ');
+
+                const s = data.summary || { available: 0, booked: 0, occupied: 0, maintenance: 0 };
+                $('#nAvail').textContent = nf.format(s.available);
+                $('#nBooked').textContent = nf.format(s.booked);
+                $('#nOccupied').textContent = nf.format(s.occupied);
+                $('#nMaint').textContent = nf.format(s.maintenance);
+
+                const now = new Date();
+                $('#slotUpdated').textContent = `อัปเดตล่าสุด: ${now.toLocaleString('th-TH')}`;
+
+                const ds = {
+                    labels: ['AVAILABLE', 'BOOKED', 'OCCUPIED', 'MAINTENANCE'],
+                    datasets: [{
+                        data: [s.available, s.booked, s.occupied, s.maintenance],
+                        backgroundColor: [C_OK, C_WARN, C_DANG, C_MAINT],
+                        borderWidth: 0
+                    }]
+                };
+                const ctx = document.getElementById('slotsPie').getContext('2d');
+                const total = ds.datasets[0].data.reduce((a, b) => a + b, 0);
+                const options = {
+                    plugins: { legend: { position: 'bottom' } },
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    animation: total > 200 ? false : undefined,
+                    cutout: '60%'
+                };
+
+                if (slotsPie) {
+                    slotsPie.data = ds;
+                    slotsPie.options = options;
+                    slotsPie.update();
+                } else {
+                    slotsPie = new Chart(ctx, { type: 'doughnut', data: ds, options });
+                }
+
+                skel.style.display = 'none';
+                cvs.style.display = 'block';
+            } catch (err) {
+                console.error(err);
+                skel.textContent = 'โหลดสรุปช่องจอดไม่สำเร็จ (จะลองใหม่อัตโนมัติ)';
+            }
+        }
+
+        function startAutoPie() {
+            if (!pieTimer) pieTimer = setInterval(loadSlotsPie, 10000);
+        }
+        function stopAutoPie() {
+            if (pieTimer) { clearInterval(pieTimer); pieTimer = null; }
+        }
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopAutoPie();
+            else { loadSlotsPie(); startAutoPie(); }
+        });
+
+        /* ===== KPI ===== */
+        async function loadKPI() {
+            setMsg('#kpiWarn', false);
+            const q = qsAll();
+            const out = await fetchJSON(`${API_BASE}/reports_kpi.php?${q}`, { cache: 'no-store' });
+            if (out.__404) {
+                setMsg('#kpiWarn', true, `ยังไม่มี API <span class="mono">reports_kpi.php</span> — KPI จะแสดงเป็น “–” จนกว่าจะเพิ่ม API (หน้าอื่นยังใช้ได้)`);
+                $('#k_total').textContent = '–';
+                $('#k_confirmed').textContent = '–';
+                $('#k_pending').textContent = '–';
+                $('#k_cancelled').textContent = '–';
+                $('#k_expired').textContent = '–';
+                $('#k_util').textContent = '–';
+                $('#k_confirmed_p').textContent = '—';
+                $('#k_pending_p').textContent = '—';
+                $('#k_expired_p').textContent = '—';
+                $('#k_cancel_rate').textContent = '—';
+                $('#k_avg_dur').textContent = '—';
+                return;
+            }
+
+            const { res, data } = out;
+            if (!res.ok || !data || !data.ok) {
+                setMsg('#kpiWarn', true, `โหลด KPI ไม่สำเร็จ`);
+                return;
+            }
+
+            const totals = data.totals || {};
+            const rates = data.rates || {};
+            const util = data.utilization || {};
+
+            const total = Number(totals.total || 0);
+            const p = Number(totals.PENDING || 0);
+            const c = Number(totals.CONFIRMED || 0);
+            const x = Number(totals.CANCELLED || 0);
+            const e = Number(totals.EXPIRED || 0);
+
+            $('#k_total').textContent = nf.format(total);
+            $('#k_confirmed').textContent = nf.format(c);
+            $('#k_pending').textContent = nf.format(p);
+            $('#k_cancelled').textContent = nf.format(x);
+            $('#k_expired').textContent = nf.format(e);
+
+            const confirmedPct = (rates.confirmed_pct != null) ? Number(rates.confirmed_pct) : (total ? (c / total * 100) : 0);
+            const pendingPct = (rates.pending_pct != null) ? Number(rates.pending_pct) : (total ? (p / total * 100) : 0);
+            const expiredPct = (rates.expired_pct != null) ? Number(rates.expired_pct) : (total ? (e / total * 100) : 0);
+            const cancelPct = (rates.cancelled_pct != null) ? Number(rates.cancelled_pct) : (total ? (x / total * 100) : 0);
+            const cancelRate = (rates.cancel_rate != null) ? Number(rates.cancel_rate) : cancelPct;
+
+            $('#k_confirmed_p').textContent = `คิดเป็น ${pct(confirmedPct)}`;
+            $('#k_pending_p').textContent = `คิดเป็น ${pct(pendingPct)}`;
+            $('#k_expired_p').textContent = `คิดเป็น ${pct(expiredPct)}`;
+            $('#k_cancel_rate').textContent = `Cancel rate ${pct(cancelRate)}`;
+
+            const utilPct = (util.utilization_pct != null) ? Number(util.utilization_pct) : null;
+            const avgMin = (util.avg_duration_min != null) ? Number(util.avg_duration_min) : null;
+
+            $('#k_util').textContent = (utilPct == null) ? '–' : `${utilPct.toFixed(1)}%`;
+            if (avgMin == null) {
+                $('#k_avg_dur').textContent = 'เฉลี่ยต่อบิล: —';
+            } else {
+                const h = Math.floor(avgMin / 60);
+                const m = Math.round(avgMin % 60);
+                const txt = h > 0 ? `${h} ชม. ${m} นาที` : `${m} นาที`;
+                $('#k_avg_dur').textContent = `เฉลี่ยต่อบิล: ${txt}`;
+            }
+        }
+
+        /* ===== Timeseries Line ===== */
+        let bookingLine = null;
+        let currentStatusFocus = 'ALL';
+        let lastSeries = [];
+
+        function applyStatusFocus(series, focus) {
+            if (focus === 'ALL') return series;
+            return series.map(r => {
+                const obj = { date: r.date, PENDING: 0, CONFIRMED: 0, CANCELLED: 0, EXPIRED: 0 };
+                obj[focus] = r[focus] || 0;
+                return obj;
+            });
+        }
+
+        function renderLine(series) {
+            const labels = series.map(r => r.date);
+            const k = p => series.map(r => +r[p] || 0);
+
+            const ds = {
+                labels,
+                datasets: [
+                    { label: 'PENDING', data: k('PENDING'), borderColor: C_WARN, fill: false, pointRadius: 2 },
+                    { label: 'CONFIRMED', data: k('CONFIRMED'), borderColor: C_OK, fill: false, pointRadius: 2 },
+                    { label: 'CANCELLED', data: k('CANCELLED'), borderColor: C_DANG, fill: false, pointRadius: 2 },
+                    { label: 'EXPIRED', data: k('EXPIRED'), borderColor: C_MAINT, fill: false, pointRadius: 2 }
+                ]
+            };
+            const ctx = document.getElementById('bookingLine').getContext('2d');
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                tension: .3,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: c => `${c.dataset.label}: ${nf.format(c.parsed.y ?? c.raw)}`
+                        }
+                    }
+                },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            };
+            if (series.length > 60) options.animation = false;
+
+            if (bookingLine) {
+                bookingLine.data = ds;
+                bookingLine.options = options;
+                bookingLine.update();
+            } else {
+                bookingLine = new Chart(ctx, { type: 'line', data: ds, options });
+            }
+        }
+
+        async function loadBookingSeries() {
+            setMsg('#lineWarn', false);
+            const q = qsAll();
+            const out = await fetchJSON(`${API_BASE}/reports_timeseries.php?${q}`, { cache: 'no-store' });
+            if (out.__404) {
+                setMsg('#lineWarn', true, `ยังไม่มี API <span class="mono">reports_timeseries.php</span> — กราฟรายวันจะยังไม่แสดงจนกว่าจะเพิ่ม API`);
+                renderLine([]);
+                return;
+            }
+            const { res, data } = out;
+            if (!res.ok || !data || !data.ok) {
+                setMsg('#lineWarn', true, `เกิดข้อผิดพลาดในการโหลดข้อมูลรายวัน`);
+                return;
+            }
+            lastSeries = Array.isArray(data.series) ? data.series : [];
+            const focused = applyStatusFocus(lastSeries, currentStatusFocus);
+            renderLine(focused);
+        }
+
+        $('#statusAllBtn').addEventListener('click', () => {
+            currentStatusFocus = 'ALL';
+            renderLine(applyStatusFocus(lastSeries, currentStatusFocus));
+        });
+        $$('.btn.ghost.small[data-s]').forEach(b => {
+            b.addEventListener('click', () => {
+                currentStatusFocus = b.getAttribute('data-s') || 'ALL';
+                renderLine(applyStatusFocus(lastSeries, currentStatusFocus));
+            });
+        });
+
+        /* ===== Export line series (CSV) ===== */
+        function exportSeriesCSV() {
+            if (!lastSeries || !lastSeries.length) {
+                alert('ยังไม่มีข้อมูลกราฟรายวันให้ส่งออก');
+                return;
+            }
+            const headers = ['date', 'PENDING', 'CONFIRMED', 'CANCELLED', 'EXPIRED'];
+            const rows = lastSeries.map(r => [
+                r.date,
+                r.PENDING || 0,
+                r.CONFIRMED || 0,
+                r.CANCELLED || 0,
+                r.EXPIRED || 0
+            ]);
+            const csv = [headers.join(','), ...rows.map(a => a.join(','))].join('\n');
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `booking_timeseries_${$('#fromDate').value}_to_${$('#toDate').value}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') {
+                e.preventDefault();
+                exportSeriesCSV();
+            }
+        });
+
+        /* ===== Load all ===== */
+        async function loadAll() {
+            updateRangeHint();
+
+            await Promise.allSettled([
+                loadKPI(),
+                loadBookingSeries()
+            ]);
+        }
+
+        /* ===== Init ===== */
+        (function init() {
+            updateRailMode();
+            setRange(7);
+            loadSlotsPie();
+            startAutoPie();
+            loadAll();
+        })();
+    </script>
+</body>
+
+</html>

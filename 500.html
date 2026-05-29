@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>AutoParkX • ระบบมีปัญหา (500)</title>
+
+  <!-- iOS / PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="AutoParkX">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a84ff">
+
+  <style>
+    :root{
+      --bg:#f5f6f8; --card:#ffffff; --text:#0b1220; --muted:#6b7280; --tint:#0a84ff; --sep:#e9edf2;
+      --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.08);
+      --safe-top:env(safe-area-inset-top); --safe-btm:env(safe-area-inset-bottom);
+      --vh:100dvh; --nav-h:0px; --tab-h:0px;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0b0f14;--card:#11161c;--text:#e9edf2;--muted:#9aa4af;--sep:#1b2430;
+        --shadow:0 14px 26px rgba(0,0,0,.5);
+      }
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;scrollbar-gutter:stable both-edges;}
+    @supports not (scrollbar-gutter:stable){body{overflow-y:scroll}}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,"Noto Sans Thai","Sarabun",sans-serif;
+    }
+
+    .nav{
+      position:sticky;top:0;z-index:50;
+      backdrop-filter:saturate(180%) blur(12px);
+      background:color-mix(in oklab,var(--bg)85%,transparent);
+      border-bottom:1px solid var(--sep);
+      padding:calc(8px + var(--safe-top)) 14px 8px;
+    }
+    .row{
+      max-width:980px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+    }
+    .dot{
+      width:12px;height:12px;border-radius:50%;
+      background:var(--tint);
+      box-shadow:0 0 0 4px color-mix(in oklab,var(--tint)15%,transparent);
+    }
+
+    .page{
+      max-width:980px;
+      margin:0 auto;
+      padding:24px 14px calc(90px + var(--safe-btm));
+      min-height:calc(var(--vh) - var(--nav-h) - var(--tab-h));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--sep);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:24px 18px 20px;
+      width:100%;
+      max-width:420px;
+      text-align:center;
+    }
+    .emoji{
+      font-size:40px;
+      margin-bottom:8px;
+    }
+    .code{
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:2px;
+      color:var(--muted);
+      text-transform:uppercase;
+      margin-bottom:4px;
+    }
+    .title{
+      margin:0 0 6px;
+      font-size:20px;
+      font-weight:900;
+    }
+    .desc{
+      margin:0 0 14px;
+      font-size:14px;
+      color:var(--muted);
+      line-height:1.6;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      padding:10px 16px;
+      border-radius:999px;
+      border:none;
+      background:var(--tint);
+      color:#fff;
+      font-weight:800;
+      font-size:14px;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    .btn span.ico{
+      font-size:16px;
+    }
+
+    .hint{
+      margin-top:10px;
+      font-size:11px;
+      color:var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <div class="row">
+      <div class="brand">
+        <span class="dot"></span>
+        AutoParkX
+      </div>
+      <div></div>
+    </div>
+  </div>
+
+  <main class="page">
+    <section class="card">
+      <div class="emoji">🛠️</div>
+      <div class="code">Error 500</div>
+      <h1 class="title">ระบบขัดข้องชั่วคราว</h1>
+      <p class="desc">
+        ตอนนี้เซิร์ฟเวอร์หรือฐานข้อมูลมีปัญหา<br/>
+        ระบบอาจไม่สามารถให้บริการได้ชั่วคราว
+      </p>
+
+      <a href="index.html" class="btn">
+        <span class="ico">🔄</span>
+        <span>ลองกลับไปหน้าแรกอีกครั้ง</span>
+      </a>
+
+      <p class="hint">
+        หากเกิดปัญหานี้ซ้ำ ๆ กรุณาแจ้งผู้ดูแลระบบ หรือรีเฟรชใหม่อีกครั้งในภายหลัง
+      </p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking • ประกาศระบบ</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e9edf2;
+                --muted: #9aa4af;
+                --sep: #1b2430;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .5);
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            overscroll-behavior: none;
+        }
+
+        input,
+        textarea,
+        select,
+        button {
+            font: inherit;
+        }
+
+        .app {
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav {
+            flex: 0 0 auto;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-bottom: 1px solid var(--sep);
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .back-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: var(--text);
+        }
+
+        .back-btn:active {
+            transform: scale(.94);
+        }
+
+        .nav-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-spacer {
+            width: 32px;
+        }
+
+        .page {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            max-width: 980px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 14px 14px 10px;
+            display: flex;
+        }
+
+        .content-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: calc(90px + var(--safe-btm));
+        }
+
+        .content-scroll::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--sep);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 18px 16px 18px;
+        }
+
+        .title {
+            margin: 0 0 6px;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--sep);
+            margin: 12px 0 14px;
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item {
+            background: color-mix(in oklab, var(--card) 96%, transparent);
+            border: 1px solid var(--sep);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .topline {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .t {
+            margin: 0;
+            font-weight: 900;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .b {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.6;
+            color: color-mix(in oklab, var(--text) 92%, transparent);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .meta {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 900;
+            border-radius: 999px;
+            padding: 4px 10px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--tint) 10%, transparent);
+            color: var(--tint);
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+
+        .badge.warn {
+            background: rgba(245, 158, 11, .12);
+            color: #f59e0b;
+        }
+
+        .badge.maint {
+            background: rgba(148, 163, 184, .16);
+            color: #94a3b8;
+        }
+
+        .badge.info {
+            background: rgba(34, 197, 94, .12);
+            color: #16a34a;
+        }
+
+        .empty {
+            text-align: center;
+            color: var(--muted);
+            padding: 20px 10px;
+            border: 1px dashed var(--sep);
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .tabbar {
+            flex: 0 0 auto;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint)10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="nav">
+            <div class="row">
+                <button class="back-btn" type="button"
+          onclick="history.length>1 ? history.back() : location.href='account.html'">
+          ‹
+        </button>
+                <div class="nav-title">ประกาศระบบ</div>
+                <div class="nav-spacer"></div>
+            </div>
+        </div>
+
+        <main class="page">
+            <div class="content-scroll" id="contentScroll">
+                <section class="card">
+                    <h3 class="title">อัปเดตฟีเจอร์ / ประกาศระบบ</h3>
+                    <p class="subtitle">อัปเดตใหม่ ๆ, แจ้งซ่อมบำรุง, และประกาศสำคัญจากระบบ</p>
+
+                    <div class="divider"></div>
+
+                    <div class="list" id="list"></div>
+                    <div class="empty" id="empty" style="display:none;">ยังไม่มีประกาศในตอนนี้</div>
+                </section>
+            </div>
+        </main>
+
+        <nav class="tabbar">
+            <div class="tabs">
+                <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+                <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+                <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+                <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        const listEl = document.getElementById('list');
+    const emptyEl = document.getElementById('empty');
+
+    function esc(s){
+      return String(s ?? '').replace(/[&<>"']/g, m => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      }[m]));
+    }
+
+    function fmt(dt){
+      if(!dt) return '';
+      const s = String(dt).replace(' ','T');
+      const d = new Date(s);
+      if (isNaN(d)) return dt;
+      return d.toLocaleString('th-TH',{
+        year:'numeric',
+        month:'short',
+        day:'2-digit',
+        hour:'2-digit',
+        minute:'2-digit'
+      });
+    }
+
+    function badge(level){
+      const L = (level || 'UPDATE').toUpperCase();
+      if(L === 'WARN') return '<span class="badge warn">สำคัญ</span>';
+      if(L === 'MAINT') return '<span class="badge maint">บำรุงรักษา</span>';
+      if(L === 'INFO') return '<span class="badge info">แจ้งให้ทราบ</span>';
+      return '<span class="badge">อัปเดต</span>';
+    }
+
+    async function load(){
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'none';
+
+      try{
+        const res = await fetch('api/announcements_list.php?limit=30', { cache:'no-store' });
+        const data = await res.json();
+
+        if(!data.ok) throw new Error('api not ok');
+
+        const rows = data.items || [];
+
+        if(!rows.length){
+          emptyEl.style.display = 'block';
+          return;
+        }
+
+        rows.forEach(a => {
+          const el = document.createElement('div');
+          el.className = 'item';
+          el.innerHTML = `
+            <div class="topline">
+              <div class="t">${esc(a.title)}</div>
+              ${badge(a.level)}
+            </div>
+            <p class="b">${esc(a.body)}</p>
+            <div class="meta">${fmt(a.created_at)}</div>
+          `;
+          listEl.appendChild(el);
+        });
+      }catch(e){
+        emptyEl.style.display = 'block';
+        emptyEl.textContent = 'โหลดประกาศไม่สำเร็จ (เช็ก API/ฐานข้อมูล)';
+        console.error(e);
+      }
+    }
+
+    load();
+    </script>
+</body>
+
+</html>

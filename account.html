@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Parking • บัญชีของฉัน</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e9edf2;
+                --muted: #9aa4af;
+                --sep: #1b2430;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .5);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .app {
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top nav */
+        .nav {
+            flex: 0 0 auto;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg)85%, transparent);
+            border-bottom: 1px solid var(--sep);
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--tint);
+            box-shadow: 0 0 0 4px color-mix(in oklab, var(--tint)15%, transparent);
+        }
+
+        .page {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            max-width: 980px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 14px 14px 10px;
+            display: flex;
+        }
+
+        .content-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: calc(90px + var(--safe-btm));
+        }
+
+        .content-scroll::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .stack {
+            display: grid;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--sep);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+
+        .title {
+            margin: 0 0 8px;
+            font-weight: 900;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            background: #e5e7eb;
+            color: #111827;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 1px var(--sep);
+            overflow: hidden;
+        }
+
+        .avatar img {
+            background: #fff;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            border-radius: 50%;
+        }
+
+        .avatar-initial {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .avatar-btn {
+            margin-top: 8px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            background: transparent;
+            font-size: 12px;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .avatar-btn[disabled] {
+            opacity: .7;
+            cursor: default;
+        }
+
+        .summary-grid {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .summary-item {
+            flex: 1;
+            border-radius: 14px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)96%, transparent);
+            padding: 8px 10px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .summary-sub {
+            margin: 8px 0 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        @media (max-width:480px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .summary-item:nth-child(3) {
+                grid-column: 1 / -1;
+            }
+        }
+
+        .wallet-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .wallet-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .wallet-label-main {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .wallet-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 8px;
+            background: color-mix(in oklab, var(--tint)12%, transparent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .wallet-chevron {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .wallet-balance-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .wallet-balance {
+            font-size: 20px;
+            font-weight: 900;
+            margin-top: 2px;
+        }
+
+        .wallet-topup-btn {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg, #0a84ff, #2563eb);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, .45);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wallet-topup-btn.guest {
+            background: transparent;
+            box-shadow: none;
+            border: 1px solid var(--sep);
+            color: var(--tint);
+        }
+
+        .wallet-sub-strip {
+            margin-top: 10px;
+            border-radius: 12px;
+            background: color-mix(in oklab, var(--tint)8%, var(--card));
+            padding: 6px 10px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--muted);
+        }
+
+        .wallet-sub-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .wallet-sub-label span:first-child {
+            font-size: 14px;
+        }
+
+        .wallet-sub-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--tint);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .line-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .line-main {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .line-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 8px;
+            background: #06c75522;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .line-title-text {
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .line-status-pill {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid var(--sep);
+            color: var(--muted);
+            background: color-mix(in oklab, var(--card)95%, transparent);
+            white-space: nowrap;
+        }
+
+        .line-status-pill.ok {
+            border-color: #16a34a55;
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .line-status-pill.warn {
+            border-color: #fbbf2455;
+            background: #fef9c3;
+            color: #92400e;
+        }
+
+        .line-help {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 4px 0 0;
+        }
+
+        .line-actions {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .line-btn {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            background: transparent;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--tint);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .line-btn:disabled {
+            opacity: .7;
+            cursor: default;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(16px + var(--safe-btm));
+            transform: translateX(-50%) translateY(30px);
+            opacity: 0;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            background: #0f172a;
+            color: #f9fafb;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .6);
+            pointer-events: none;
+            transition: opacity .18s, transform .18s;
+            max-width: 90%;
+            text-align: center;
+            z-index: 80;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: #b91c1c;
+        }
+
+        .menu-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin: 0 0 6px;
+        }
+
+        .m-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .m-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card)94%, transparent);
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .m-item:hover {
+            background: color-mix(in oklab, var(--tint)4%, var(--card));
+        }
+
+        .m-ico {
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: color-mix(in oklab, var(--tint)12%, transparent);
+            font-size: 16px;
+        }
+
+        .m-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .m-title {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .m-sub {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .m-arrow {
+            font-size: 16px;
+            color: var(--muted);
+        }
+
+        .m-item.danger {
+            border-color: rgba(239, 68, 68, .18);
+            background: color-mix(in oklab, #fee2e2 60%, var(--card));
+            color: #b91c1c;
+        }
+
+        .m-item.danger .m-ico {
+            background: rgba(239, 68, 68, .12);
+        }
+
+        .m-item.danger:hover {
+            background: color-mix(in oklab, #fecaca 70%, var(--card));
+        }
+
+        button.m-item {
+            width: 100%;
+            text-align: left;
+            font: inherit;
+            appearance: none;
+            -webkit-appearance: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: transparent;
+            border: 1px solid var(--sep);
+            padding: 10px 12px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        button.m-item::-moz-focus-inner {
+            border: 0;
+            padding: 0;
+        }
+
+        .version-card {
+            text-align: center;
+            padding: 14px 16px;
+        }
+
+        .version-app {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .version-build {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .version-note {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .tabbar {
+            flex: 0 0 auto;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg)90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint)10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .crop-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            background: rgba(15, 23, 42, .78);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+
+        .crop-backdrop.open {
+            display: flex;
+        }
+
+        .crop-modal {
+            width: 100%;
+            max-width: 360px;
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--sep);
+            box-shadow: var(--shadow);
+            padding: 16px 16px 14px;
+        }
+
+        .crop-title {
+            font-weight: 800;
+            font-size: 15px;
+            margin: 0 0 10px;
+        }
+
+        .crop-frame {
+            margin: 10px auto 8px;
+            width: min(260px, 70vw);
+            aspect-ratio: 1 / 1;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #020617;
+            position: relative;
+            touch-action: none;
+            cursor: grab;
+        }
+
+        .crop-frame:active {
+            cursor: grabbing;
+        }
+
+        .crop-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center center;
+            transform: translate(-50%, -50%);
+            user-select: none;
+            pointer-events: none;
+            max-width: none;
+            max-height: none;
+        }
+
+        .crop-hint {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+            margin: 0 0 10px;
+        }
+
+        .crop-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .crop-btn {
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            background: transparent;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .crop-btn.primary {
+            background: linear-gradient(135deg, #0a84ff, #2563eb);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, .45);
+        }
+
+        .crop-btn.secondary {
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="nav">
+            <div class="row">
+                <div class="brand"><span class="dot"></span>AutoParkX</div>
+                <div id="accountBox"></div>
+            </div>
+        </div>
+
+        <main class="page">
+            <div class="content-scroll" id="contentScroll">
+                <div class="stack">
+                    <section class="card" style="position:relative;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                            <h3 class="title" style="margin:0;">บัญชีของฉัน</h3>
+                            <button id="loginSmallBtn"
+                                style="display:none;padding:6px 14px;border-radius:999px;background:#fff;border:1.5px solid #0a84ff;color:#0a84ff;font-weight:700;font-size:13px;cursor:pointer;">
+                                เข้าสู่ระบบ
+                            </button>
+                        </div>
+
+                        <div class="profile" style="margin-top:14px;">
+                            <div class="avatar" id="avatarBox">
+                                <img id="avatarImg" alt="avatar">
+                                <span class="avatar-initial" id="avatarInitial">U</span>
+                            </div>
+                            <div>
+                                <div id="greet" style="font-weight:900"></div>
+                                <div class="muted" id="email"></div>
+                                <button class="avatar-btn" type="button" id="changeAvatarBtn">เปลี่ยนรูปโปรไฟล์</button>
+                            </div>
+                        </div>
+                        <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+                    </section>
+
+                    <section class="card">
+                        <h3 class="title">ภาพรวมการจองของฉัน</h3>
+
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-label">กำลังจะมาถึง</div>
+                                <div class="summary-value" id="statUpcoming">–</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">กำลังใช้งาน</div>
+                                <div class="summary-value" id="statActive">–</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-label">ทั้งหมดที่ผ่านมา</div>
+                                <div class="summary-value" id="statPast">–</div>
+                            </div>
+                        </div>
+
+                        <p class="summary-sub" id="statNote">
+                            ตัวเลขนี้อิงจากประวัติการจองของคุณในระบบ AutoParkX
+                        </p>
+                    </section>
+
+                    <section class="card">
+                        <div class="wallet-title-row">
+                            <div class="wallet-label-main">
+                                <div class="wallet-icon">💳</div>
+                                <span>วอลเล็ต</span>
+                            </div>
+                            <div class="wallet-chevron">›</div>
+                        </div>
+
+                        <div class="wallet-row">
+                            <div>
+                                <div class="wallet-balance-label">ยอดคงเหลือ</div>
+                                <div id="walletBalance" class="wallet-balance">฿ 0.00</div>
+                            </div>
+                            <a href="wallet.html" class="wallet-topup-btn" id="walletTopupBtn">เติมเงิน</a>
+                        </div>
+
+                        <div class="wallet-sub-strip">
+                            <div class="wallet-sub-label">
+                                <span>ⓘ</span>
+                                <span id="walletSubText">ใช้ชำระค่าจองที่จอดอัตโนมัติ</span>
+                            </div>
+                            <a href="wallet.html" class="wallet-sub-link" id="walletDetailLink">ดูรายละเอียด</a>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="line-row">
+                            <div class="line-main">
+                                <div class="line-icon">💬</div>
+                                <div class="line-title-text">การแจ้งเตือนผ่าน LINE</div>
+                            </div>
+                            <div id="lineStatusPill" class="line-status-pill">กำลังตรวจสอบ…</div>
+                        </div>
+                        <p id="lineHelpText" class="line-help">
+                            เชื่อมบัญชีกับ LINE เพื่อรับแจ้งเตือนการจอง ยกเลิก และการเติมเงินวอลเล็ตแบบอัตโนมัติ
+                        </p>
+                        <div class="line-actions">
+                            <a id="lineOpenBtn" href="#" target="_blank" rel="noopener" class="line-btn">
+                                เปิดแชทกับ LINE Bot
+                            </a>
+                            <button id="lineHowBtn" type="button" class="line-btn">
+                                วิธีเชื่อมบัญชีกับ LINE
+                            </button>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <p class="menu-title">การตั้งค่าและความช่วยเหลือ</p>
+                        <div class="m-list">
+                            <a class="m-item" href="notifications.html">
+                                <div class="m-ico">🔔</div>
+                                <div class="m-main">
+                                    <div class="m-title">การแจ้งเตือน</div>
+                                    <div class="m-sub">ตั้งค่าการแจ้งเตือนบนอุปกรณ์นี้</div>
+                                </div>
+                                <div class="m-arrow">›</div>
+                            </a>
+
+                            <a class="m-item" href="support.html">
+                                <div class="m-ico">🛟</div>
+                                <div class="m-main">
+                                    <div class="m-title">แจ้งปัญหา / ติดต่อแอดมิน</div>
+                                    <div class="m-sub">ส่งข้อความหาผู้ดูแลระบบ</div>
+                                </div>
+                                <div class="m-arrow">›</div>
+                            </a>
+
+                            <a class="m-item" href="settings.html">
+                                <div class="m-ico">⚙️</div>
+                                <div class="m-main">
+                                    <div class="m-title">ตั้งค่าระบบ</div>
+                                    <div class="m-sub">ปรับการทำงานและข้อมูลบัญชี</div>
+                                </div>
+                                <div class="m-arrow">›</div>
+                            </a>
+
+                            <a class="m-item" href="about.html">
+                                <div class="m-ico">ⓘ</div>
+                                <div class="m-main">
+                                    <div class="m-title">เกี่ยวกับแอป</div>
+                                    <div class="m-sub">ข้อมูลแอป เวอร์ชัน ทีมพัฒนา และช่องทางติดต่อ</div>
+                                </div>
+                                <div class="m-arrow">›</div>
+                            </a>
+
+                            <a class="m-item" href="help.html">
+                                <div class="m-ico">❓</div>
+                                <div class="m-main">
+                                    <div class="m-title">FAQ / ศูนย์ช่วยเหลือ</div>
+                                    <div class="m-sub">คำถามที่พบบ่อย และวิธีใช้งานพื้นฐาน</div>
+                                </div>
+                                <div class="m-arrow">›</div>
+                            </a>
+
+                            <a class="m-item" href="terms.html">
+                                <div class="m-ico">📃</div>
+                                <div class="m-main">
+                                    <div class="m-title">ข้อกำหนดการใช้งาน</div>
+                                    <div class="m-sub">สรุปเงื่อนไขการใช้</div>
+                                </div>
+                                <div class="m-arrow">›</div>
+                            </a>
+
+                            <a class="m-item" href="privacy.html">
+                                <div class="m-ico">🔒</div>
+                                <div class="m-main">
+                                    <div class="m-title">นโยบายความเป็นส่วนตัว</div>
+                                    <div class="m-sub">ดูวิธีจัดเก็บและใช้ข้อมูลของคุณ</div>
+                                </div>
+                                <div class="m-arrow">›</div>
+                            </a>
+
+                            <a class="m-item" href="announcements.html">
+                                <div class="m-ico">📢</div>
+                                <div class="m-main">
+                                    <div class="m-title">ประกาศระบบ</div>
+                                    <div class="m-sub">ข่าวสาร, ปิดปรับปรุง และอัปเดตจากระบบ</div>
+                                </div>
+                                <div class="m-arrow">›</div>
+                            </a>
+
+                            <button class="m-item danger" id="logoutBtn" type="button">
+                                <div class="m-ico">🚪</div>
+                                <div class="m-main">
+                                    <div class="m-title">ออกจากระบบ</div>
+                                    <div class="m-sub">ออกจากระบบบนอุปกรณ์นี้</div>
+                                </div>
+                            </button>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </main>
+
+        <nav class="tabbar">
+            <div class="tabs">
+                <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+                <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+                <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+                <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+            </div>
+        </nav>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div class="crop-backdrop" id="cropper">
+        <div class="crop-modal">
+            <div class="crop-title">ปรับตำแหน่งรูปโปรไฟล์</div>
+
+            <div class="crop-frame" id="cropFrame">
+                <img id="cropImg" class="crop-image" alt="">
+            </div>
+
+            <p class="crop-hint">ลาก / pinch เพื่อซูมเข้าออก ให้พอดีในวงกลม</p>
+
+            <div class="crop-actions">
+                <button type="button" class="crop-btn secondary" id="cropCancelBtn">ยกเลิก</button>
+                <button type="button" class="crop-btn primary" id="cropUseBtn">ใช้รูปนี้</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ROOT = '';
+        const API_BASE = `${location.origin}${ROOT}/api`;
+        const LINE_ADD_URL = 'https://page.line.me/820kwycb';
+        const $ = s => document.querySelector(s);
+
+        let me = {};
+        try { me = JSON.parse(localStorage.getItem('parking_user') || '{}'); } catch { }
+        const isGuest = !me || !me.id;
+
+        const accountBox = $('#accountBox');
+        const contentScroll = $('#contentScroll');
+
+        function gotoLoginAfterAccount() {
+            sessionStorage.setItem('after_login', 'account.html');
+            location.href = 'login.html';
+        }
+
+        if (accountBox) accountBox.innerHTML = '';
+
+        const greetEl = $('#greet');
+        const emailEl = $('#email');
+        const avatarImg = document.getElementById('avatarImg');
+        const avatarInitial = document.getElementById('avatarInitial');
+        const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+        const avatarBox = document.getElementById('avatarBox');
+        const loginSmallBtn = document.getElementById('loginSmallBtn');
+
+        function avatarUrlToFull(url) {
+            if (!url) return '';
+            if (url.startsWith('http')) return url;
+            return `${location.origin}${ROOT}/${url}`;
+        }
+
+        function renderAvatar() {
+            const initial = (greetEl.textContent || 'U').trim().charAt(0).toUpperCase();
+            avatarInitial.textContent = initial;
+
+            if (!isGuest && me.avatar_url) {
+                avatarImg.src = avatarUrlToFull(me.avatar_url);
+                avatarImg.style.display = 'block';
+                avatarInitial.style.display = 'none';
+            } else {
+                avatarImg.style.display = 'none';
+                avatarInitial.style.display = 'block';
+            }
+        }
+
+        if (isGuest) {
+            greetEl.textContent = 'ยังไม่ได้เข้าสู่ระบบ';
+            emailEl.textContent = 'เข้าสู่ระบบเพื่อจัดการบัญชีและดูประวัติการจอง';
+            avatarInitial.textContent = 'G';
+
+            loginSmallBtn.style.display = 'inline-block';
+            loginSmallBtn.onclick = gotoLoginAfterAccount;
+
+            changeAvatarBtn.style.display = 'none';
+            avatarBox.style.cursor = 'pointer';
+            avatarBox.onclick = gotoLoginAfterAccount;
+        } else {
+            greetEl.textContent = me.name || me.email || ('ID ' + me.id);
+            emailEl.textContent = me.email || '';
+            loginSmallBtn.style.display = 'none';
+
+            avatarBox.style.cursor = 'pointer';
+            avatarBox.addEventListener('click', () => avatarInput.click());
+            changeAvatarBtn.addEventListener('click', () => avatarInput.click());
+        }
+        renderAvatar();
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (isGuest) {
+            if (logoutBtn) logoutBtn.style.display = 'none';
+        } else {
+            logoutBtn.onclick = () => {
+                if (!confirm('ต้องการออกจากระบบ?')) return;
+                localStorage.removeItem('parking_user');
+                sessionStorage.removeItem('after_login');
+                location.href = 'login.html';
+            };
+        }
+
+        const cropperEl = document.getElementById('cropper');
+        const cropImg = document.getElementById('cropImg');
+        const cropFrame = document.getElementById('cropFrame');
+        const cropUseBtn = document.getElementById('cropUseBtn');
+        const cropCancelBtn = document.getElementById('cropCancelBtn');
+
+        cropperEl.classList.remove('open');
+        cropImg.src = '';
+
+        let cropState = {
+            baseScale: 1,
+            scale: 1,
+            minScale: 1,
+            maxScale: 3,
+            posX: 0,
+            posY: 0,
+            startX: 0,
+            startY: 0,
+            startPosX: 0,
+            startPosY: 0,
+            dragging: false,
+            minX: 0,
+            maxX: 0,
+            minY: 0,
+            maxY: 0
+        };
+
+        let pinchState = {
+            active: false,
+            startDist: 0,
+            startScale: 1
+        };
+
+        function applyCropTransform() {
+            cropImg.style.transform =
+                `translate(calc(-50% + ${cropState.posX}px), calc(-50% + ${cropState.posY}px))`;
+        }
+
+        function recalcBounds() {
+            if (!cropImg.naturalWidth || !cropImg.naturalHeight) return;
+
+            const boxRect = cropFrame.getBoundingClientRect();
+            const boxSize = Math.min(boxRect.width, boxRect.height);
+
+            const iw = cropImg.naturalWidth;
+            const ih = cropImg.naturalHeight;
+            const s = cropState.scale;
+
+            const displayW = iw * s;
+            const displayH = ih * s;
+
+            cropImg.style.width = `${displayW}px`;
+            cropImg.style.height = `${displayH}px`;
+
+            const maxOffsetX = Math.max(0, (displayW - boxSize) / 2);
+            const maxOffsetY = Math.max(0, (displayH - boxSize) / 2);
+
+            cropState.minX = -maxOffsetX;
+            cropState.maxX = maxOffsetX;
+            cropState.minY = -maxOffsetY;
+            cropState.maxY = maxOffsetY;
+
+            cropState.posX = Math.min(cropState.maxX, Math.max(cropState.minX, cropState.posX));
+            cropState.posY = Math.min(cropState.maxY, Math.max(cropState.minY, cropState.posY));
+
+            applyCropTransform();
+        }
+
+        function openCropper(dataUrl) {
+            cropperEl.classList.add('open');
+            pinchState.active = false;
+            cropImg.onload = () => {
+                const boxRect = cropFrame.getBoundingClientRect();
+                const boxSize = Math.min(boxRect.width, boxRect.height);
+
+                const iw = cropImg.naturalWidth;
+                const ih = cropImg.naturalHeight;
+
+                const baseScale = Math.max(boxSize / iw, boxSize / ih);
+                const startScale = baseScale * 1.2;
+
+                cropState.baseScale = baseScale;
+                cropState.minScale = baseScale * 1.0;
+                cropState.maxScale = baseScale * 3.0;
+                cropState.scale = startScale;
+                cropState.posX = 0;
+                cropState.posY = 0;
+
+                recalcBounds();
+            };
+            cropImg.src = dataUrl;
+        }
+
+        function closeCropper() {
+            cropperEl.classList.remove('open');
+            cropImg.src = '';
+            pinchState.active = false;
+        }
+
+        async function uploadAvatarBlob(blob) {
+            const fd = new FormData();
+            fd.append('avatar', blob, 'avatar.jpg');
+            fd.append('user_id', me.id);
+
+            const res = await fetch(`${API_BASE}/upload_avatar.php`, {
+                method: 'POST',
+                body: fd
+            });
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok || !data.ok) {
+                throw new Error(data.error || `HTTP ${res.status}`);
+            }
+
+            me.avatar_url = data.avatar_url;
+            localStorage.setItem('parking_user', JSON.stringify(me));
+            renderAvatar();
+        }
+
+        const avatarInput = document.getElementById('avatarInput');
+
+        cropFrame.addEventListener('pointerdown', (e) => {
+            if (pinchState.active) return;
+            cropFrame.setPointerCapture(e.pointerId);
+            cropState.dragging = true;
+            cropState.startX = e.clientX;
+            cropState.startY = e.clientY;
+            cropState.startPosX = cropState.posX;
+            cropState.startPosY = cropState.posY;
+        });
+
+        cropFrame.addEventListener('pointermove', (e) => {
+            if (!cropState.dragging || pinchState.active) return;
+            const dx = e.clientX - cropState.startX;
+            const dy = e.clientY - cropState.startY;
+
+            let nx = cropState.startPosX + dx;
+            let ny = cropState.startPosY + dy;
+
+            nx = Math.min(cropState.maxX, Math.max(cropState.minX, nx));
+            ny = Math.min(cropState.maxY, Math.max(cropState.minY, ny));
+
+            cropState.posX = nx;
+            cropState.posY = ny;
+            applyCropTransform();
+        });
+
+        cropFrame.addEventListener('pointerup', (e) => {
+            cropState.dragging = false;
+            try { cropFrame.releasePointerCapture(e.pointerId); } catch { }
+        });
+
+        cropFrame.addEventListener('pointercancel', (e) => {
+            cropState.dragging = false;
+            try { cropFrame.releasePointerCapture(e.pointerId); } catch { }
+        });
+
+        cropFrame.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (!cropImg.naturalWidth) return;
+
+            const delta = -e.deltaY;
+            const factor = delta > 0 ? 1.08 : 0.92;
+
+            let newScale = cropState.scale * factor;
+            newScale = Math.max(cropState.minScale, Math.min(cropState.maxScale, newScale));
+
+            if (newScale === cropState.scale) return;
+            cropState.scale = newScale;
+            recalcBounds();
+        }, { passive: false });
+
+        function touchDistance(touches) {
+            if (touches.length < 2) return 0;
+            const t1 = touches[0];
+            const t2 = touches[1];
+            const dx = t1.clientX - t2.clientX;
+            const dy = t1.clientY - t2.clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        cropFrame.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                pinchState.active = true;
+                pinchState.startDist = touchDistance(e.touches);
+                pinchState.startScale = cropState.scale;
+            }
+        }, { passive: true });
+
+        cropFrame.addEventListener('touchmove', (e) => {
+            if (!pinchState.active || e.touches.length !== 2) return;
+            e.preventDefault();
+
+            const dist = touchDistance(e.touches);
+            if (!dist || !pinchState.startDist) return;
+
+            let newScale = pinchState.startScale * (dist / pinchState.startDist);
+            newScale = Math.max(cropState.minScale, Math.min(cropState.maxScale, newScale));
+
+            cropState.scale = newScale;
+            recalcBounds();
+        }, { passive: false });
+
+        cropFrame.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) pinchState.active = false;
+        }, { passive: true });
+
+        cropFrame.addEventListener('touchcancel', () => {
+            pinchState.active = false;
+        }, { passive: true });
+
+        avatarInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('กรุณาเลือกรูปภาพเท่านั้น');
+                e.target.value = '';
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                alert('ไฟล์ใหญ่เกิน 10MB (เกิน 10MB)');
+                e.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                openCropper(reader.result);
+            };
+            reader.onerror = () => {
+                alert('ไม่สามารถเปิดไฟล์รูปได้');
+                e.target.value = '';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        cropCancelBtn.addEventListener('click', () => {
+            closeCropper();
+            avatarInput.value = '';
+        });
+
+        cropUseBtn.addEventListener('click', async () => {
+            try {
+                cropUseBtn.disabled = true;
+                cropCancelBtn.disabled = true;
+                changeAvatarBtn.disabled = true;
+                changeAvatarBtn.textContent = 'กำลังอัปโหลด...';
+
+                const boxRect = cropFrame.getBoundingClientRect();
+                const size = Math.round(Math.min(boxRect.width, boxRect.height));
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+
+                const ctx = canvas.getContext('2d');
+                const iw = cropImg.naturalWidth;
+                const ih = cropImg.naturalHeight;
+                const s = cropState.scale;
+
+                const drawX = size / 2 + cropState.posX - (iw * s) / 2;
+                const drawY = size / 2 + cropState.posY - (ih * s) / 2;
+
+                ctx.setTransform(s, 0, 0, s, drawX, drawY);
+                ctx.drawImage(cropImg, 0, 0);
+
+                const blob = await new Promise((resolve, reject) => {
+                    canvas.toBlob((b) => {
+                        if (!b) return reject(new Error('สร้างภาพไม่สำเร็จ'));
+                        resolve(b);
+                    }, 'image/jpeg', 0.9);
+                });
+
+                await uploadAvatarBlob(blob);
+
+                closeCropper();
+                avatarInput.value = '';
+            } catch (err) {
+                console.error(err);
+                alert('อัปโหลดรูปไม่สำเร็จ: ' + (err.message || ''));
+            } finally {
+                cropUseBtn.disabled = false;
+                cropCancelBtn.disabled = false;
+                changeAvatarBtn.disabled = false;
+                changeAvatarBtn.textContent = 'เปลี่ยนรูปโปรไฟล์';
+            }
+        });
+
+        function showToast(msg, isError = false) {
+            const t = $('#toast');
+            t.textContent = msg;
+            t.classList.toggle('error', !!isError);
+            t.classList.add('show');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+        }
+
+        const walletBalanceEl = document.getElementById('walletBalance');
+        const walletTopupBtn = document.getElementById('walletTopupBtn');
+        const walletDetailLink = document.getElementById('walletDetailLink');
+        const walletSubText = document.getElementById('walletSubText');
+
+        if (isGuest) {
+            walletBalanceEl.textContent = '—';
+            walletTopupBtn.style.display = 'none';
+            walletSubText.textContent = 'เข้าสู่ระบบจากส่วน “บัญชีของฉัน” เพื่อใช้งานวอลเล็ต';
+            walletDetailLink.style.display = 'none';
+        } else {
+            async function loadWalletBalance() {
+                const el = walletBalanceEl;
+                if (!el) return;
+                el.textContent = 'กำลังโหลด…';
+                try {
+                    const res = await fetch(`${API_BASE}/wallet_balance.php?user_id=${encodeURIComponent(me.id)}`, {
+                        cache: 'no-store'
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || !data.ok) {
+                        throw new Error(data.error || `HTTP ${res.status}`);
+                    }
+                    const bal = parseFloat(data.balance ?? data.wallet ?? 0);
+                    el.textContent = '฿ ' + bal.toLocaleString('th-TH', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                } catch (err) {
+                    console.error(err);
+                    el.textContent = '฿ 0.00';
+                    showToast('โหลดยอดวอลเล็ตไม่สำเร็จ', true);
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                loadWalletBalance();
+            });
+        }
+
+        const lineStatusPill = document.getElementById('lineStatusPill');
+        const lineHelpText = document.getElementById('lineHelpText');
+        const lineOpenBtn = document.getElementById('lineOpenBtn');
+        const lineHowBtn = document.getElementById('lineHowBtn');
+
+        function setLineStatusPending() {
+            if (!lineStatusPill) return;
+            lineStatusPill.classList.remove('ok', 'warn');
+            lineStatusPill.textContent = 'กำลังตรวจสอบ…';
+        }
+
+        function setLineStatusGuest() {
+            if (!lineStatusPill) return;
+            lineStatusPill.classList.remove('ok', 'warn');
+            lineStatusPill.textContent = 'ยังไม่ได้เข้าสู่ระบบ';
+            if (lineHelpText) {
+                lineHelpText.textContent = 'เข้าสู่ระบบก่อน แล้วจึงเชื่อมบัญชีกับ LINE เพื่อรับแจ้งเตือนการจองจาก AutoParkX';
+            }
+            if (lineOpenBtn) {
+                lineOpenBtn.disabled = true;
+                lineOpenBtn.href = LINE_ADD_URL || '#';
+            }
+        }
+
+        async function loadLineLinkStatus() {
+            if (isGuest) {
+                setLineStatusGuest();
+                return;
+            }
+            if (!lineStatusPill) return;
+            setLineStatusPending();
+            try {
+                const res = await fetch(`${API_BASE}/line_link_verify.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: me.id })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+                const linked = !!data.linked;
+
+                if (linked) {
+                    lineStatusPill.classList.remove('warn');
+                    lineStatusPill.classList.add('ok');
+                    lineStatusPill.textContent = 'เชื่อมกับ LINE แล้ว';
+                    if (lineHelpText) {
+                        lineHelpText.textContent = 'ระบบจะส่งแจ้งเตือนการจอง ยกเลิก และการเติมเงินวอลเล็ตไปยัง LINE ของคุณอัตโนมัติ';
+                    }
+                } else {
+                    lineStatusPill.classList.remove('ok');
+                    lineStatusPill.classList.add('warn');
+                    lineStatusPill.textContent = 'ยังไม่เชื่อม LINE';
+                    if (lineHelpText) {
+                        lineHelpText.textContent = 'แอดเพื่อนบอท AutoParkX ใน LINE และพิมพ์คำสั่ง: LINK อีเมลที่ใช้สมัครในเว็บ เพื่อเชื่อมบัญชี';
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                if (lineStatusPill) {
+                    lineStatusPill.classList.remove('ok');
+                    lineStatusPill.classList.add('warn');
+                    lineStatusPill.textContent = 'ตรวจสอบไม่สำเร็จ';
+                }
+                if (lineHelpText) {
+                    lineHelpText.textContent = 'ไม่สามารถตรวจสอบสถานะการเชื่อม LINE ได้ในขณะนี้';
+                }
+            }
+        }
+
+        if (lineOpenBtn) {
+            lineOpenBtn.href = LINE_ADD_URL || '#';
+            lineOpenBtn.addEventListener('click', (e) => {
+                if (!LINE_ADD_URL || LINE_ADD_URL === '#') {
+                    e.preventDefault();
+                    showToast('ยังไม่ได้ตั้งค่าลิงก์แอดเพื่อน LINE Bot', true);
+                }
+            });
+        }
+
+        if (lineHowBtn) {
+            lineHowBtn.addEventListener('click', () => {
+                if (isGuest) {
+                    showToast('เข้าสู่ระบบก่อนเพื่อเชื่อมบัญชีกับ LINE', true);
+                    gotoLoginAfterAccount();
+                    return;
+                }
+                const msg =
+                    'วิธีเชื่อมบัญชีกับ LINE:\n' +
+                    '1) แอดเพื่อนบอท AutoParkX ใน LINE\n' +
+                    '2) ใช้อีเมลเดียวกับที่สมัครในเว็บ\n' +
+                    '3) พิมพ์: LINK อีเมลของคุณ\n' +
+                    '   ตัวอย่าง: LINK yourname@example.com\n\n' +
+                    'เมื่อผูกสำเร็จ คุณจะได้รับแจ้งเตือนการจอง ยกเลิก และเติมเงินวอลเล็ตที่ LINE นี้';
+                alert(msg);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (isGuest) {
+                setLineStatusGuest();
+            } else {
+                loadLineLinkStatus();
+            }
+        });
+
+        const statUpcomingEl = document.getElementById('statUpcoming');
+        const statPastEl = document.getElementById('statPast');
+        const statActiveEl = document.getElementById('statActive');
+        const statNoteEl = document.getElementById('statNote');
+
+        let ctrl;
+        async function loadStats() {
+            ctrl?.abort();
+            ctrl = new AbortController();
+            const bust = () => `_=${Date.now()}`;
+
+            const fetchJSON = async (url) => {
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + bust(), {
+                    cache: 'no-store',
+                    signal: ctrl.signal
+                });
+                const data = await res.json().catch(() => ({}));
+                const ok = res.ok && (data?.ok === true || data?.ok == 1 || String(data?.ok).toLowerCase?.() === 'ok');
+                if (!ok) throw new Error(data?.error || `HTTP ${res.status}`);
+                return data;
+            };
+
+            try {
+                const uid = encodeURIComponent(me.id);
+                const pad = n => String(n).padStart(2, '0');
+                const now = new Date();
+                const nowMinus = new Date(now.getTime() - 5 * 60 * 1000);
+                const nowPlus = new Date(now.getTime() + 5 * 60 * 1000);
+                const toS = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+                const [up, past, act] = await Promise.all([
+                    fetchJSON(`${API_BASE}/booking_list_my.php?user_id=${uid}&time=upcoming&limit=1&offset=0`),
+                    fetchJSON(`${API_BASE}/booking_list_my.php?user_id=${uid}&time=past&limit=1&offset=0`),
+                    fetchJSON(`${API_BASE}/booking_list_my.php?user_id=${uid}&time=all&date_from=${encodeURIComponent(toS(nowMinus))}&date_to=${encodeURIComponent(toS(nowPlus))}&status=ACTIVE,CONFIRMED,OCCUPIED&limit=1&offset=0`)
+                ]);
+
+                if (statUpcomingEl) statUpcomingEl.textContent = up?.paging?.total ?? 0;
+                if (statPastEl) statPastEl.textContent = past?.paging?.total ?? 0;
+                if (statActiveEl) statActiveEl.textContent = act?.paging?.total ?? 0;
+
+            } catch (e) {
+                if (statUpcomingEl) statUpcomingEl.textContent = '–';
+                if (statPastEl) statPastEl.textContent = '–';
+                if (statActiveEl) statActiveEl.textContent = '–';
+            }
+        }
+
+        const REFRESH_MS = 7000;
+        let timer = null;
+        function start() {
+            stop();
+            timer = setInterval(() => {
+                if (!document.hidden) loadStats();
+            }, REFRESH_MS);
+        }
+        function stop() {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+        }
+
+        if (!isGuest) {
+            loadStats();
+            start();
+            window.addEventListener('focus', () => loadStats(), { passive: true });
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) loadStats(); }, { passive: true });
+        } else {
+            if (statNoteEl) {
+                statNoteEl.textContent = 'เข้าสู่ระบบเพื่อดูสถิติการจองของคุณในระบบ AutoParkX';
+            }
+        }
+
+        const SCROLL_KEY = 'account_scroll_y';
+
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+
+        function saveScroll() {
+            if (!contentScroll) return;
+            sessionStorage.setItem(SCROLL_KEY, String(contentScroll.scrollTop || 0));
+        }
+
+        function restoreScroll() {
+            if (!contentScroll) return;
+            const y = parseInt(sessionStorage.getItem(SCROLL_KEY) || '0', 10);
+            if (!Number.isNaN(y) && y > 0) {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        contentScroll.scrollTop = y;
+                    });
+                });
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const a = e.target.closest && e.target.closest('a[href]');
+            if (!a) return;
+            if (a.target === '_blank') return;
+            saveScroll();
+        }, { capture: true });
+
+        window.addEventListener('pagehide', saveScroll);
+        window.addEventListener('pageshow', restoreScroll);
+        document.addEventListener('DOMContentLoaded', restoreScroll);
+
+        document.addEventListener('touchmove', function (e) {
+            const scrollEl = document.querySelector('.content-scroll');
+            if (!scrollEl) return;
+            if (!scrollEl.contains(e.target) && !document.querySelector('.crop-backdrop.open')?.contains(e.target)) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+
+</html>

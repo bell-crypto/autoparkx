@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Parking | Login / Register</title>
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        :root {
+            --bg: #edf0f7;
+            --bg2: #f7f8fc;
+            --card: #fffffffb;
+            --card-border: rgba(15, 23, 42, .06);
+            --text: #0f172a;
+            --muted: #6b7280;
+            --primary: #2563eb;
+            --primary-soft: #e0ebff;
+            --ok: #16a34a;
+            --danger: #dc2626;
+            --radius: 18px;
+            --shadow: 0 10px 26px rgba(15, 23, 42, .12);
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            min-height: 100vh;
+            min-height: 100svh;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(900px 600px at 10% 0%, #93c5fd2a, transparent 60%),
+                radial-gradient(800px 500px at 90% 0%, #a5f3fc26, transparent 60%),
+                linear-gradient(145deg, var(--bg), var(--bg2));
+            background-attachment: fixed;
+        }
+
+        .card {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 18px 18px 14px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px) saturate(120%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transform-origin: center bottom;
+            animation: cardIn .35s ease-out forwards;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px) scale(.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: none;
+            background: #ffffffee;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .15s ease, box-shadow .15s ease, transform .12s ease;
+        }
+
+        .back-btn:hover {
+            background: #ffffffff;
+            box-shadow: 0 3px 9px rgba(0, 0, 0, .16);
+            transform: translateY(-1px);
+        }
+
+        .back-btn:active {
+            transform: scale(.96);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .18);
+        }
+
+        .logo-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 2px;
+            padding-top: 6px;
+        }
+
+        .logo-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 800;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, .35);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: .03em;
+        }
+
+        .subtitle {
+            margin: 1px 0 0;
+            font-size: 12px;
+            color: var(--muted);
+            text-align: left;
+        }
+
+        .tabs {
+            position: relative;
+            margin-top: 6px;
+            display: flex;
+            padding: 4px;
+            border-radius: 999px;
+            background: #f3f5fa;
+            border: 1px solid #d5d9e2;
+            overflow: hidden;
+        }
+
+        .tabs::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: calc(50% - 8px);
+            height: calc(100% - 8px);
+            background: #ffffff;
+            border-radius: 999px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
+            transition: .28s cubic-bezier(.25, .8, .3, 1);
+        }
+
+        .tabs.reg-active::before {
+            transform: translateX(100%);
+        }
+
+        .tab {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 9px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            border-radius: 999px;
+            z-index: 1;
+            transition: color .25s;
+        }
+
+        .tab.active {
+            color: #111827;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-top: 4px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0 0 3px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 13px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, .6);
+            background: #f9fafb;
+            font-size: 14px;
+            color: var(--text);
+            margin: 0 0 9px;
+            outline: none;
+            transition:
+                border-color .18s ease,
+                background-color .18s ease;
+        }
+
+        input::placeholder {
+            color: #9ca3af;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+        }
+
+        .toggle {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .eye {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(calc(-50% + 1px));
+            font-size: 16px;
+            color: #9ca3af;
+            cursor: pointer;
+            user-select: none;
+            transition: opacity .12s ease;
+        }
+
+        .eye:active {
+            opacity: .75;
+        }
+
+        .msg {
+            display: none;
+            margin: 4px 0 8px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .msg.ok {
+            background: #e7f7ec;
+            border: 1px solid #b4e1c2;
+            color: #15803d;
+        }
+
+        .msg.err {
+            background: #fde2e2;
+            border: 1px solid #f3b4b4;
+            color: #b91c1c;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, .35);
+            margin-top: 2px;
+            transition: filter .12s ease, transform .12s ease, box-shadow .12s ease;
+        }
+
+        .btn:hover {
+            filter: brightness(1.02);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, .35);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, .25);
+        }
+
+        .hint {
+            text-align: center;
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .hint a {
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            position: relative;
+        }
+
+        .hint a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -1px;
+            width: 100%;
+            height: 1px;
+            background: currentColor;
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform .18s ease;
+        }
+
+        .hint a:hover::after {
+            transform: scaleX(1);
+        }
+
+        .footer {
+            margin-top: 2px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media (min-width:600px) {
+            .card {
+                padding: 22px 22px 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <button class="back-btn" type="button" onclick="location.href='account.html'" aria-label="ย้อนกลับ">
+            ←
+        </button>
+
+        <div class="logo-row">
+            <div class="logo-circle">P</div>
+            <div>
+                <h1>AutoParkX</h1>
+                <p class="subtitle">ระบบจองที่จอดรถอัจฉริยะ</p>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button id="tabLogin" class="tab active" type="button">เข้าสู่ระบบ</button>
+            <button id="tabRegister" class="tab" type="button">สมัครสมาชิก</button>
+        </div>
+
+        <form id="formLogin" aria-label="เข้าสู่ระบบ">
+            <div class="msg err" id="loginErr"></div>
+            <div class="msg ok" id="loginInfo"></div>
+
+            <label for="loginEmail">อีเมล</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" required />
+
+            <div class="toggle">
+                <label for="loginPassword">รหัสผ่าน</label>
+                <input id="loginPassword" type="password" placeholder="••••••" required minlength="6" />
+                <span class="eye" data-target="loginPassword" title="แสดง/ซ่อนรหัสผ่าน">👁‍🗨</span>
+            </div>
+
+            <button class="btn" type="submit">เข้าสู่ระบบ</button>
+            <div class="hint">
+                ยังไม่มีบัญชี?
+                <a href="#" id="goRegister">สมัครสมาชิก</a>
+            </div>
+        </form>
+
+        <form id="formRegister" style="display:none" aria-label="สมัครสมาชิก">
+            <div class="msg err" id="regErr"></div>
+            <div class="msg ok" id="regOk"></div>
+
+            <label for="regName">ชื่อ-นามสกุล</label>
+            <input id="regName" type="text" placeholder="สมชาย ใจดี" required />
+
+            <label for="regEmail">อีเมล</label>
+            <input id="regEmail" type="email" placeholder="you@example.com" required />
+
+            <label for="regPhone">เบอร์โทร</label>
+            <input id="regPhone" type="tel" placeholder="08xxxxxxxx" required maxlength="10" inputmode="numeric" pattern="[0-9]{10}" />
+
+            <label for="regPlate1">ทะเบียนรถคันที่ 1</label>
+            <input id="regPlate1" type="text" placeholder="เช่น กข1234" required maxlength="30" />
+
+            <label for="regPlate2">ทะเบียนรถคันที่ 2 (ถ้ามี)</label>
+            <input id="regPlate2" type="text" placeholder="เช่น 1กข1234" maxlength="30" />
+
+            <div class="toggle">
+                <label for="regPassword">รหัสผ่าน</label>
+                <input id="regPassword" type="password" placeholder="••••••" required minlength="6" />
+                <span class="eye" data-target="regPassword" title="แสดง/ซ่อนรหัสผ่าน">👁‍🗨</span>
+            </div>
+
+            <button class="btn" type="submit">สมัครสมาชิก</button>
+            <div class="hint">สมัครเสร็จแล้ว กรุณาเข้าสู่ระบบก่อนเพื่อไปหน้ายินยอมเงื่อนไข</div>
+        </form>
+
+        <div class="footer">
+            © 2026 Parking · <a href="forgot.html">ลืมรหัสผ่าน?</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = `${location.origin}/api`;
+        const CONSENT_VERSION = 'v1';
+        const ONBOARD_KEY = 'onboarding_done';
+
+        const $ = s => document.querySelector(s);
+        const show = (el, v = true) => { el.style.display = v ? '' : 'none'; };
+        const setMsg = (el, t) => { el.textContent = t || ''; el.style.display = t ? 'block' : 'none'; };
+
+        const tabsEl = document.querySelector('.tabs');
+
+        const switchTab = (mode) => {
+            if (mode === 'login') {
+                $('#tabLogin').classList.add('active');
+                $('#tabRegister').classList.remove('active');
+                tabsEl.classList.remove('reg-active');
+                show($('#formLogin'), true);
+                show($('#formRegister'), false);
+            } else {
+                $('#tabRegister').classList.add('active');
+                $('#tabLogin').classList.remove('active');
+                tabsEl.classList.add('reg-active');
+                show($('#formRegister'), true);
+                show($('#formLogin'), false);
+            }
+        };
+
+        $('#tabLogin').onclick = () => switchTab('login');
+        $('#tabRegister').onclick = () => switchTab('register');
+        $('#goRegister').onclick = (e) => {
+            e.preventDefault();
+            switchTab('register');
+        };
+
+        document.querySelectorAll('.eye').forEach(e => {
+            e.onclick = () => {
+                const i = document.getElementById(e.dataset.target);
+                i.type = i.type === 'password' ? 'text' : 'password';
+            };
+        });
+
+        function getNextTarget() {
+            try {
+                const qs = new URLSearchParams(location.search);
+                const next = (qs.get('next') || '').trim();
+                return next || 'index.html';
+            } catch {
+                return 'index.html';
+            }
+        }
+
+        function getUidFromUser(userObj) {
+            try {
+                return userObj?.id ?? userObj?.user_id ?? userObj?.uid ?? userObj?.user?.id ?? null;
+            } catch {
+                return null;
+            }
+        }
+
+        function gotoConsent(next = 'index.html', uid = null) {
+            const qs = new URLSearchParams();
+            qs.set('next', next);
+            if (uid != null && uid !== '') qs.set('uid', String(uid));
+            location.href = `./consent.html?${qs.toString()}`;
+        }
+
+        (function gateOnboarding() {
+            try {
+                const onboardDone = localStorage.getItem(ONBOARD_KEY) === '1';
+                if (!onboardDone) location.replace('onboarding.html');
+            } catch { }
+        })();
+
+        function normalizePlate(v) {
+            return String(v || '').trim().replace(/\s+/g, '').toUpperCase();
+        }
+
+        function normalizePhone(v) {
+            return String(v || '').replace(/\D/g, '').slice(0, 10);
+        }
+
+        $('#regPhone').addEventListener('input', (e) => {
+            e.target.value = normalizePhone(e.target.value);
+        });
+
+        $('#formLogin').onsubmit = async ev => {
+            ev.preventDefault();
+            setMsg($('#loginErr'), '');
+            setMsg($('#loginInfo'), '');
+
+            const email = $('#loginEmail').value.trim();
+            const password = $('#loginPassword').value;
+
+            try {
+                const res = await fetch(`${API_BASE}/auth_login.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok || !data.ok) {
+                    if (res.status === 403 || /blocked/i.test(data.error || '')) {
+                        setMsg($('#loginErr'), 'บัญชีนี้ถูกบล็อก');
+                    } else if (res.status === 401) {
+                        setMsg($('#loginErr'), 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+                    } else {
+                        setMsg($('#loginErr'), 'เข้าสู่ระบบไม่สำเร็จ');
+                    }
+                    return;
+                }
+
+                if (String((data.user || {}).status || '').toLowerCase() !== 'active') {
+                    setMsg($('#loginErr'), 'บัญชีนี้ไม่พร้อมใช้งาน');
+                    return;
+                }
+
+                localStorage.setItem('parking_user', JSON.stringify(data.user));
+
+                const role = String((data.user || {}).role || '').toLowerCase();
+                if (role === 'admin') {
+                    location.href = './admin.html';
+                    return;
+                }
+
+                const uid = getUidFromUser(data.user || {});
+                if (uid != null && uid !== '') {
+                    try { localStorage.setItem('apx_user_id', String(uid)); } catch { }
+                }
+
+                const next = getNextTarget();
+                const consentAccepted = Number((data.user || {}).consent_accepted || 0) === 1;
+                const consentVersion = String((data.user || {}).consent_version || '');
+                const versionOk = !consentVersion || consentVersion === CONSENT_VERSION;
+
+                if (!uid || !consentAccepted || !versionOk) {
+                    gotoConsent(next, uid);
+                } else {
+                    try {
+                        localStorage.setItem(`apx_uid_${uid}_consent_${CONSENT_VERSION}`, 'accepted');
+                        sessionStorage.setItem(`apx_uid_${uid}_consent_${CONSENT_VERSION}`, 'accepted');
+                    } catch { }
+                    location.href = `./${next}`;
+                }
+
+            } catch {
+                setMsg($('#loginErr'), 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+            }
+        };
+
+        $('#formRegister').onsubmit = async ev => {
+            ev.preventDefault();
+            setMsg($('#regErr'), '');
+            setMsg($('#regOk'), '');
+
+            const name = $('#regName').value.trim();
+            const email = $('#regEmail').value.trim();
+            const phone = normalizePhone($('#regPhone').value);
+            const plate1 = normalizePlate($('#regPlate1').value);
+            const plate2 = normalizePlate($('#regPlate2').value);
+            const password = $('#regPassword').value;
+
+            if (!name || !email || !phone || !plate1 || !password) {
+                setMsg($('#regErr'), 'กรุณากรอกข้อมูลให้ครบ');
+                return;
+            }
+
+            if (!/^0\d{9}$/.test(phone)) {
+                setMsg($('#regErr'), 'กรุณากรอกเบอร์โทร 10 หลักให้ถูกต้อง');
+                return;
+            }
+
+            if (plate2 && plate1 === plate2) {
+                setMsg($('#regErr'), 'ทะเบียนรถคันที่ 1 และคันที่ 2 ห้ามซ้ำกัน');
+                return;
+            }
+
+            try {
+                const payload = {
+                    name,
+                    email,
+                    phone,
+                    password,
+                    vehicles: [
+                        { plate_number: plate1, plate_slot: 1 }
+                    ]
+                };
+
+                if (plate2) {
+                    payload.vehicles.push({ plate_number: plate2, plate_slot: 2 });
+                }
+
+                const res = await fetch(`${API_BASE}/auth_register.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok || !data.ok) {
+                    throw new Error(data.error || `HTTP ${res.status}`);
+                }
+
+                $('#regName').value = '';
+                $('#regEmail').value = '';
+                $('#regPhone').value = '';
+                $('#regPlate1').value = '';
+                $('#regPlate2').value = '';
+                $('#regPassword').value = '';
+
+                switchTab('login');
+                $('#loginEmail').value = email;
+                $('#loginPassword').value = '';
+                $('#loginPassword').focus();
+
+                setMsg($('#loginInfo'), 'สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบเพื่อไปหน้ายินยอมเงื่อนไข');
+
+            } catch (err) {
+                setMsg($('#regErr'), '❌ สมัครไม่สำเร็จ: ' + (err?.message || 'unknown error'));
+            }
+        };
+    </script>
+</body>
+
+</html>

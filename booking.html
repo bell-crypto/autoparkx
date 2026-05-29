@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Parking • จองที่จอด</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+            --vh: 100dvh;
+            --nav-h: 56px;
+            --tab-h: 74px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e9edf2;
+                --muted: #9aa4af;
+                --sep: #1b2430;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .5);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            overflow: hidden;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: saturate(180%) blur(12px);
+            -webkit-backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg) 85%, transparent);
+            border-bottom: 1px solid var(--sep);
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--tint);
+            box-shadow: 0 0 0 4px color-mix(in oklab, var(--tint) 15%, transparent);
+        }
+
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding:
+                calc(16px + var(--safe-top) + var(--nav-h))
+                14px
+                calc(18px + var(--safe-btm) + var(--tab-h));
+            min-height: 0;
+            height: var(--vh);
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .page::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        @supports (height: 100svh) {
+            .page {
+                height: 100svh;
+            }
+        }
+
+        .equal-height .page {
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .equal-height .page::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .stack {
+            display: grid;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--sep);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+
+        .title {
+            margin: 0 0 8px;
+            font-weight: 900;
+        }
+
+        .sub {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .hint-box {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: color-mix(in oklab, var(--tint) 7%, transparent);
+            border: 1px solid color-mix(in oklab, var(--tint) 14%, var(--sep));
+        }
+
+        .hint-box .sub {
+            margin: 0;
+            line-height: 1.55;
+        }
+
+        .grid2 {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .grid2>* {
+            min-width: 0;
+        }
+
+        .grid2.cols-1-180 {
+            grid-template-columns: minmax(0, 1fr) 170px;
+            column-gap: 14px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        @media (max-width: 560px) {
+            .grid2 {
+                grid-template-columns: 1fr;
+            }
+
+            .grid2.cols-1-180 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        label {
+            font-weight: 800;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+        }
+        
+        input[type="datetime-local"],
+        .search,
+        select {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid var(--sep);
+        background: color-mix(in oklab, var(--card) 95%, transparent);
+        color: var(--text);
+        min-height: 42px;
+        }
+        
+        input[type="datetime-local"] {
+        -webkit-appearance: none;
+        appearance: none;
+        }
+
+        .slots {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+        }
+
+        .slot {
+            border: 1px solid var(--sep);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            background: color-mix(in oklab, var(--card) 94%, transparent);
+        }
+
+        .code {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+            line-height: 1.35;
+        }
+
+        .pill-status {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .p-av {
+            background: #10b981;
+        }
+
+        .p-bk {
+            background: #f59e0b;
+        }
+
+        .p-oc {
+            background: #ef4444;
+        }
+
+        .p-mt {
+            background: #6b7280;
+        }
+
+        .slot.selected {
+            outline: 2px solid var(--tint);
+        }
+
+        .slot.disabled {
+            opacity: .6;
+            filter: saturate(.6);
+        }
+
+        .btn {
+            appearance: none;
+            -webkit-appearance: none;
+            border: 0;
+            border-radius: 14px;
+            padding: 14px;
+            font-weight: 900;
+            text-align: center;
+            width: 100%;
+            font-size: 15px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, var(--tint), #0a66cc);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(10, 132, 255, .25);
+        }
+
+        .btn.outline {
+            background: transparent;
+            color: var(--tint);
+            border: 1px solid var(--tint);
+        }
+
+        .btn:active {
+            transform: scale(.98);
+            filter: brightness(.98);
+        }
+
+        .btn:disabled {
+            opacity: .65;
+            cursor: not-allowed;
+        }
+
+        .skeleton {
+            height: 52px;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #eef1f6 0%, #f7f8fb 50%, #eef1f6 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.2s infinite;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .skeleton {
+                background: linear-gradient(90deg, #1a2230 0%, #11161c 50%, #1a2230 100%);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .tabbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg) 90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint) 10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            background: rgba(15, 23, 42, .45);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+
+        .sheet-dialog {
+            width: 100%;
+            max-width: 520px;
+            max-height: calc(100svh - 32px);
+            margin: 0;
+            background: var(--card);
+            border-radius: 24px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, .35);
+            padding: 12px 16px 16px;
+            border: 1px solid var(--sep);
+            overflow: visible;
+            box-sizing: border-box;
+        }
+
+        .sheet-handle {
+            width: 46px;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, .7);
+            margin: 4px auto 10px;
+        }
+
+        .sheet-title {
+            margin: 0 0 2px;
+            font-weight: 900;
+            font-size: 17px;
+            text-align: left;
+        }
+
+        .sheet-sub {
+            margin: 0 0 10px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .sheet-section {
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .sheet-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 6px 0 2px;
+        }
+
+        .sheet-value {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .sheet-row {
+            margin-top: 10px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .sheet-row strong {
+            font-weight: 800;
+        }
+
+        .sheet-total {
+            margin-top: 10px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: color-mix(in oklab, var(--tint) 6%, transparent);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .sheet-note {
+            margin: 8px 0 0;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .sheet-actions {
+            margin-top: 14px;
+            display: grid;
+            gap: 8px;
+        }
+
+        @media (max-height: 700px) {
+            .sheet-title {
+                font-size: 16px;
+                margin-bottom: 2px;
+            }
+
+            .sheet-sub {
+                font-size: 12px;
+                margin-bottom: 8px;
+            }
+
+            .sheet-section {
+                font-size: 13px;
+                margin-top: 2px;
+            }
+
+            .sheet-row {
+                font-size: 13px;
+                margin-top: 6px;
+            }
+
+            .sheet-total {
+                font-size: 14px;
+                margin-top: 8px;
+            }
+
+            .sheet-note {
+                font-size: 11px;
+                margin-top: 6px;
+            }
+
+            .sheet-actions {
+                margin-top: 10px;
+            }
+        }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .card-head .title {
+            margin: 0;
+        }
+
+        .mapbtn {
+            appearance: none;
+            -webkit-appearance: none;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card) 92%, transparent);
+            color: var(--text);
+            border-radius: 999px;
+            padding: 8px 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 900;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, .06);
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .mapbtn .m-ico {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .mapbtn .m-sub {
+            color: var(--muted);
+            font-weight: 800;
+            font-size: 12px;
+        }
+
+        .mapbtn:active {
+            transform: scale(.98);
+            filter: brightness(.98);
+        }
+    </style>
+</head>
+
+<body class="equal-height">
+    <div class="nav">
+        <div class="row">
+            <div class="brand"><span class="dot"></span>AutoParkX</div>
+        </div>
+    </div>
+
+    <main class="page">
+        <div class="stack">
+            <section class="card" id="loginNote" style="display:none">
+                <h3 class="title">กรุณาเข้าสู่ระบบ</h3>
+                <p class="sub">ยังไม่พบข้อมูลผู้ใช้ โปรด <a href="login.html">เข้าสู่ระบบ</a> เพื่อทำการจอง</p>
+            </section>
+
+            <section class="card">
+                <h3 class="title">เลือกเวลาเริ่มใช้งาน</h3>
+                <div class="field">
+                    <label for="start">เวลาเริ่มใช้งาน</label>
+                    <input type="datetime-local" id="start">
+                </div>
+
+            </section>
+
+            <section class="card">
+                <div class="card-head">
+                    <h3 class="title">เลือกช่องจอด</h3>
+                    <a class="mapbtn" href="map.html" aria-label="ไปหน้าแผนผังลานจอด">
+                        <span class="m-ico">🗺️</span>
+                        <span>ดูผัง</span>
+                        <span class="m-sub">A01–A10</span>
+                    </a>
+                </div>
+
+                <div class="grid2 cols-1-180">
+                    <input class="search" id="q" placeholder="ค้นหา: A01 / ชั้น / คำอธิบาย" />
+                    <select id="statusFilter">
+                        <option value="">สถานะทั้งหมด</option>
+                        <option value="AVAILABLE">AVAILABLE (ว่าง)</option>
+                        <option value="BOOKED">BOOKED (จองแล้ว)</option>
+                        <option value="OCCUPIED">OCCUPIED (ไม่ว่าง)</option>
+                        <option value="MAINTENANCE">MAINTENANCE (ปิดปรับปรุง)</option>
+                    </select>
+                </div>
+
+                <div class="slots" id="slots">
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                </div>
+
+                <p class="sub">แตะเลือกเฉพาะช่องที่ขึ้นสถานะ “ว่าง” </p>
+            </section>
+
+            <section class="card">
+                <button id="bookBtn" class="btn primary">ตรวจสอบและยืนยันการจอง</button>
+                <p class="sub" style="text-align:center"></p>
+            </section>
+        </div>
+    </main>
+
+    <div id="priceSheetBackdrop" class="sheet-backdrop hidden">
+        <div class="sheet-dialog" role="dialog" aria-modal="true">
+            <div class="sheet-handle"></div>
+            <h3 class="sheet-title">สรุปรายการจอง</h3>
+            <p class="sheet-sub">ตรวจสอบข้อมูลก่อนยืนยัน ระบบจะหักค่าจองทันทีเมื่อกดปุ่มด้านล่าง</p>
+
+            <div class="sheet-section">
+                <p class="sheet-label">ช่องจอด</p>
+                <p class="sheet-value" id="sumSlot">A05 (ชั้น 1)</p>
+
+                <p class="sheet-label">เวลาเริ่มใช้งาน</p>
+                <p class="sheet-value" id="sumStart">23/11/2025 · 21:43</p>
+
+                <p class="sheet-label">ยกเลิกได้ภายใน</p>
+                <p class="sheet-value" id="sumCancelDeadline">23/11/2025 · 21:58</p>
+            </div>
+
+            <hr style="border:none;border-top:1px solid var(--sep);margin:10px 0 6px" />
+
+            <div class="sheet-row">
+                <span>ค่าจอง</span>
+                <span id="sumReserveFee"><strong>30 บาท</strong></span>
+            </div>
+
+            <div class="sheet-total">
+                <span>ยอดที่ต้องชำระตอนนี้</span>
+                <span id="sumTotal">หักทันที 30 บาท</span>
+            </div>
+
+            <p class="sheet-note">• ระบบจะล็อกช่องจอดนี้ให้ทันทีหลังยืนยัน</p>
+            <p class="sheet-note">• ยกเลิกได้ภายใน 15 นาทีหลังจอง และจะคืน 80% ของค่าจอง</p>
+
+            <div class="sheet-actions">
+                <button id="confirmBookingBtn" class="btn primary">ยืนยันการจองและหัก 30 บาท</button>
+                <button id="editBookingBtn" class="btn outline" type="button">กลับไปแก้ไข</button>
+            </div>
+        </div>
+    </div>
+
+    <nav id="tabbar" class="tabbar" role="navigation" aria-label="Bottom Navigation"></nav>
+
+    <script>
+
+        const API_BASE = `${location.origin}/api`;
+        const $ = s => document.querySelector(s);
+        const $$ = s => Array.from(document.querySelectorAll(s));
+        const RESERVE_FEE = 30;
+        const BOOKING_LEVEL = 1;
+        const FUTURE_WINDOW_MINUTES = 30;
+
+        async function fetchJSON(url, options) {
+            const res = await fetch(url, options);
+            const text = await res.text();
+            let data = {};
+            try {
+                data = JSON.parse(text);
+            } catch {
+                throw new Error('API ตอบกลับไม่ใช่ JSON: ' + text.slice(0, 400));
+            }
+
+            if (!res.ok || data.ok === false) {
+                throw new Error((data && data.error) ? data.error : `HTTP ${res.status}`);
+            }
+            return data;
+        }
+
+        function readQS() {
+            const u = new URL(location.href);
+            const slot = (u.searchParams.get('slot') || '').toUpperCase();
+            const start = u.searchParams.get('start') || u.searchParams.get('start_time') || '';
+            return { slot, start };
+        }
+
+        function setQS(params = {}) {
+            const u = new URL(location.href);
+            Object.entries(params).forEach(([k, v]) => {
+                if (v === null || v === undefined || v === '') u.searchParams.delete(k);
+                else u.searchParams.set(k, v);
+            });
+            history.replaceState(null, '', u.pathname + '?' + u.searchParams.toString());
+        }
+
+        function syncLayoutVars() {
+            const nav = document.querySelector('.nav');
+            const tab = document.getElementById('tabbar');
+
+            if (nav) {
+                document.documentElement.style.setProperty('--nav-h', `${nav.offsetHeight}px`);
+            }
+            if (tab) {
+                document.documentElement.style.setProperty('--tab-h', `${tab.offsetHeight}px`);
+            }
+        }
+
+        let me = {};
+        try {
+            me = JSON.parse(localStorage.getItem('parking_user') || '{}');
+        } catch { }
+
+        if (!me?.id) {
+            $('#loginNote').style.display = 'block';
+        }
+        
+
+        const pad = n => String(n).padStart(2, '0');
+        const toInput = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+        function floorToMinute(d) {
+            const x = new Date(d);
+            x.setSeconds(0, 0);
+            return x;
+        }
+
+        function defaultStart() {
+            return floorToMinute(new Date());
+        }
+
+        function maxStart() {
+            return floorToMinute(new Date(Date.now() + (FUTURE_WINDOW_MINUTES * 60 * 1000))); //30นาที
+        }
+
+        function syncStartLimit() {
+            const input = $('#start');
+            if (!input) return;
+            input.min = toInput(new Date(Date.now() - 60 * 1000)); //จองย้อนหลังได้1นาที
+            input.max = toInput(maxStart());
+        }
+
+        function fmtThaiDateTime(input) {
+            const d = input instanceof Date ? input : new Date(String(input).replace(' ', 'T'));
+            if (isNaN(d)) return '-';
+            return new Intl.DateTimeFormat('th-TH', {
+                dateStyle: 'short',
+                timeStyle: 'short'
+            }).format(d);
+        }
+
+        function fmtMoney(v) {
+            return Number(v || 0).toLocaleString('th-TH', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }) + ' บาท';
+        }
+
+        function escapeHtml(str) {
+    return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+        function getSafeStartValue(raw) {
+            if (!raw) return toInput(defaultStart());
+
+            const d = new Date(raw);
+            const minPast = new Date(Date.now() - 60 * 1000);
+            const maxNext = new Date(Date.now() + (FUTURE_WINDOW_MINUTES * 60 * 1000));
+
+            if (isNaN(d) || d < minPast || d > maxNext) {
+                return toInput(defaultStart());
+            }
+
+            return raw;
+        }
+
+        let ALL = [], selectedId = null;
+        const qs0 = readQS();
+        let PRESELECT_CODE = qs0.slot || '';
+        let PRESELECT_DONE = false;
+
+        $('#start').value = getSafeStartValue(qs0.start);
+        syncStartLimit();
+
+        function syncMapLink() {
+            const a = document.querySelector('.mapbtn');
+            if (!a) return;
+
+            const s = $('#start').value || '';
+            const u = new URL(a.getAttribute('href') || 'map.html', location.href);
+            u.searchParams.set('level', String(BOOKING_LEVEL));
+            if (s) u.searchParams.set('start', s);
+
+            let code = '';
+            if (selectedId) {
+                const obj = ALL.find(x => x.id === selectedId);
+                code = (obj?.code || '').toUpperCase();
+            } else if (PRESELECT_CODE) {
+                code = PRESELECT_CODE;
+            }
+
+            if (code) {
+                u.searchParams.set('slot', code);
+            }
+
+            a.setAttribute('href', u.pathname + '?' + u.searchParams.toString());
+
+            const sub = a.querySelector('.m-sub');
+            if (sub) sub.textContent = BOOKING_LEVEL === 1 ? 'A01–A10' : 'B01–B10';
+        }
+
+        function formatBusyRange(bFrom, bTo) {
+            if (!bFrom || !bTo) return '';
+            const s = new Date(String(bFrom).replace(' ', 'T'));
+            const e = new Date(String(bTo).replace(' ', 'T'));
+            if (isNaN(s) || isNaN(e)) return '';
+            const hh1 = pad(s.getHours()), mm1 = pad(s.getMinutes());
+            const hh2 = pad(e.getHours()), mm2 = pad(e.getMinutes());
+            return `${hh1}:${mm1}–${hh2}:${mm2}`;
+        }
+
+        async function loadSlots() {
+            try {
+                const s = $('#start').value;
+                let qs = `?level=${encodeURIComponent(String(BOOKING_LEVEL))}`;
+
+                if (s) {
+                    const s2 = s.replace('T', ' ');
+                    qs += `&start_time=${encodeURIComponent(s2)}&end_time=${encodeURIComponent(s2)}`;
+                }
+
+                const data = await fetchJSON(`${API_BASE}/slots_list.php${qs}`, { cache: 'no-store' });
+                ALL = (data.slots || []).filter(x => Number(x.level ?? 1) === BOOKING_LEVEL);
+
+                if (selectedId) {
+                    const found = ALL.find(x => x.id === selectedId && x.status === 'AVAILABLE');
+                    if (!found) selectedId = null;
+                }
+
+                render();
+                autoSelectFromQS();
+                syncMapLink();
+
+                const code = selectedId ? (ALL.find(x => x.id === selectedId)?.code || '') : (PRESELECT_CODE || '');
+                setQS({ slot: code ? String(code).toUpperCase() : '', start: $('#start').value || '' });
+            } catch (e) {
+                $('#slots').innerHTML = `<div class="sub">❌ ${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function render() {
+            const q = $('#q').value.trim().toLowerCase();
+            const st = $('#statusFilter').value;
+
+            const list = ALL.filter(s => {
+                const text = (String(s.code || '') + ' ' + String(s.level ?? '') + ' ' + String(s.description || '')).toLowerCase();
+                return (!q || text.includes(q)) && (!st || s.status === st);
+            });
+
+            const html = list.map(s => {
+                const map = {
+                    AVAILABLE: { c: 'p-av', t: 'ว่าง' },
+                    BOOKED: { c: 'p-bk', t: 'จองแล้ว' },
+                    OCCUPIED: { c: 'p-oc', t: 'ไม่ว่าง' },
+                    MAINTENANCE: { c: 'p-mt', t: 'ปิดปรับปรุง' }
+                }[s.status] || { c: 'p-mt', t: s.status };
+
+                const disabled = s.status !== 'AVAILABLE';
+
+                let extraLine = '';
+                if (s.status === 'AVAILABLE') {
+                    extraLine = 'พร้อมเริ่มใช้งาน';
+                } else if (s.busy_from && s.busy_to) {
+                    const rangeText = formatBusyRange(s.busy_from, s.busy_to);
+                    extraLine = rangeText ? `มีการจองช่วง ${rangeText}` : 'มีรายการจองอยู่';
+                } else if (s.status === 'MAINTENANCE') {
+                    extraLine = 'ช่องนี้ปิดปรับปรุง';
+                } else if (s.status === 'OCCUPIED') {
+                    extraLine = 'กำลังมีรถใช้งานอยู่';
+                } else {
+                    extraLine = 'ช่องนี้ยังไม่พร้อมให้จอง';
+                }
+
+                return `<div class="slot ${disabled ? 'disabled' : ''} ${s.id === selectedId ? 'selected' : ''}" data-id="${s.id}" data-code="${String(s.code || '').toUpperCase()}">
+        <div style="font-weight:900">${escapeHtml(s.code || '')}</div>
+        <div class="code">ชั้น ${escapeHtml(String(s.level ?? 1))}</div>
+        <span class="pill-status ${map.c}">${escapeHtml(map.t)}</span>
+        <div class="code">${escapeHtml(extraLine)}</div>
+      </div>`;
+            }).join('') || '<div class="sub">— ไม่พบช่องที่ตรงเงื่อนไข —</div>';
+
+            $('#slots').innerHTML = html;
+
+            $$('#slots .slot').forEach(el => {
+                el.onclick = () => {
+                    if (el.classList.contains('disabled')) return;
+                    selectedId = Number(el.dataset.id);
+                    $$('#slots .slot').forEach(x => x.classList.remove('selected'));
+                    el.classList.add('selected');
+                    syncMapLink();
+
+                    const code = (ALL.find(x => x.id === selectedId)?.code || '').toUpperCase();
+                    setQS({ slot: code, start: $('#start').value || '' });
+                };
+            });
+        }
+
+        function autoSelectFromQS() {
+            if (PRESELECT_DONE) return;
+            if (!PRESELECT_CODE) return;
+
+            const code = String(PRESELECT_CODE).toUpperCase();
+            const found = ALL.find(x => String(x.code || '').toUpperCase() === code);
+
+            if (!found || String(found.status || '').toUpperCase() !== 'AVAILABLE') {
+                PRESELECT_DONE = true;
+                return;
+            }
+
+            selectedId = found.id;
+            PRESELECT_DONE = true;
+            render();
+            setQS({ slot: code, start: $('#start').value || '' });
+            syncMapLink();
+        }
+
+        $('#q').oninput = () => {
+            render();
+            syncMapLink();
+        };
+
+        $('#statusFilter').onchange = () => {
+            render();
+            syncMapLink();
+        };
+
+        $('#start').addEventListener('change', () => {
+            syncStartLimit();
+            PRESELECT_DONE = false;
+            loadSlots();
+        });
+
+        let currentBookingData = null;
+
+        $('#bookBtn').onclick = async () => {
+            if (!me?.id) {
+                alert('กรุณาเข้าสู่ระบบก่อน');
+                return;
+            }
+
+            if (!selectedId) {
+                alert('กรุณาเลือกช่องจอดก่อน');
+                return;
+            }
+
+            const s = $('#start').value;
+            if (!s) {
+                alert('กรุณาเลือกเวลาเริ่มใช้งานก่อน');
+                return;
+            }
+
+            const sd = new Date(s);
+            if (isNaN(sd)) {
+                alert('เวลาเริ่มใช้งานไม่ถูกต้อง กรุณาเลือกใหม่');
+                return;
+            }
+
+            const minPast = new Date(Date.now() - 60 * 1000);
+            const maxNext = new Date(Date.now() + (FUTURE_WINDOW_MINUTES * 60 * 1000));
+
+            if (sd < minPast) {
+                alert('เวลาเริ่มใช้งานผ่านมาแล้ว กรุณาเลือกเวลาใหม่');
+                return;
+            }
+
+            if (sd > maxNext) {
+                alert(`เลือกเวลาเริ่มใช้งานได้ล่วงหน้าไม่เกิน ${FUTURE_WINDOW_MINUTES} นาที`);
+                return;
+            }
+
+            try {
+                const check = await fetchJSON(`${API_BASE}/booking_check.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: me.id,
+                        slot_id: selectedId,
+                        start_time: s
+                    })
+                });
+
+                if (!check.available) {
+                    const msg = {
+                        past_time: 'เวลาเริ่มใช้งานผ่านมาแล้ว',
+                        slot_overlap: 'ช่องนี้มีรายการจองหรือกำลังใช้งานอยู่แล้ว',
+                        user_overlap: 'คุณมีรายการจองหรือกำลังใช้งานช่องอื่นอยู่แล้ว'
+                    }[check.reason] || 'ไม่สามารถจองได้ในขณะนี้';
+                    alert('❌ ' + msg);
+                    return;
+                }
+
+                const cancelDeadline = new Date(Date.now() + (15 * 60 * 1000));
+                const slot = ALL.find(x => x.id === selectedId) || {};
+                const slotCode = (slot.code || '').toUpperCase();
+                const theSlotLevel = slot.level ?? 1;
+
+                currentBookingData = {
+                    s,
+                    slotId: selectedId,
+                    slotCode,
+                    slotLabel: `${slotCode} (ชั้น ${theSlotLevel})`,
+                    cancelDeadline
+                };
+
+                $('#sumSlot').textContent = currentBookingData.slotLabel;
+                $('#sumStart').textContent = fmtThaiDateTime(sd);
+                $('#sumCancelDeadline').textContent = fmtThaiDateTime(cancelDeadline);
+                $('#sumReserveFee').innerHTML = `<strong>${fmtMoney(RESERVE_FEE)}</strong>`;
+                $('#sumTotal').textContent = 'หักทันที 30 บาท';
+
+                $('#priceSheetBackdrop').classList.remove('hidden');
+            } catch (e) {
+                alert('❌ ตรวจสอบการจองไม่สำเร็จ: ' + e.message);
+            }
+        };
+
+        let bookingSubmitting = false;
+
+        $('#confirmBookingBtn').onclick = async () => {
+            if (bookingSubmitting || !currentBookingData) return;
+            if (!me?.id) {
+                alert('กรุณาเข้าสู่ระบบก่อน');
+                return;
+            }
+
+            bookingSubmitting = true;
+            const btn = $('#confirmBookingBtn');
+            const oldText = btn.textContent;
+            btn.textContent = 'กำลังบันทึก...';
+            btn.disabled = true;
+
+            const { s, slotId, slotCode } = currentBookingData;
+
+            try {
+                await fetchJSON(`${API_BASE}/booking_create.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: me.id,
+                        slot_id: slotId,
+                        start_time: s
+                    })
+                });
+
+                $('#priceSheetBackdrop').classList.add('hidden');
+                location.href = `mybookings.html?msg=book_ok&slot=${encodeURIComponent(slotCode)}`;
+            } catch (e) {
+                alert('❌ จองไม่สำเร็จ: ' + e.message);
+                bookingSubmitting = false;
+                btn.textContent = oldText;
+                btn.disabled = false;
+            }
+        };
+
+        $('#editBookingBtn').onclick = () => {
+            $('#priceSheetBackdrop').classList.add('hidden');
+        };
+    
+        $('#priceSheetBackdrop').addEventListener('click', (ev) => {
+            if (ev.target === $('#priceSheetBackdrop')) {
+                $('#priceSheetBackdrop').classList.add('hidden');
+            }
+        });
+
+        (function () {
+            const host = document.getElementById('tabbar');
+            host.innerHTML = `
+      <div class="tabs">
+        <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+        <a class="tab active" href="booking.html"><span class="ico">📅</span>จอง</a>
+        <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+        <a class="tab" href="account.html"><span class="ico">👤</span>บัญชี</a>
+      </div>`;
+        })();
+
+
+        function initLayout() {
+            syncLayoutVars();
+            setTimeout(syncLayoutVars, 0);
+            requestAnimationFrame(syncLayoutVars);
+        }
+
+        window.addEventListener('load', initLayout);
+        window.addEventListener('resize', syncLayoutVars);
+
+        loadSlots();
+        syncMapLink();
+        initLayout();
+        setInterval(loadSlots, 10000);
+    </script>
+</body>
+
+</html>

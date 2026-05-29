@@ -1,0 +1,28 @@
+# Secrets / local config
+.env
+.env.*
+!.env.example
+db.php
+api/db.php
+
+# User uploads / private data
+uploads/
+public/uploads/
+
+# Logs / stats / server files
+*.log
+logs/
+stats/
+public_ftp/
+
+# Backups / archives
+*.zip
+*.tar.gz
+*.sql
+*.bak
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

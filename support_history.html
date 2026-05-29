@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking • ประวัติการแจ้งปัญหา</title>
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #2563eb;
+            --sep: #e5e7eb;
+            --radius: 18px;
+            --shadow: 0 18px 40px rgba(15, 23, 42, .12);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #020617;
+                --card: #020617;
+                --text: #e5e7eb;
+                --muted: #9ca3af;
+                --sep: #111827;
+                --shadow: 0 20px 45px rgba(0, 0, 0, .8);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            overscroll-behavior: none;
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        .app {
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .nav {
+            flex: 0 0 auto;
+            position: relative;
+            z-index: 50;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg) 90%, transparent);
+            border-bottom: 1px solid var(--sep);
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .back-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: var(--text);
+        }
+
+        .back-btn:active {
+            transform: scale(.94);
+        }
+
+        .nav-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-spacer {
+            width: 32px;
+        }
+
+        .page {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            padding: 14px;
+            max-width: 980px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .content-scroll {
+            width: 100%;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            overscroll-behavior: contain;
+            padding-bottom: 10px;
+        }
+
+        .content-scroll::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 760px;
+            background: var(--card);
+            border: 1px solid color-mix(in oklab, var(--sep) 80%, transparent);
+            border-radius: 32px;
+            box-shadow: var(--shadow);
+            padding: 22px 22px 20px;
+            margin: 0 auto;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: color-mix(in oklab, var(--tint) 15%, #eff6ff);
+            color: var(--tint);
+            font-size: 18px;
+            flex: 0 0 32px;
+        }
+
+        .title {
+            margin: 0;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .subtitle {
+            margin: 2px 0 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .issue-list {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .issue-item {
+            border-radius: 18px;
+            border: 1px solid color-mix(in oklab, var(--sep) 80%, transparent);
+            padding: 12px 14px;
+            background: color-mix(in oklab, var(--card) 98%, transparent);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .issue-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .issue-title {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .issue-meta {
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .issue-detail {
+            font-size: 13px;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .issue-images {
+            margin-top: 8px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .issue-thumb {
+            appearance: none;
+            -webkit-appearance: none;
+            display: block;
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid color-mix(in oklab, var(--sep) 80%, transparent);
+            background: color-mix(in oklab, var(--bg) 70%, var(--card));
+            aspect-ratio: 1 / 1;
+            cursor: pointer;
+            padding: 0;
+            width: 100%;
+        }
+
+        .issue-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .issue-thumb::after {
+            content: "ดูรูป";
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #fff;
+            background: rgba(15, 23, 42, .6);
+            padding: 4px 8px;
+            border-radius: 999px;
+            backdrop-filter: blur(6px);
+            pointer-events: none;
+        }
+
+        .admin-reply {
+            margin-top: 4px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: rgba(37, 99, 235, .04);
+            border: 1px solid rgba(37, 99, 235, .15);
+            font-size: 12px;
+            word-break: break-word;
+        }
+
+        .admin-reply strong {
+            font-weight: 800;
+        }
+
+        .status-pill {
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+            align-self: flex-start;
+            flex: 0 0 auto;
+        }
+
+        .status-pill.pending {
+            background: rgba(234, 179, 8, .1);
+            border: 1px solid rgba(234, 179, 8, .3);
+            color: #b45309;
+        }
+
+        .status-pill.in-progress {
+            background: rgba(59, 130, 246, .1);
+            border: 1px solid rgba(59, 130, 246, .3);
+            color: #1d4ed8;
+        }
+
+        .status-pill.resolved {
+            background: rgba(34, 197, 94, .12);
+            border: 1px solid rgba(34, 197, 94, .35);
+            color: #15803d;
+        }
+
+        .status-pill.closed {
+            background: rgba(148, 163, 184, .16);
+            border: 1px solid rgba(148, 163, 184, .4);
+            color: #475569;
+        }
+
+        .empty-state {
+            margin-top: 12px;
+            padding: 18px 14px;
+            border-radius: 16px;
+            border: 1px dashed var(--sep);
+            font-size: 13px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .tabbar {
+            flex: 0 0 auto;
+            position: relative;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg) 92%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint) 10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .image-viewer {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(2, 6, 23, .88);
+            padding: 18px;
+        }
+
+        .image-viewer.show {
+            display: flex;
+        }
+
+        .image-viewer-inner {
+            position: relative;
+            width: 100%;
+            max-width: 980px;
+            max-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-viewer-img {
+            max-width: 100%;
+            max-height: calc(100dvh - 80px);
+            border-radius: 18px;
+            object-fit: contain;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .45);
+            background: #000;
+        }
+
+        .image-viewer-close {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .14);
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                border-radius: 26px;
+                padding: 18px 16px 16px;
+            }
+
+            .issue-images {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="nav">
+            <div class="row">
+                <button class="back-btn" type="button" onclick="location.href='support.html'">‹</button>
+                <div class="nav-title">ประวัติการแจ้งปัญหา</div>
+                <div class="nav-spacer"></div>
+            </div>
+        </div>
+
+        <main class="page">
+            <div class="content-scroll" id="contentScroll">
+                <section class="card">
+                    <header class="card-header">
+                        <div class="title-wrap">
+                            <div class="title-icon">📋</div>
+                            <div>
+                                <h3 class="title">ประวัติการแจ้งปัญหา</h3>
+                                <p class="subtitle">ดูรายการที่คุณเคยแจ้งให้แอดมินตรวจสอบ พร้อมสถานะล่าสุด</p>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div id="issueList" class="issue-list"></div>
+                    <div id="issueEmpty" class="empty-state" style="display:none;">
+                        ยังไม่มีการแจ้งปัญหาในระบบ<br />
+                        คุณสามารถเริ่มแจ้งปัญหาได้จากหน้า “แจ้งปัญหา / ติดต่อแอดมิน”
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <nav class="tabbar">
+            <div class="tabs">
+                <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+                <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+                <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+                <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+            </div>
+        </nav>
+    </div>
+
+    <div class="image-viewer" id="imageViewer" aria-hidden="true">
+        <div class="image-viewer-inner">
+            <button class="image-viewer-close" id="imageViewerClose" type="button" aria-label="ปิด">×</button>
+            <img id="imageViewerImg" class="image-viewer-img" src="" alt="รูปแนบการแจ้งปัญหา" />
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = `${location.origin}/api`;
+        const ISSUE_API = `${API_BASE}/issue_list_my.php`;
+        const $ = s => document.querySelector(s);
+
+        let me = {};
+        try {
+            me = JSON.parse(localStorage.getItem('parking_user') || '{}');
+        } catch (_) { }
+
+        if (!me?.id) {
+            sessionStorage.setItem('after_login', 'support_history.html');
+            location.href = 'login.html';
+        }
+
+        const TYPE_LABELS = {
+            slot_not_available: 'ช่องจอดไม่ว่างจริง',
+            status_incorrect: 'สถานะช่องจอด/การจองแสดงผิด',
+            payment_issue: 'ปัญหาการชำระเงิน',
+            app_bug: 'ปัญหาการใช้งานแอพ / หน้าเว็บ',
+            other: 'อื่น ๆ'
+        };
+
+        const fmtLocal = d =>
+            new Intl.DateTimeFormat('th-TH', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            }).format(d);
+
+        function escapeHtml(v) {
+            return String(v ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function mapStatus(statusRaw) {
+            const s = String(statusRaw || '').toUpperCase();
+            if (!s) return { label: 'ไม่ทราบสถานะ', cls: 'closed' };
+            if (s === 'OPEN' || s === 'NEW') return { label: 'รอดำเนินการ', cls: 'pending' };
+            if (s === 'REPLIED' || s === 'IN_PROGRESS') return { label: 'กำลังดำเนินการ', cls: 'in-progress' };
+            if (s === 'RESOLVED') return { label: 'แก้ไขแล้ว', cls: 'resolved' };
+            if (s === 'DONE') return { label: 'ดำเนินการแล้ว', cls: 'resolved' };
+            if (s === 'CLOSED') return { label: 'ปิดเคสแล้ว', cls: 'closed' };
+            return { label: s, cls: 'closed' };
+        }
+
+        function normalizeIssueImages(issue) {
+            const out = [];
+
+            const push = (val) => {
+                const src = String(val || '').trim();
+                if (!src) return;
+                if (!out.includes(src)) out.push(src);
+            };
+
+            const parseMixed = (value) => {
+                if (value == null || value === '') return;
+
+                if (Array.isArray(value)) {
+                    value.forEach(item => {
+                        if (typeof item === 'string') {
+                            push(item);
+                        } else if (item && typeof item === 'object') {
+                            push(
+                                item.url ||
+                                item.path ||
+                                item.src ||
+                                item.image_url ||
+                                item.image_path ||
+                                item.file ||
+                                item.file_path
+                            );
+                        }
+                    });
+                    return;
+                }
+
+                if (typeof value === 'string') {
+                    const raw = value.trim();
+                    if (!raw) return;
+
+                    if (raw.startsWith('[') || raw.startsWith('{')) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            parseMixed(parsed);
+                            return;
+                        } catch (_) { }
+                    }
+
+                    raw.split(/[\r\n,]+/).forEach(push);
+                    return;
+                }
+
+                if (value && typeof value === 'object') {
+                    push(
+                        value.url ||
+                        value.path ||
+                        value.src ||
+                        value.image_url ||
+                        value.image_path ||
+                        value.file ||
+                        value.file_path
+                    );
+                }
+            };
+
+            parseMixed(issue?.images);
+            parseMixed(issue?.image_urls);
+            parseMixed(issue?.image_paths);
+            parseMixed(issue?.attachments);
+            parseMixed(issue?.photos);
+            parseMixed(issue?.image_json);
+
+            push(issue?.image_url);
+            push(issue?.image);
+            push(issue?.image_path);
+            push(issue?.photo);
+
+            return out;
+        }
+
+        function openImageViewer(src) {
+            const viewer = $('#imageViewer');
+            const img = $('#imageViewerImg');
+            if (!viewer || !img || !src) return;
+            img.src = src;
+            viewer.classList.add('show');
+            viewer.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageViewer() {
+            const viewer = $('#imageViewer');
+            const img = $('#imageViewerImg');
+            if (!viewer || !img) return;
+            viewer.classList.remove('show');
+            viewer.setAttribute('aria-hidden', 'true');
+            img.src = '';
+            document.body.style.overflow = '';
+        }
+
+        async function loadIssueHistory() {
+            const listEl = $('#issueList');
+            const emptyEl = $('#issueEmpty');
+            const scrollEl = $('#contentScroll');
+
+            if (!listEl || !emptyEl) return;
+
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'none';
+            if (scrollEl) scrollEl.scrollTop = 0;
+
+            try {
+                const url = `${ISSUE_API}?user_id=${encodeURIComponent(me.id)}&limit=100&offset=0&_=${Date.now()}`;
+                const res = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store'
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                const ok = res.ok && (
+                    data?.ok === true ||
+                    data?.ok == 1 ||
+                    String(data?.ok || '').toLowerCase() === 'ok'
+                );
+
+                if (!ok) {
+                    throw new Error(data?.error || `HTTP ${res.status}`);
+                }
+
+                const issues = Array.isArray(data?.issues) ? data.issues : [];
+
+                if (!issues.length) {
+                    emptyEl.style.display = 'block';
+                    return;
+                }
+
+                listEl.innerHTML = issues.map(issue => {
+                    const id = issue?.id ?? '-';
+
+                    const createdAtRaw = issue?.created_at || issue?.createdAt || '';
+                    const createdAtDate = createdAtRaw ? new Date(String(createdAtRaw).replace(' ', 'T')) : null;
+                    const createdAtLabel = createdAtDate && !isNaN(createdAtDate)
+                        ? fmtLocal(createdAtDate)
+                        : (createdAtRaw || '-');
+
+                    const typeKey = issue?.issue_type || issue?.type || '';
+                    const typeLabel = TYPE_LABELS[typeKey] || 'ไม่ระบุหัวข้อ';
+
+                    const statusInfo = mapStatus(issue?.status);
+
+                    const bookingRef = issue?.booking_ref || issue?.booking_code || '';
+                    const bookingId = issue?.booking_id || '';
+                    const slotCode = issue?.slot_code || '';
+                    let refText = '';
+                    if (slotCode) refText = `ช่อง ${slotCode}`;
+                    else if (bookingRef) refText = bookingRef;
+                    else if (bookingId) refText = `การจอง #${bookingId}`;
+
+                    const detail = String(issue?.detail || issue?.message || '').trim();
+                    const adminReply = String(issue?.admin_reply || issue?.reply || '').trim();
+
+                    const replyAtRaw = issue?.reply_at || issue?.replied_at || '';
+                    const replyAtDate = replyAtRaw ? new Date(String(replyAtRaw).replace(' ', 'T')) : null;
+                    const replyAtLabel = replyAtDate && !isNaN(replyAtDate)
+                        ? fmtLocal(replyAtDate)
+                        : replyAtRaw;
+
+                    const images = normalizeIssueImages(issue);
+                    const imageCountText = images.length ? `${images.length} รูป` : '';
+
+                    return `
+                        <article class="issue-item">
+                            <div class="issue-top">
+                                <div>
+                                    <div class="issue-title">#${escapeHtml(id)} · ${escapeHtml(typeLabel)}</div>
+                                    <div class="issue-meta">
+                                        <span>${escapeHtml(createdAtLabel)}</span>
+                                        ${refText ? `<span>${escapeHtml(refText)}</span>` : ''}
+                                        ${imageCountText ? `<span>แนบรูป ${escapeHtml(imageCountText)}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="status-pill ${escapeHtml(statusInfo.cls)}">${escapeHtml(statusInfo.label)}</div>
+                            </div>
+
+                            ${detail ? `<div class="issue-detail">${escapeHtml(detail).replace(/\n/g, '<br>')}</div>` : ''}
+
+                            ${images.length ? `
+                                <div class="issue-images">
+                                    ${images.map(src => `
+                                        <button class="issue-thumb" type="button" data-image="${escapeHtml(src)}" aria-label="ดูรูปแนบ">
+                                            <img
+                                                src="${escapeHtml(src)}"
+                                                alt="รูปแนบการแจ้งปัญหา"
+                                                loading="lazy"
+                                                onerror="this.closest('.issue-thumb').style.display='none';"
+                                            />
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+
+                            ${adminReply ? `
+                                <div class="admin-reply">
+                                    <strong>คำตอบจากแอดมิน</strong>
+                                    ${replyAtLabel ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">ตอบเมื่อ ${escapeHtml(replyAtLabel)}</div>` : ''}
+                                    <div style="margin-top:4px;">${escapeHtml(adminReply).replace(/\n/g, '<br>')}</div>
+                                </div>
+                            ` : ''}
+                        </article>
+                    `;
+                }).join('');
+
+                listEl.querySelectorAll('.issue-thumb[data-image]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const src = btn.getAttribute('data-image') || '';
+                        if (src) openImageViewer(src);
+                    });
+                });
+
+            } catch (e) {
+                emptyEl.style.display = 'block';
+                emptyEl.textContent = 'ไม่สามารถโหลดประวัติการแจ้งปัญหาได้: ' + (e?.message || 'เกิดข้อผิดพลาด');
+            }
+        }
+
+        $('#imageViewerClose')?.addEventListener('click', closeImageViewer);
+
+        $('#imageViewer')?.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'imageViewer') {
+                closeImageViewer();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeImageViewer();
+        });
+
+        loadIssueHistory();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+    <title>Parking • ประวัติกระเป๋าเงิน</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+            --vh: 100dvh;
+            --nav-h: 58px;
+            --tab-h: 78px;
+        }
+
+        @media (prefers-color-scheme:dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e9edf2;
+                --muted: #9aa4af;
+                --sep: #1b2430;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .5);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            overscroll-behavior: none;
+            touch-action: pan-y;
+        }
+
+        .app {
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav {
+            flex: 0 0 auto;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg) 90%, transparent);
+            border-bottom: 1px solid var(--sep);
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+        }
+
+        .row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .back-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: inherit;
+        }
+
+        .back-btn:active {
+            transform: scale(.94);
+        }
+
+        .nav-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-spacer {
+            width: 32px;
+        }
+
+        .page {
+            flex: 1 1 auto;
+            min-height: 0;
+            max-width: 980px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 14px 14px 10px;
+            overflow: hidden;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--sep);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            height: 100%;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .title {
+            margin: 0 0 4px;
+            font-weight: 900;
+            font-size: 18px;
+            flex: 0 0 auto;
+        }
+
+        .subtitle {
+            margin: 0 0 10px;
+            font-size: 12px;
+            color: var(--muted);
+            flex: 0 0 auto;
+        }
+
+        .balance-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            flex: 0 0 auto;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .balance-value {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: .02em;
+        }
+
+        .balance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            background: color-mix(in oklab, var(--tint) 12%, transparent);
+            color: #0f172a;
+            margin-top: 4px;
+        }
+
+        .history-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 2px;
+            overscroll-behavior: contain;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .history-scroll::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .filter-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .pill {
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card) 96%, transparent);
+            font-size: 11px;
+            cursor: pointer;
+            color: var(--muted);
+        }
+
+        .pill.active {
+            border-color: color-mix(in oklab, var(--tint) 50%, transparent);
+            background: color-mix(in oklab, var(--tint) 12%, var(--card));
+            color: var(--tint);
+            font-weight: 700;
+        }
+
+        .filter-meta {
+            font-size: 11px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .tx-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .tx-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 14px;
+            border: 1px solid var(--sep);
+            background: color-mix(in oklab, var(--card) 96%, transparent);
+        }
+
+        .tx-ico {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex: 0 0 32px;
+        }
+
+        .tx-ico.topup {
+            background: rgba(16, 185, 129, .1);
+        }
+
+        .tx-ico.charge {
+            background: rgba(239, 68, 68, .1);
+        }
+
+        .tx-ico.refund {
+            background: rgba(59, 130, 246, .1);
+        }
+
+        .tx-ico.neutral {
+            background: rgba(148, 163, 184, .16);
+        }
+
+        .tx-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .tx-title {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .type-badge {
+            padding: 2px 6px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid transparent;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .type-badge.topup {
+            background: rgba(16, 185, 129, .08);
+            color: #16a34a;
+            border-color: rgba(16, 185, 129, .5);
+        }
+
+        .type-badge.charge {
+            background: rgba(239, 68, 68, .08);
+            color: #dc2626;
+            border-color: rgba(239, 68, 68, .5);
+        }
+
+        .type-badge.refund {
+            background: rgba(59, 130, 246, .08);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, .5);
+        }
+
+        .type-badge.other {
+            background: rgba(148, 163, 184, .08);
+            color: #64748b;
+            border-color: rgba(148, 163, 184, .5);
+        }
+
+        .tx-meta,
+        .tx-meta-extra {
+            font-size: 11px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tx-amt {
+            font-size: 14px;
+            font-weight: 800;
+            white-space: nowrap;
+            margin-left: 6px;
+            flex: 0 0 auto;
+        }
+
+        .tx-amt.plus {
+            color: #16a34a;
+        }
+
+        .tx-amt.minus {
+            color: #dc2626;
+        }
+
+        .tx-amt.neutral {
+            color: var(--muted);
+        }
+
+        .empty {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+            padding: 16px 4px 4px;
+        }
+
+        .pager {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            padding-bottom: 4px;
+        }
+
+        .pager button {
+            min-width: 34px;
+            height: 34px;
+            padding: 0 12px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            background: var(--card);
+            color: var(--muted);
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
+        }
+
+        .pager button:active {
+            transform: scale(.96);
+        }
+
+        .pager button.active {
+            background: var(--tint);
+            color: #fff;
+            border-color: var(--tint);
+            box-shadow: 0 6px 16px rgba(10, 132, 255, .22);
+        }
+
+        .pager button:disabled {
+            opacity: .42;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .pager .nav-btn {
+            padding: 0 14px;
+        }
+
+        .pager .dots {
+            min-width: 20px;
+            text-align: center;
+            color: var(--muted);
+            font-weight: 800;
+            user-select: none;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(90px + var(--safe-btm));
+            transform: translateX(-50%) translateY(30px);
+            opacity: 0;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            background: #0f172a;
+            color: #f9fafb;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .6);
+            pointer-events: none;
+            transition: opacity .18s, transform .18s;
+            max-width: 90%;
+            text-align: center;
+            z-index: 80;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: #b91c1c;
+        }
+
+        .tabbar {
+            flex: 0 0 auto;
+            position: sticky;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg) 90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint) 10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="nav">
+            <div class="row">
+                <button class="back-btn" type="button" onclick="location.href='wallet.html'">‹</button>
+                <div class="nav-title">ประวัติกระเป๋าเงิน</div>
+                <div class="nav-spacer"></div>
+            </div>
+        </div>
+
+        <main class="page">
+            <section class="card">
+                <h3 class="title">ประวัติธุรกรรมวอลเล็ต</h3>
+                <p class="subtitle">
+                    แสดงรายการเติมเงิน การหักค่าจอง และการคืนเงินล่าสุดจากระบบ AutoParkX
+                </p>
+
+                <div class="balance-row">
+                    <div>
+                        <div class="balance-label">ยอดคงเหลือปัจจุบัน</div>
+                        <div id="walletBalance" class="balance-value">– ฿</div>
+                        <div class="balance-badge">💳 ใช้ชำระค่าจองที่จอดอัตโนมัติ</div>
+                    </div>
+                </div>
+
+                <div class="history-scroll" id="historyScroll">
+                    <div class="filter-row">
+                        <div class="filter-tabs">
+                            <button type="button" class="pill active" data-type="all">ทั้งหมด</button>
+                            <button type="button" class="pill" data-type="topup">เติมเงิน</button>
+                            <button type="button" class="pill" data-type="charge">หักค่าจอง</button>
+                            <button type="button" class="pill" data-type="refund">คืนเงิน</button>
+                        </div>
+                        <div class="filter-meta" id="filterMeta">เรียงจากรายการล่าสุด</div>
+                    </div>
+
+                    <div id="historyList" class="tx-list"></div>
+                    <div id="emptyState" class="empty" style="display:none;">
+                        ยังไม่มีรายการวอลเล็ตในช่วงนี้
+                    </div>
+
+                    <div id="pager" class="pager"></div>
+                </div>
+            </section>
+        </main>
+
+        <nav class="tabbar">
+            <div class="tabs">
+                <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+                <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+                <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+                <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+            </div>
+        </nav>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const ROOT = '';
+    const API_BASE = `${location.origin}${ROOT}/api`;
+    const $ = s => document.querySelector(s);
+
+    let me = {};
+    try { me = JSON.parse(localStorage.getItem('parking_user') || '{}'); } catch { }
+
+    if (!me?.id) {
+      sessionStorage.setItem('after_login', 'wallet_history.html');
+      location.href = 'login.html';
+    }
+
+    function showToast(msg, isError = false) {
+      const t = $('#toast');
+      t.textContent = msg;
+      t.classList.toggle('error', !!isError);
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    async function loadBalance() {
+      const el = $('#walletBalance');
+      el.textContent = 'กำลังโหลด…';
+      try {
+        const res = await fetch(`${API_BASE}/wallet_balance.php?user_id=${me.id}`, { cache: 'no-store' });
+        const data = await res.json();
+
+        if (!data.ok) throw 0;
+
+        const bal = Number(data.balance ?? data.wallet ?? 0);
+        el.textContent = bal.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + ' ฿';
+      } catch {
+        el.textContent = '– ฿';
+        showToast('โหลดยอดเงินไม่สำเร็จ', true);
+      }
+    }
+
+    function describeType(type, amount) {
+      const t = (type || '').toLowerCase();
+      const a = Number(amount || 0);
+
+      if (t === 'topup') {
+        return {
+          title: 'เติมเงินเข้ากระเป๋า',
+          tag: 'เติมเงิน',
+          ico: '⬆︎',
+          class: 'topup',
+          sign: '+',
+          badgeClass: 'topup'
+        };
+      }
+
+      if (t === 'booking' || t === 'charge' || (!t && a < 0)) {
+        return {
+          title: 'หักค่าจองที่จอด',
+          tag: 'หักค่าจอง',
+          ico: '⬇︎',
+          class: 'charge',
+          sign: '-',
+          badgeClass: 'charge'
+        };
+      }
+
+      if (t === 'refund') {
+        return {
+          title: 'คืนเงินเข้ากระเป๋า',
+          tag: 'คืนเงิน',
+          ico: '↺',
+          class: 'refund',
+          sign: '+',
+          badgeClass: 'refund'
+        };
+      }
+
+      return {
+        title: 'ธุรกรรมอื่น',
+        tag: 'อื่น ๆ',
+        ico: '◎',
+        class: 'neutral',
+        sign: (a >= 0 ? '+' : '-'),
+        badgeClass: 'other'
+      };
+    }
+
+    const PER_PAGE = 10;
+    let currentFilter = 'all';
+    let loading = false;
+    let ALL_ITEMS = [];
+    let currentPage = 1;
+
+    async function loadHistory() {
+      if (loading) return;
+      loading = true;
+
+      const listEl = $('#historyList');
+      const emptyEl = $('#emptyState');
+      const metaEl = $('#filterMeta');
+      const pagerEl = $('#pager');
+      const scrollEl = $('#historyScroll');
+
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'none';
+      pagerEl.innerHTML = '';
+      metaEl.textContent = 'กำลังโหลด…';
+      scrollEl.scrollTop = 0;
+
+      try {
+        const res = await fetch(
+          `${API_BASE}/wallet_history.php?user_id=${me.id}&limit=200`,
+          { cache: 'no-store' }
+        );
+        const data = await res.json();
+        if (!data.ok) throw 0;
+
+        const items = data.history || data.items || [];
+
+        let filtered = items;
+        if (currentFilter !== 'all') {
+          filtered = items.filter(v => {
+            const t = (v.type || '').toLowerCase();
+            const a = Number(v.amount || 0);
+
+            if (currentFilter === 'topup') return t === 'topup';
+            if (currentFilter === 'charge') return (t === 'booking' || t === 'charge' || (!t && a < 0));
+            if (currentFilter === 'refund') return t === 'refund';
+            return true;
+          });
+        }
+
+        if (filtered.length === 0) {
+          ALL_ITEMS = [];
+          emptyEl.style.display = 'block';
+          metaEl.textContent = 'ไม่มีธุรกรรมในหมวดนี้';
+          pagerEl.innerHTML = '';
+          loading = false;
+          return;
+        }
+
+        ALL_ITEMS = filtered;
+        currentPage = 1;
+        renderPage();
+      } catch {
+        ALL_ITEMS = [];
+        emptyEl.style.display = 'block';
+        pagerEl.innerHTML = '';
+        metaEl.textContent = 'โหลดไม่สำเร็จ';
+        showToast('โหลดประวัติไม่สำเร็จ', true);
+      }
+
+      loading = false;
+    }
+
+    function buildPager(totalPages, currentPage) {
+      if (totalPages <= 1) return '';
+
+      let html = '';
+      const sideRange = 2;
+
+      html += `<button class="nav-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>‹ ก่อนหน้า</button>`;
+
+      let start = Math.max(1, currentPage - sideRange);
+      let end = Math.min(totalPages, currentPage + sideRange);
+
+      if (currentPage <= 3) end = Math.min(totalPages, 5);
+      if (currentPage >= totalPages - 2) start = Math.max(1, totalPages - 4);
+
+      if (start > 1) {
+        html += `<button data-page="1">1</button>`;
+        if (start > 2) html += `<span class="dots">...</span>`;
+      }
+
+      for (let p = start; p <= end; p++) {
+        html += `<button data-page="${p}" class="${p === currentPage ? 'active' : ''}">${p}</button>`;
+      }
+
+      if (end < totalPages) {
+        if (end < totalPages - 1) html += `<span class="dots">...</span>`;
+        html += `<button data-page="${totalPages}">${totalPages}</button>`;
+      }
+
+      html += `<button class="nav-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>ถัดไป ›</button>`;
+      return html;
+    }
+
+    function renderPage() {
+      const listEl = $('#historyList');
+      const emptyEl = $('#emptyState');
+      const metaEl = $('#filterMeta');
+      const pagerEl = $('#pager');
+
+      listEl.innerHTML = '';
+      pagerEl.innerHTML = '';
+
+      if (!ALL_ITEMS.length) {
+        emptyEl.style.display = 'block';
+        metaEl.textContent = 'ไม่มีธุรกรรมในหมวดนี้';
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(ALL_ITEMS.length / PER_PAGE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const start = (currentPage - 1) * PER_PAGE;
+      const pageItems = ALL_ITEMS.slice(start, start + PER_PAGE);
+
+      emptyEl.style.display = 'none';
+
+      const frag = document.createDocumentFragment();
+
+      pageItems.forEach(v => {
+        const d = describeType(v.type, v.amount);
+        const amt = Number(v.amount || 0);
+        const abs = Math.abs(amt).toFixed(2);
+        const created = v.created_at || '';
+        const note = v.note || '';
+        const ref = v.ref || '';
+
+        const slotCode = v.slot_code || v.slot || '';
+        const bookingAny = v.booking_code || v.booking_ref || v.booking_id || '';
+        const balAfterRaw = (v.balance_after !== undefined)
+          ? Number(v.balance_after)
+          : (v.balance !== undefined ? Number(v.balance) : NaN);
+        const hasBalanceAfter = Number.isFinite(balAfterRaw);
+
+        const mainParts = [];
+        if (created) mainParts.push(created);
+        if (ref) mainParts.push('อ้างอิง:' + ref);
+        if (note) mainParts.push(note);
+
+        const metaMain = mainParts.join(' · ');
+
+        const extraParts = [];
+        if (d.tag) extraParts.push(d.tag);
+        if (slotCode) extraParts.push('ช่อง ' + slotCode);
+        if (bookingAny) extraParts.push('รายการจอง ' + bookingAny);
+        if (hasBalanceAfter) {
+          extraParts.push(
+            'คงเหลือ ' +
+            balAfterRaw.toLocaleString('th-TH', { minimumFractionDigits: 2 }) +
+            ' ฿'
+          );
+        }
+        const metaExtra = extraParts.join(' · ');
+
+        const row = document.createElement('div');
+        row.className = 'tx-item';
+
+        row.innerHTML = `
+          <div class="tx-ico ${d.class}">${d.ico}</div>
+          <div class="tx-main">
+            <div class="tx-title">
+              <span class="tx-title-text">${d.title}</span>
+              <span class="type-badge ${d.badgeClass || ''}">${d.tag || ''}</span>
+            </div>
+            <div class="tx-meta">${metaMain || ''}</div>
+            ${metaExtra ? `<div class="tx-meta tx-meta-extra">${metaExtra}</div>` : ''}
+          </div>
+          <div class="tx-amt ${amt > 0 ? 'plus' : (amt < 0 ? 'minus' : 'neutral')}">
+            ${amt >= 0 ? '+' : '-'}${abs} ฿
+          </div>
+        `;
+
+        frag.appendChild(row);
+      });
+
+      listEl.appendChild(frag);
+
+      const labelMap = {
+        all: 'ทั้งหมด',
+        topup: 'เติมเงิน',
+        charge: 'หักค่าจอง',
+        refund: 'คืนเงิน'
+      };
+
+      metaEl.textContent =
+        `หน้าที่ ${currentPage}/${totalPages} · แสดง ${pageItems.length} จากทั้งหมด ${ALL_ITEMS.length} รายการ (${labelMap[currentFilter] || 'ทั้งหมด'})`;
+
+      pagerEl.innerHTML = buildPager(totalPages, currentPage);
+    }
+
+    $('#pager').addEventListener('click', ev => {
+      const btn = ev.target.closest('button[data-page]');
+      if (!btn || btn.disabled) return;
+
+      const p = Number(btn.dataset.page);
+      if (!Number.isFinite(p)) return;
+
+      currentPage = p;
+      renderPage();
+
+      const scrollEl = $('#historyScroll');
+      scrollEl.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+
+    function initFilterTabs() {
+      document.querySelectorAll('.pill[data-type]').forEach(btn => {
+        btn.onclick = () => {
+          currentFilter = btn.dataset.type;
+          document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          loadHistory();
+        };
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initFilterTabs();
+      loadBalance();
+      loadHistory();
+    });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <title>Parking • การแจ้งเตือน</title>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="AutoParkX">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a84ff">
+
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --card: #ffffff;
+      --text: #0b1220;
+      --muted: #6b7280;
+      --tint: #0a84ff;
+      --sep: #e5e7eb;
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+      --safe-top: env(safe-area-inset-top);
+      --safe-btm: env(safe-area-inset-bottom);
+      --vh: 100dvh;
+      --nav-h: 0px;
+      --tab-h: 0px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b0f14;
+        --card: #11161c;
+        --text: #e5e7eb;
+        --muted: #9aa4af;
+        --sep: #1f2937;
+        --shadow: 0 14px 26px rgba(0, 0, 0, .55);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: calc(8px + var(--safe-top)) 14px 8px;
+      backdrop-filter: saturate(180%) blur(12px);
+      background: color-mix(in oklab, var(--bg)90%, transparent);
+      border-bottom: 1px solid var(--sep);
+    }
+
+    .row {
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      column-gap: 8px;
+    }
+
+    .back-btn {
+      border: none;
+      background: transparent;
+      padding: 4px 8px;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      color: var(--text);
+    }
+
+    .back-btn:active {
+      transform: scale(.94);
+    }
+
+    .nav-title {
+      text-align: center;
+      font-weight: 800;
+      font-size: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-spacer {
+      width: 32px;
+    }
+
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 14px 14px calc(90px + var(--safe-btm));
+      height: calc(var(--vh) - var(--nav-h) - var(--tab-h));
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .page::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--sep);
+      box-shadow: var(--shadow);
+      padding: 16px 16px 12px;
+      flex: 0 0 auto;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      font-weight: 900;
+      font-size: 16px;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 10px;
+      border-radius: 14px;
+      background: color-mix(in oklab, var(--card)94%, transparent);
+      border: 1px solid var(--sep);
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .item-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .item-title {
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .item-sub {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .item-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .hint {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: #d1d5db;
+      border-radius: 999px;
+      transition: .2s;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      top: 3px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+      transition: .2s;
+    }
+
+    .switch input:checked+.slider {
+      background: var(--tint);
+    }
+
+    .switch input:checked+.slider::before {
+      transform: translateX(18px);
+    }
+
+    .switch input:disabled+.slider {
+      opacity: .4;
+      cursor: default;
+    }
+
+    .tabbar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 60;
+      padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+      background: color-mix(in oklab, var(--bg)90%, transparent);
+      border-top: 1px solid var(--sep);
+      backdrop-filter: saturate(180%) blur(10px);
+    }
+
+    .tabs {
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 6px;
+      border-radius: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tab.active {
+      color: var(--tint);
+      background: color-mix(in oklab, var(--tint)10%, transparent);
+    }
+
+    .ico {
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="nav">
+    <div class="row">
+      <button class="back-btn" type="button" onclick="location.href='account.html'">
+        ‹
+      </button>
+      <div class="nav-title">การแจ้งเตือน</div>
+      <div class="nav-spacer"></div>
+    </div>
+  </div>
+
+  <main class="page" id="pageScroll">
+
+    <section class="card">
+      <h3 class="title">การแจ้งเตือน</h3>
+      <p class="subtitle">
+        ตั้งค่าการแจ้งเตือนของบัญชีนี้
+        (ระบบจะบันทึกในเซิร์ฟเวอร์ เพื่อใช้กับ Push / LINE ภายหลัง)
+      </p>
+
+      <div class="list">
+        <div class="item">
+          <div class="item-left">
+            <div class="item-title">เปิดการแจ้งเตือนทั้งหมด</div>
+            <div class="item-sub" id="masterLabel">ใช้การตั้งค่าด้านล่างตามปกติ</div>
+          </div>
+          <div class="item-right">
+            <label class="switch">
+              <input type="checkbox" id="n-enabled" data-key="enabled">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint">
+        การตั้งค่านี้จะผูกกับบัญชีของคุณและเก็บบนเซิร์ฟเวอร์
+        ถ้าล็อกอินจากเครื่องอื่น การตั้งค่าจะตามไปด้วย
+      </div>
+    </section>
+
+    <section class="card">
+      <h3 class="title">การจองของฉัน</h3>
+      <p class="subtitle">แจ้งเตือนเกี่ยวกับการจองที่จอดรถของคุณ</p>
+
+      <div class="list">
+        <div class="item">
+          <div class="item-left">
+            <div class="item-title">แจ้งเตือนเมื่อสร้างการจองสำเร็จ</div>
+            <div class="item-sub">เช่น “จองช่อง A01 สำเร็จแล้ว”</div>
+          </div>
+          <div class="item-right">
+            <label class="switch">
+              <input type="checkbox" data-key="booking_created">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="item-left">
+            <div class="item-title">เตือนล่วงหน้าก่อนถึงเวลาเริ่มจอง</div>
+            <div class="item-sub">ประมาณ 10–15 นาทีก่อนถึงเวลาเริ่มจอง</div>
+          </div>
+          <div class="item-right">
+            <label class="switch">
+              <input type="checkbox" data-key="booking_soon">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="item-left">
+            <div class="item-title">แจ้งเตือนเมื่อการจองถูกยกเลิก / หมดอายุ</div>
+            <div class="item-sub">เช่น ระบบยกเลิกอัตโนมัติ หรือแอดมินยกเลิก</div>
+          </div>
+          <div class="item-right">
+            <label class="switch">
+              <input type="checkbox" data-key="booking_cancelled">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="item-left">
+            <div class="item-title">ข้อความจากแอดมิน</div>
+            <div class="item-sub">แจ้งเตือนเมื่อแอดมินตอบกลับเคสแจ้งปัญหาของคุณ</div>
+          </div>
+          <div class="item-right">
+            <label class="switch">
+              <input type="checkbox" data-key="admin_reply">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3 class="title">วอลเล็ตและการชำระเงิน</h3>
+      <p class="subtitle">แจ้งเตือนเกี่ยวกับยอดเงินและการทำรายการ</p>
+
+      <div class="list">
+        <div class="item">
+          <div class="item-left">
+            <div class="item-title">แจ้งเตือนเมื่อเติมเงินสำเร็จ</div>
+            <div class="item-sub">เช่น “เติมเงิน 50 ฿ สำเร็จ ยอดคงเหลือ 120 ฿”</div>
+          </div>
+          <div class="item-right">
+            <label class="switch">
+              <input type="checkbox" data-key="wallet_topup">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar">
+    <div class="tabs">
+      <a class="tab" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+      <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+      <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+      <a class="tab active" href="account.html"><span class="ico">👤</span>บัญชี</a>
+    </div>
+  </nav>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+
+    function lockViewportScrollArea() {
+      const nav = document.querySelector('.nav');
+      const tab = document.querySelector('.tabbar');
+      const navH = nav ? Math.round(nav.getBoundingClientRect().height) : 0;
+      const tabH = tab ? Math.round(tab.getBoundingClientRect().height) : 0;
+
+      document.documentElement.style.setProperty('--nav-h', navH + 'px');
+      document.documentElement.style.setProperty('--tab-h', tabH + 'px');
+      document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
+
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+
+    let me = {};
+    try {
+      me = JSON.parse(localStorage.getItem('parking_user') || '{}');
+    } catch (_) { }
+
+    if (!me?.id) {
+      sessionStorage.setItem('after_login', 'notifications.html');
+      location.href = 'login.html';
+    }
+
+    const defaults = {
+      enabled: true,
+      booking_created: true,
+      booking_soon: true,
+      booking_cancelled: true,
+      admin_reply: true,
+      news: false,
+      quiet_night: false,
+      wallet_topup: true
+    };
+
+    let cfg = { ...defaults };
+
+    function sanitizePrefs(input) {
+      const cleaned = { ...defaults };
+      if (!input || typeof input !== 'object') return cleaned;
+
+      Object.keys(defaults).forEach(key => {
+        cleaned[key] = !!input[key];
+      });
+
+      return cleaned;
+    }
+
+    function syncUI() {
+      $$('input[data-key]').forEach(input => {
+        const key = input.dataset.key;
+        input.checked = !!cfg[key];
+        if (key !== 'enabled') {
+          input.disabled = !cfg.enabled;
+        }
+      });
+
+      const label = $('#masterLabel');
+      if (!label) return;
+
+      label.textContent = cfg.enabled
+        ? 'ใช้การตั้งค่ารายการด้านล่างตามปกติ'
+        : 'ปิดการแจ้งเตือนทั้งหมด (จะไม่ใช้รายการด้านล่าง)';
+    }
+
+    async function fetchConfig() {
+      try {
+        const res = await fetch('api/notify_prefs_get.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: me.id })
+        });
+
+        const data = await res.json();
+
+        if (data.ok && data.prefs) {
+          cfg = { ...defaults, ...data.prefs };
+        } else {
+          cfg = { ...defaults };
+        }
+      } catch (e) {
+        console.error('load prefs error', e);
+        cfg = { ...defaults };
+      }
+
+      syncUI();
+    }
+
+    let saveTimer = null;
+
+    function scheduleSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveConfig, 200);
+    }
+
+    async function saveConfig() {
+      try {
+        const payload = sanitizePrefs(cfg);
+
+        const res = await fetch('api/notify_prefs_save.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: me.id, prefs: payload })
+        });
+
+        const data = await res.json();
+        if (!data.ok) {
+          console.warn('save prefs failed', data);
+        }
+      } catch (e) {
+        console.error('save prefs error', e);
+      }
+    }
+
+    $$('input[data-key]').forEach(input => {
+      input.addEventListener('change', () => {
+        const key = input.dataset.key;
+        cfg[key] = input.checked;
+        if (key === 'enabled') {
+          syncUI();
+        }
+        scheduleSave();
+      });
+    });
+
+    lockViewportScrollArea();
+    window.addEventListener('resize', lockViewportScrollArea);
+    window.addEventListener('orientationchange', lockViewportScrollArea);
+
+    document.addEventListener('touchmove', function (e) {
+      const scrollEl = document.querySelector('.page');
+      if (!scrollEl) return;
+      if (!scrollEl.contains(e.target)) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    fetchConfig();
+  </script>
+</body>
+
+</html>

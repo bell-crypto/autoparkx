@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
+    <title>Parking | Admin · แจ้งปัญหา</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #0f172a;
+            --card: #111827;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --stroke: #1f2937;
+            --primary: #60a5fa;
+            --ok: #10b981;
+            --warn: #eab308;
+            --danger: #ef4444;
+            --radius: 16px;
+            --shadow: 0 14px 28px rgba(0, 0, 0, .45);
+            --shadow-soft: 0 6px 16px rgba(0, 0, 0, .28);
+            --rail-w: 260px;
+            --rail-gap: 16px;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f7f8fb;
+                --panel: #ffffff;
+                --card: #ffffff;
+                --text: #0f172a;
+                --muted: #64748b;
+                --stroke: #e8ecf3;
+                --primary: #1d4ed8;
+                --ok: #16a34a;
+                --warn: #eab308;
+                --danger: #ef4444;
+                --shadow: 0 12px 24px rgba(15, 23, 42, .08);
+                --shadow-soft: 0 6px 14px rgba(15, 23, 42, .06);
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(120deg, color-mix(in oklab, var(--bg)92%, transparent), var(--panel));
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, "Noto Sans Thai", Sarabun, Arial, sans-serif;
+        }
+
+        .rail {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 80;
+            width: var(--rail-w);
+            background: color-mix(in oklab, var(--panel) 96%, transparent);
+            border-right: 1px solid var(--stroke);
+            display: flex;
+            flex-direction: column;
+            padding: 14px 10px;
+            transform: translateX(-100%);
+            transition: transform .22s ease;
+        }
+
+        .rail.open {
+            transform: none;
+        }
+
+        .rail .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px 12px;
+            font-weight: 900;
+        }
+
+        .rail .logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: conic-gradient(from 220deg, #22d3ee, #6366f1, #22d3ee)
+        }
+
+        .rail .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card) 96%, transparent);
+            color: var(--muted);
+            font-weight: 800;
+            margin: 0 10px 10px;
+            font-size: 13px;
+        }
+
+        .rail nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 6px;
+        }
+
+        .rail a.item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .rail a.item .ico {
+            width: 20px;
+            text-align: center;
+        }
+
+        .rail a.item.active {
+            background: color-mix(in oklab, var(--primary) 18%, transparent);
+            color: #fff;
+        }
+
+        .rail .sp {
+            margin: 8px 6px;
+            height: 1px;
+            background: color-mix(in oklab, var(--stroke) 70%, transparent);
+        }
+
+        .rail .foot {
+            margin-top: auto;
+            padding: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .rail-mask {
+            position: fixed;
+            inset: 0;
+            z-index: 79;
+            background: rgba(0, 0, 0, .26);
+            opacity: 0;
+            pointer-events: none;
+            transition: .2s;
+        }
+
+        .rail-mask.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @media (min-width:1000px) {
+            .rail {
+                transform: none;
+                transition: none;
+            }
+
+            body.has-rail main,
+            body.has-rail footer {
+                margin-left: calc(var(--rail-w) + var(--rail-gap));
+            }
+
+            body.has-rail #fabMenu {
+                display: none;
+            }
+
+            body.has-rail main {
+                max-width: min(1240px, calc(100vw - var(--rail-w) - var(--rail-gap) - 32px));
+            }
+
+            .rail-mask {
+                display: none !important;
+            }
+        }
+
+        #fabMenu {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 70;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card) 92%, transparent);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: var(--shadow-soft);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        @media (min-width:1000px) {
+            #fabMenu {
+                display: none;
+            }
+        }
+
+        main {
+            max-width: min(1240px, 94vw);
+            margin: 16px auto;
+            display: grid;
+            gap: 16px;
+        }
+
+        .card {
+            background: color-mix(in oklab, var(--card) 96%, transparent);
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: clamp(14px, 3vw, 20px);
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: clamp(18px, 2.6vw, 24px);
+        }
+
+        h2 {
+            margin: 0 0 6px;
+            font-size: clamp(16px, 2.4vw, 20px);
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        footer {
+            max-width: min(1240px, 94vw);
+            margin: 8px auto 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .statbox {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .pillStat {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--card) 94%, transparent);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .pillStat label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .pillStat span {
+            font-weight: 900;
+            font-size: 22px;
+        }
+
+        .pill-all span {
+            color: var(--text);
+        }
+
+        .pill-new span {
+            color: var(--warn);
+        }
+
+        .pill-ip span {
+            color: #0284c7;
+        }
+
+        .pill-done span {
+            color: var(--ok);
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            align-items: stretch;
+        }
+
+        .input,
+        .select,
+        .selectStatus {
+            padding: 9px 11px;
+            border-radius: 12px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel) 94%, transparent);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .input {
+            min-width: 0;
+            flex: 1 1 220px;
+        }
+
+        .select {
+            min-width: 150px;
+        }
+
+        .selectStatus {
+            min-width: 130px;
+            border-radius: 999px;
+            padding: 6px 9px;
+            font-size: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 13px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 900;
+            border: 1px solid var(--stroke);
+            cursor: pointer;
+            box-shadow: var(--shadow-soft);
+            background: color-mix(in oklab, var(--card) 84%, transparent);
+            color: var(--text);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .btn.primary {
+            color: #fff;
+            border: 0;
+            background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 70%, #0a66cc));
+        }
+
+        .btn.alt {
+            color: #fff;
+            border: 0;
+            background: linear-gradient(135deg, #475569, #334155);
+        }
+
+        .btn.success {
+            color: #fff;
+            border: 0;
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+
+        .btn.small {
+            padding: 7px 10px;
+            font-size: 12px;
+            border-radius: 999px;
+            box-shadow: none;
+        }
+
+        .btn[disabled] {
+            opacity: .5;
+            cursor: default;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            filter: brightness(.98);
+        }
+
+        @media (max-width:900px) {
+            .toolbar {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .btn,
+            .select {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .tableWrap {
+            margin-top: 12px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            margin-top: 4px;
+        }
+
+        .thead th {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            padding: 0 10px 4px;
+            text-align: left;
+        }
+
+        .row {
+            background: color-mix(in oklab, var(--panel) 92%, transparent);
+            border: 1px solid var(--stroke);
+            border-radius: 14px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .row .td {
+            padding: 12px 14px;
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        .idBadge {
+            font-weight: 800;
+            font-size: 12px;
+            color: #cbd5f5;
+        }
+
+        .mutedSmall {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .detailText {
+            max-width: 360px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .statusPill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .st-new {
+            background: #fffbeb;
+            color: #b45309;
+        }
+
+        .st-ip {
+            background: #ecfeff;
+            color: #0369a1;
+        }
+
+        .st-done {
+            background: #ecfdf5;
+            color: #166534;
+        }
+
+        .typeTag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #3730a3;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .imagesCell {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 150px;
+        }
+
+        .imgCountBadge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            background: color-mix(in oklab, var(--primary) 12%, transparent);
+            color: var(--primary);
+            border: 1px solid color-mix(in oklab, var(--primary) 20%, var(--stroke));
+            width: fit-content;
+        }
+
+        .imgCountBadge.empty {
+            color: var(--muted);
+            background: color-mix(in oklab, var(--card) 94%, transparent);
+            border-color: var(--stroke);
+        }
+
+        .miniThumbRow {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .miniThumb,
+        .miniThumbMore {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid var(--stroke);
+            background: color-mix(in oklab, var(--panel) 95%, transparent);
+            cursor: pointer;
+        }
+
+        .miniThumb {
+            object-fit: cover;
+        }
+
+        .miniThumbMore {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--muted);
+        }
+
+        .op {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            align-items: flex-start;
+        }
+
+        .manageCol {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 190px;
+        }
+
+        .btnRow {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .empty {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: color-mix(in oklab, var(--card) 97%, transparent);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .msgErr {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            background: rgba(239, 68, 68, .1);
+            border: 1px solid rgba(239, 68, 68, .25);
+            color: #e11d48;
+            display: none;
+        }
+
+        @media (max-width:720px) {
+            .statbox {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width:520px) {
+            .statbox {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width:600px) {
+
+            .table,
+            .table thead,
+            .table tbody,
+            .table tr,
+            .table th,
+            .table td {
+                display: block;
+                width: 100%;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            #issuesTbody tr.row {
+                margin-bottom: 10px;
+                border-radius: 14px;
+                border: 1px solid var(--stroke);
+                background: color-mix(in oklab, var(--panel) 94%, transparent);
+                box-shadow: var(--shadow-soft);
+            }
+
+            #issuesTbody .td {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding: 6px 14px;
+                font-size: 13px;
+                gap: 8px;
+                word-break: break-word;
+            }
+
+            #issuesTbody .td::before {
+                content: attr(data-label);
+                font-size: 12px;
+                color: var(--muted);
+                min-width: 92px;
+            }
+
+            .op {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+                width: 100%;
+            }
+
+            .manageCol {
+                min-width: 0;
+                width: 100%;
+            }
+
+            .btnRow {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .imagesCell {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .detailText {
+                max-width: unset;
+            }
+        }
+
+        @media (max-width:400px) {
+            main {
+                margin-top: 60px;
+            }
+
+            #fabMenu {
+                top: 10px;
+                left: 10px;
+            }
+
+            #issuesTbody .td {
+                padding: 5px 12px;
+                font-size: 12.5px;
+            }
+
+            .statusPill {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
+
+        .issue-modal-backdrop,
+        .gallery-backdrop,
+        .zoom-backdrop {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .issue-modal-backdrop {
+            z-index: 120;
+            background: rgba(15, 23, 42, .65);
+        }
+
+        .issue-modal {
+            width: min(640px, 96vw);
+            max-height: 80vh;
+            background: #0f172a;
+            color: #e5e7eb;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .7);
+            border: 1px solid rgba(148, 163, 184, .45);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .issue-modal-header {
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid rgba(30, 64, 175, .6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .issue-modal-title {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .issue-modal-sub {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .issue-modal-close,
+        .gallery-close,
+        .zoom-close {
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 999px;
+        }
+
+        .issue-chat-box {
+            padding: 12px 14px;
+            overflow-y: auto;
+            flex: 1;
+            background: radial-gradient(circle at top left, #0b1120, #020617);
+        }
+
+        .issue-msg {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .issue-msg.user {
+            background: rgba(59, 130, 246, .14);
+            border: 1px solid rgba(59, 130, 246, .5);
+        }
+
+        .issue-msg.admin {
+            background: rgba(34, 197, 94, .18);
+            border: 1px solid rgba(34, 197, 94, .5);
+            margin-left: auto;
+        }
+
+        .issue-msg-meta {
+            font-size: 11px;
+            margin-top: 3px;
+            opacity: .7;
+        }
+
+        .issue-reply-row {
+            padding: 10px 12px 12px;
+            border-top: 1px solid rgba(30, 64, 175, .6);
+            display: flex;
+            gap: 8px;
+        }
+
+        .issue-reply-row input {
+            flex: 1;
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, .5);
+            background: #020617;
+            color: #e5e7eb;
+            outline: none;
+            font-size: 13px;
+        }
+
+        .issue-reply-row button {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .gallery-backdrop {
+            z-index: 130;
+            background: rgba(2, 6, 23, .82);
+            backdrop-filter: blur(8px);
+            padding: 14px;
+        }
+
+        .gallery-modal {
+            width: min(980px, 98vw);
+            max-height: 94vh;
+            background: #0b1220;
+            color: #e5e7eb;
+            border-radius: 22px;
+            border: 1px solid rgba(148, 163, 184, .25);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .gallery-header {
+            padding: 14px 16px 10px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            border-bottom: 1px solid rgba(148, 163, 184, .15);
+        }
+
+        .gallery-title {
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .gallery-sub {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .gallery-body {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .gallery-stageWrap {
+            position: relative;
+            min-height: 300px;
+            height: min(58vh, 560px);
+            border-radius: 18px;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #111827, #020617 70%);
+            border: 1px solid rgba(148, 163, 184, .18);
+        }
+
+        .gallery-main {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            place-items: center;
+            padding: 16px 56px;
+        }
+
+        .gallery-main img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 14px;
+            cursor: zoom-in;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, .35);
+        }
+
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, .14);
+            background: rgba(15, 23, 42, .72);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: 900;
+            z-index: 2;
+        }
+
+        .gallery-nav.prev {
+            left: 10px;
+        }
+
+        .gallery-nav.next {
+            right: 10px;
+        }
+
+        .gallery-counter {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, .7);
+            color: #e5e7eb;
+            font-size: 12px;
+            font-weight: 800;
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        .gallery-help {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .gallery-thumbs {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .gallery-thumb {
+            width: 84px;
+            height: 84px;
+            border-radius: 14px;
+            object-fit: cover;
+            border: 2px solid transparent;
+            cursor: pointer;
+            flex: 0 0 auto;
+            background: #111827;
+        }
+
+        .gallery-thumb.active {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, .18);
+        }
+
+        .gallery-empty {
+            padding: 18px;
+            border-radius: 14px;
+            text-align: center;
+            color: #94a3b8;
+            background: rgba(15, 23, 42, .45);
+            border: 1px dashed rgba(148, 163, 184, .22);
+        }
+
+        .zoom-backdrop {
+            z-index: 140;
+            background: rgba(0, 0, 0, .88);
+            padding: 18px;
+        }
+
+        .zoom-inner {
+            position: relative;
+            width: min(1200px, 98vw);
+            height: min(92vh, 900px);
+            display: grid;
+            place-items: center;
+        }
+
+        .zoom-inner img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 14px;
+        }
+
+        .zoom-close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(15, 23, 42, .7);
+            color: #fff;
+        }
+
+        @media (max-width:640px) {
+            .gallery-modal {
+                width: 100%;
+                max-height: 96vh;
+                border-radius: 18px;
+            }
+
+            .gallery-body {
+                padding: 12px;
+            }
+
+            .gallery-stageWrap {
+                height: 46vh;
+                min-height: 250px;
+            }
+
+            .gallery-main {
+                padding: 14px 44px;
+            }
+
+            .gallery-thumb {
+                width: 68px;
+                height: 68px;
+                border-radius: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="rail" id="adminRail" aria-label="Admin navigation">
+        <div class="brand">
+            <div class="logo"></div>
+            <div>Admin</div>
+        </div>
+        <div class="chip" id="adminUser">—</div>
+        <nav id="railNav">
+            <a class="item" data-page="dashboard" href="admin.html"><span class="ico">🏠</span> Dashboard</a>
+            <a class="item" data-page="slots" href="admin_slots.html"><span class="ico">🅿️</span> ช่องจอด</a>
+            <a class="item" data-page="users" href="admin_users.html"><span class="ico">👥</span> ผู้ใช้</a>
+            <a class="item active" data-page="issues" href="admin_issues.html"><span class="ico">🧯</span> แจ้งปัญหา</a>
+            <a class="item" data-page="wallet" href="wallet_admin.html"><span class="ico">💳</span> Wallet</a>
+            <a class="item" data-page="reports" href="admin_reports.html"><span class="ico">📊</span> รายงาน</a>
+            <a class="item" data-page="announcements" href="admin_announcements.html"><span>📢</span>ประกาศระบบ</a>
+            <div class="sp"></div>
+            <a class="item" href="index.html"><span class="ico">↩️</span> กลับหน้า User</a>
+            <a class="item" id="railLogout" href="#"><span class="ico">🚪</span> ออกจากระบบ</a>
+        </nav>
+        <div class="foot">© 2026 Parking</div>
+    </aside>
+
+    <div class="rail-mask" id="railMask"></div>
+    <button id="fabMenu" aria-label="เปิดเมนู">☰ เมนู</button>
+
+    <main>
+        <section class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div>
+                    <h1>ภาพรวมการแจ้งปัญหา</h1>
+                    <div class="muted">ดูจำนวนเคสทั้งหมดและแบ่งตามสถานะ</div>
+                </div>
+                <button class="btn alt small" id="btnRefreshTop">รีเฟรช</button>
+            </div>
+
+            <div class="statbox">
+                <div class="pillStat pill-all">
+                    <label>ทั้งหมด</label>
+                    <span id="cntAll">0</span>
+                </div>
+                <div class="pillStat pill-new">
+                    <label>ใหม่ (NEW)</label>
+                    <span id="cntNew">0</span>
+                </div>
+                <div class="pillStat pill-ip">
+                    <label>กำลังตรวจสอบ (IN PROGRESS)</label>
+                    <span id="cntIP">0</span>
+                </div>
+                <div class="pillStat pill-done">
+                    <label>ปิดงานแล้ว (DONE)</label>
+                    <span id="cntDone">0</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div>
+                    <h2>รายการแจ้งปัญหา</h2>
+                    <div class="muted">ค้นหา กรอง อัปเดตสถานะ ตอบกลับ และดูรูปได้จากหน้าจอนี้</div>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <input id="qSearch" class="input" placeholder="ค้นหา: หัวข้อ / รายละเอียด / ID ผู้ใช้ / Booking ID ...">
+                <select id="qStatus" class="select">
+                    <option value="all">สถานะ: ทั้งหมด</option>
+                    <option value="NEW">เฉพาะ NEW</option>
+                    <option value="IN_PROGRESS">เฉพาะ IN PROGRESS</option>
+                    <option value="DONE">เฉพาะ DONE</option>
+                </select>
+                <select id="qSort" class="select">
+                    <option value="latest">เรียง: ล่าสุดก่อน</option>
+                    <option value="oldest">เรียง: เก่าสุดก่อน</option>
+                </select>
+                <button class="btn alt" id="btnRefresh">🔄 รีเฟรช</button>
+            </div>
+
+            <div class="tableWrap" id="issuesWrap">
+                <div class="empty">กำลังโหลดข้อมูล...</div>
+            </div>
+
+            <div id="issuesError" class="msgErr"></div>
+        </section>
+    </main>
+
+    <footer>© 2026 Parking</footer>
+
+    <div id="issueModalBackdrop" class="issue-modal-backdrop">
+        <div class="issue-modal" onclick="event.stopPropagation()">
+            <div class="issue-modal-header">
+                <div>
+                    <div class="issue-modal-title">
+                        เคส #<span id="im_issue_id"></span> · <span id="im_issue_title"></span>
+                    </div>
+                    <div class="issue-modal-sub">
+                        ผู้ใช้: <span id="im_user_name"></span>
+                    </div>
+                </div>
+                <button type="button" class="issue-modal-close" onclick="closeIssueModal()">✕</button>
+            </div>
+            <div id="im_chat_box" class="issue-chat-box"></div>
+            <div class="issue-reply-row">
+                <input id="im_reply_input" type="text" placeholder="พิมพ์ข้อความตอบกลับ…">
+                <button type="button" id="imReplyBtn" onclick="sendIssueReply()">ส่ง</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="galleryBackdrop" class="gallery-backdrop" onclick="closeGallery()">
+        <div class="gallery-modal" onclick="event.stopPropagation()">
+            <div class="gallery-header">
+                <div>
+                    <div class="gallery-title" id="galleryTitle">รูปประกอบเคส</div>
+                    <div class="gallery-sub" id="gallerySub">คลิกที่รูปเพื่อขยายเต็มจอ</div>
+                </div>
+                <button type="button" class="gallery-close" onclick="closeGallery()">✕</button>
+            </div>
+
+            <div class="gallery-body">
+                <div class="gallery-stageWrap">
+                    <button type="button" class="gallery-nav prev" id="galleryPrevBtn">‹</button>
+                    <div class="gallery-main" id="galleryMain"></div>
+                    <button type="button" class="gallery-nav next" id="galleryNextBtn">›</button>
+                    <div class="gallery-counter" id="galleryCounter">0 / 0</div>
+                </div>
+                <div class="gallery-help">กดซ้ายขวาเพื่อเลื่อนดูรูป และกดที่รูปเพื่อขยาย</div>
+                <div class="gallery-thumbs" id="galleryThumbs"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="zoomBackdrop" class="zoom-backdrop" onclick="closeZoom()">
+        <div class="zoom-inner" onclick="event.stopPropagation()">
+            <button type="button" class="zoom-close" onclick="closeZoom()">✕</button>
+            <img id="zoomImage" alt="zoomed issue image">
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = `${location.origin}/api`;
+        const $ = s => document.querySelector(s);
+        const $$ = s => Array.from(document.querySelectorAll(s));
+        const nf = new Intl.NumberFormat('th-TH');
+
+        const rail = $('#adminRail');
+        const mask = $('#railMask');
+        const burger = $('#fabMenu');
+
+        function openRail() {
+            rail.classList.add('open');
+            mask.classList.add('show');
+        }
+
+        function closeRail() {
+            rail.classList.remove('open');
+            mask.classList.remove('show');
+        }
+
+        burger.addEventListener('click', () => {
+            if (rail.classList.contains('open')) closeRail();
+            else openRail();
+        });
+
+        mask.addEventListener('click', closeRail);
+
+        function updateRailMode() {
+            if (window.innerWidth >= 1000) {
+                document.body.classList.add('has-rail');
+                closeRail();
+            } else {
+                document.body.classList.remove('has-rail');
+            }
+        }
+
+        updateRailMode();
+        window.addEventListener('resize', updateRailMode);
+
+        (function markActive() {
+            const p = location.pathname;
+            const active =
+                /admin_slots\.html$/i.test(p) ? 'slots' :
+                /admin_users\.html$/i.test(p) ? 'users' :
+                /admin_reports\.html$/i.test(p) ? 'reports' :
+                /admin_issues\.html$/i.test(p) ? 'issues' : 'dashboard';
+            document.querySelectorAll('#railNav a.item').forEach(a => {
+                a.classList.toggle('active', a.dataset.page === active);
+            });
+        })();
+
+        let me = {};
+        try { me = JSON.parse(localStorage.getItem('parking_user') || '{}'); } catch {}
+
+        if (!me?.id || (me.role && me.role.toLowerCase() !== 'admin')) {
+            sessionStorage.setItem('after_login', 'admin_issues.html');
+            location.href = 'login.html';
+        }
+
+        $('#adminUser').textContent = me?.id
+            ? `ผู้ใช้: ${me.name || me.email || '-'} · ID ${me.id}`
+            : 'ยังไม่ล็อกอิน';
+
+        $('#railLogout').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('parking_user');
+            sessionStorage.removeItem('after_login');
+            location.href = 'login.html';
+        });
+
+        const ADMIN_ID = me.id || 0;
+        let loading = false;
+        let ALL_ISSUES = [];
+
+        function statusPillInfo(s) {
+            const up = String(s || '').toUpperCase();
+            if (up === 'NEW') return { cls: 'st-new', txt: 'NEW • ใหม่' };
+            if (up === 'IN_PROGRESS') return { cls: 'st-ip', txt: 'IN PROGRESS • กำลังตรวจสอบ' };
+            if (up === 'DONE') return { cls: 'st-done', txt: 'DONE • ปิดงานแล้ว' };
+            return { cls: 'st-new', txt: up || 'UNKNOWN' };
+        }
+
+        function typeLabel(t) {
+            const key = String(t || '');
+            const map = {
+                slot_not_available: 'ช่องจอดไม่ว่างจริง',
+                status_incorrect: 'สถานะช่องจอด/การจองผิด',
+                payment_issue: 'ปัญหาการชำระเงิน',
+                app_bug: 'ปัญหาการใช้งานระบบ',
+                other: 'อื่น ๆ / ข้อเสนอแนะ'
+            };
+            return map[key] || key || 'ไม่ระบุ';
+        }
+
+        function fmtDT(s) {
+            if (!s) return '-';
+            const d = new Date(String(s).replace(' ', 'T'));
+            if (!Number.isFinite(d.getTime())) return s;
+            return new Intl.DateTimeFormat('th-TH', { dateStyle: 'short', timeStyle: 'short' }).format(d);
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function buildAbsoluteUrl(path) {
+            const p = String(path || '').trim();
+            if (!p) return '';
+            if (/^https?:\/\//i.test(p)) return p;
+            return `${location.origin}/${p.replace(/^\/+/, '')}`;
+        }
+
+        function normalizeIssueImages(issue) {
+            const raw = [];
+            if (Array.isArray(issue?.image_urls)) raw.push(...issue.image_urls);
+            if (Array.isArray(issue?.image_paths)) raw.push(...issue.image_paths);
+            if (issue?.image_path) raw.push(issue.image_path);
+
+            const cleaned = raw
+                .map(v => String(v || '').trim())
+                .filter(Boolean)
+                .map(v => buildAbsoluteUrl(v));
+
+            return Array.from(new Set(cleaned)).slice(0, 3);
+        }
+
+        function renderImageCell(images, issueId) {
+            if (!images.length) {
+                return `
+                    <div class="imagesCell">
+                        <span class="imgCountBadge empty">ไม่มีรูป</span>
+                    </div>
+                `;
+            }
+
+            const thumbs = images.slice(0, 3).map((src, idx) => {
+                if (idx < 2) {
+                    return `<img class="miniThumb" src="${escapeHtml(src)}" data-issue-open="${issueId}" alt="thumb">`;
+                }
+                if (images.length > 2) {
+                    return `<div class="miniThumbMore" data-issue-open="${issueId}">+${images.length}</div>`;
+                }
+                return `<img class="miniThumb" src="${escapeHtml(src)}" data-issue-open="${issueId}" alt="thumb">`;
+            }).join('');
+
+            return `
+                <div class="imagesCell">
+                    <span class="imgCountBadge">🖼️ ${images.length} รูป</span>
+                    <div class="miniThumbRow">${thumbs}</div>
+                </div>
+            `;
+        }
+
+        function renderIssues() {
+            const wrap = $('#issuesWrap');
+            const sort = $('#qSort').value;
+
+            let issues = [...ALL_ISSUES];
+            issues.sort((a, b) => {
+                const ta = new Date(a.created_at || a.updated_at || 0).getTime();
+                const tb = new Date(b.created_at || b.updated_at || 0).getTime();
+                return sort === 'oldest' ? ta - tb : tb - ta;
+            });
+
+            let all = issues.length, nNew = 0, nIP = 0, nDone = 0;
+            for (const it of issues) {
+                const s = String(it.status || '').toUpperCase();
+                if (s === 'NEW') nNew++;
+                else if (s === 'IN_PROGRESS') nIP++;
+                else if (s === 'DONE') nDone++;
+            }
+
+            $('#cntAll').textContent = nf.format(all);
+            $('#cntNew').textContent = nf.format(nNew);
+            $('#cntIP').textContent = nf.format(nIP);
+            $('#cntDone').textContent = nf.format(nDone);
+
+            if (!issues.length) {
+                wrap.innerHTML = '<div class="empty">ยังไม่มีการแจ้งปัญหา</div>';
+                return;
+            }
+
+            const rows = issues.map(it => {
+                const pill = statusPillInfo(it.status);
+                const created = fmtDT(it.created_at);
+                const updated = fmtDT(it.updated_at);
+                const userInfo = it.user_id ? '#' + it.user_id : '-';
+                const bookInfo = it.booking_id ? '#' + it.booking_id : '-';
+                const slotInfo = it.slot_id ? '#' + it.slot_id : '-';
+                const detail = escapeHtml(it.detail || '');
+                const titleTxt = typeLabel(it.issue_type);
+                const images = normalizeIssueImages(it);
+                const encodedImages = encodeURIComponent(JSON.stringify(images));
+
+                return `
+                    <tr class="row" data-id="${it.id}">
+                        <td class="td" data-label="ID"><span class="idBadge">#${it.id}</span></td>
+                        <td class="td" data-label="ผู้ใช้">${userInfo}</td>
+                        <td class="td" data-label="การจอง / ช่องจอด">
+                            <div class="mutedSmall">Booking: ${bookInfo}</div>
+                            <div class="mutedSmall">Slot: ${slotInfo}</div>
+                        </td>
+                        <td class="td" data-label="หัวข้อ">
+                            <span class="typeTag">${escapeHtml(titleTxt)}</span>
+                        </td>
+                        <td class="td detailText" data-label="รายละเอียด">${detail}</td>
+                        <td class="td" data-label="รูป">
+                            ${renderImageCell(images, it.id)}
+                        </td>
+                        <td class="td" data-label="สถานะ">
+                            <span class="statusPill ${pill.cls}">${pill.txt}</span>
+                        </td>
+                        <td class="td" data-label="เวลา">
+                            <div class="mutedSmall">สร้าง: ${created}</div>
+                            <div class="mutedSmall">อัปเดต: ${updated}</div>
+                        </td>
+                        <td class="td op" data-label="การจัดการ">
+                            <div class="manageCol">
+                                <select class="selectStatus">
+                                    <option value="NEW" ${String(it.status).toUpperCase() === 'NEW' ? 'selected' : ''}>NEW</option>
+                                    <option value="IN_PROGRESS" ${String(it.status).toUpperCase() === 'IN_PROGRESS' ? 'selected' : ''}>IN PROGRESS</option>
+                                    <option value="DONE" ${String(it.status).toUpperCase() === 'DONE' ? 'selected' : ''}>DONE</option>
+                                </select>
+                                <div class="btnRow">
+                                    <button type="button" class="btn small alt btnSave">บันทึก</button>
+                                    <button type="button" class="btn small btnReply"
+                                        data-issue-id="${it.id}"
+                                        data-issue-title="${escapeHtml(titleTxt)}"
+                                        data-user-label="${escapeHtml(userInfo)}">ตอบกลับ</button>
+                                    <button type="button" class="btn small success btnViewImages"
+                                        ${images.length ? '' : 'disabled'}
+                                        data-issue-id="${it.id}"
+                                        data-issue-title="${escapeHtml(titleTxt)}"
+                                        data-images="${encodedImages}">ดูรูป</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            wrap.innerHTML = `
+                <table class="table">
+                    <thead class="thead">
+                        <tr>
+                            <th>ID</th>
+                            <th>ผู้ใช้</th>
+                            <th>การจอง / ช่องจอด</th>
+                            <th>หัวข้อ</th>
+                            <th>รายละเอียด</th>
+                            <th>รูป</th>
+                            <th>สถานะ</th>
+                            <th>เวลา</th>
+                            <th>การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="issuesTbody">${rows}</tbody>
+                </table>
+            `;
+
+            bindIssueRowActions();
+        }
+
+        function bindIssueRowActions() {
+            $$('#issuesTbody .btnSave').forEach(btn => {
+                btn.onclick = async () => {
+                    const tr = btn.closest('tr');
+                    const id = Number(tr?.dataset.id || 0);
+                    const status = tr?.querySelector('.selectStatus')?.value || '';
+                    if (!id || !status) return;
+
+                    btn.disabled = true;
+                    btn.textContent = 'กำลังบันทึก...';
+
+                    try {
+                        const res = await fetch(`${API_BASE}/issue_update_status.php`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                            body: JSON.stringify({ id, status })
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        const ok = res.ok && (data.ok === true || data.ok == 1 || String(data.ok).toLowerCase?.() === 'ok');
+                        if (!ok) throw new Error(data.error || `HTTP ${res.status}`);
+                        await loadIssues();
+                    } catch (e) {
+                        alert('บันทึกไม่สำเร็จ: ' + (e.message || 'error'));
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = 'บันทึก';
+                    }
+                };
+            });
+
+            $$('#issuesTbody .btnReply').forEach(btn => {
+                btn.onclick = () => openIssueReply(btn);
+            });
+
+            $$('#issuesTbody .btnViewImages').forEach(btn => {
+                btn.onclick = () => {
+                    if (btn.disabled) return;
+                    const images = parseImagesFromButton(btn);
+                    openGallery(images, btn.dataset.issueTitle || 'รูปประกอบเคส', btn.dataset.issueId || '');
+                };
+            });
+
+            $$('[data-issue-open]').forEach(el => {
+                el.onclick = () => {
+                    const issueId = String(el.getAttribute('data-issue-open') || '');
+                    const issue = ALL_ISSUES.find(x => String(x.id) === issueId);
+                    if (!issue) return;
+                    openGallery(normalizeIssueImages(issue), typeLabel(issue.issue_type), issue.id);
+                };
+            });
+        }
+
+        function parseImagesFromButton(btn) {
+            try {
+                return JSON.parse(decodeURIComponent(btn.dataset.images || '[]'));
+            } catch {
+                return [];
+            }
+        }
+
+        async function loadIssues() {
+            if (loading) return;
+            loading = true;
+
+            const wrap = $('#issuesWrap');
+            const errBox = $('#issuesError');
+            errBox.style.display = 'none';
+            wrap.innerHTML = '<div class="empty">กำลังโหลดข้อมูล...</div>';
+
+            const q = $('#qSearch').value.trim();
+            const st = $('#qStatus').value;
+
+            const params = new URLSearchParams();
+            params.set('limit', '200');
+            if (q) params.set('search', q);
+            if (st !== 'all') params.set('status', st);
+
+            try {
+                const res = await fetch(`${API_BASE}/issue_list.php?${params.toString()}&_=${Date.now()}`, { cache: 'no-store' });
+                const data = await res.json().catch(() => ({}));
+                const ok = res.ok && (data.ok === true || data.ok == 1 || String(data.ok).toLowerCase?.() === 'ok');
+                if (!ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+                ALL_ISSUES = Array.isArray(data.issues) ? data.issues : [];
+                renderIssues();
+            } catch (e) {
+                console.error(e);
+                wrap.innerHTML = '<div class="empty">ไม่สามารถโหลดข้อมูลได้</div>';
+                errBox.textContent = 'เกิดข้อผิดพลาด: ' + (e.message || e);
+                errBox.style.display = 'block';
+            } finally {
+                loading = false;
+            }
+        }
+
+        $('#btnRefresh').onclick = loadIssues;
+        $('#btnRefreshTop').onclick = loadIssues;
+        $('#qStatus').onchange = loadIssues;
+        $('#qSort').onchange = renderIssues;
+        $('#qSearch').addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loadIssues();
+            }
+        });
+
+        let currentIssueId = null;
+
+        function openIssueReply(btn) {
+            currentIssueId = btn.dataset.issueId;
+            $('#im_issue_id').textContent = currentIssueId;
+            $('#im_issue_title').textContent = btn.dataset.issueTitle || '';
+            $('#im_user_name').textContent = btn.dataset.userLabel || '';
+            $('#im_reply_input').value = '';
+            $('#issueModalBackdrop').style.display = 'flex';
+            loadIssueThread();
+        }
+
+        function closeIssueModal() {
+            $('#issueModalBackdrop').style.display = 'none';
+            currentIssueId = null;
+        }
+
+        $('#issueModalBackdrop').addEventListener('click', closeIssueModal);
+
+        async function loadIssueThread() {
+            if (!currentIssueId) return;
+            const box = $('#im_chat_box');
+            box.innerHTML = '<div style="font-size:12px;color:#9ca3af;">กำลังโหลด…</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/issues_thread.php?issue_id=${encodeURIComponent(currentIssueId)}`, {
+                    cache: 'no-store'
+                });
+                const js = await res.json().catch(() => ({}));
+                if (!res.ok || !js.ok) throw new Error(js.error || `HTTP ${res.status}`);
+
+                const msgs = js.data?.messages || [];
+                box.innerHTML = '';
+
+                if (!msgs.length) {
+                    box.innerHTML = '<div style="font-size:12px;color:#9ca3af;">ยังไม่มีข้อความในเคสนี้</div>';
+                } else {
+                    msgs.forEach(m => {
+                        const wrap = document.createElement('div');
+                        const item = document.createElement('div');
+                        const meta = document.createElement('div');
+
+                        item.className = 'issue-msg ' + (m.sender_type === 'admin' ? 'admin' : 'user');
+                        item.textContent = m.message;
+
+                        meta.className = 'issue-msg-meta';
+                        meta.textContent = `${m.sender_type === 'admin' ? 'แอดมิน' : 'ผู้ใช้'} · ${m.created_at}`;
+
+                        wrap.appendChild(item);
+                        wrap.appendChild(meta);
+                        box.appendChild(wrap);
+                    });
+                }
+
+                box.scrollTop = box.scrollHeight;
+            } catch (err) {
+                console.error(err);
+                box.innerHTML = '<div style="font-size:12px;color:#f97373;">โหลดข้อความไม่สำเร็จ</div>';
+            }
+        }
+
+        async function sendIssueReply() {
+            const input = $('#im_reply_input');
+            const msg = input.value.trim();
+            if (!msg || !currentIssueId) return;
+
+            const btn = $('#imReplyBtn');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/admin_issue_reply.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                    body: JSON.stringify({
+                        issue_id: currentIssueId,
+                        admin_id: ADMIN_ID,
+                        message: msg
+                    })
+                });
+
+                const js = await res.json().catch(() => ({}));
+                if (!res.ok || !js.ok) throw new Error(js.error || `HTTP ${res.status}`);
+
+                input.value = '';
+                await loadIssueThread();
+            } catch (err) {
+                console.error(err);
+                alert('ส่งข้อความไม่สำเร็จ: ' + (err.message || ''));
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        let galleryImages = [];
+        let galleryIndex = 0;
+        let galleryIssueId = '';
+        let galleryIssueTitle = '';
+
+        function openGallery(images, title, issueId) {
+            galleryImages = Array.isArray(images) ? images.filter(Boolean) : [];
+            galleryIndex = 0;
+            galleryIssueId = String(issueId || '');
+            galleryIssueTitle = String(title || 'รูปประกอบเคส');
+            $('#galleryBackdrop').style.display = 'flex';
+            renderGallery();
+        }
+
+        function closeGallery() {
+            $('#galleryBackdrop').style.display = 'none';
+            galleryImages = [];
+            galleryIndex = 0;
+        }
+
+        function renderGallery() {
+            const main = $('#galleryMain');
+            const thumbs = $('#galleryThumbs');
+            const titleEl = $('#galleryTitle');
+            const subEl = $('#gallerySub');
+            const counter = $('#galleryCounter');
+
+            titleEl.textContent = galleryIssueId ? `เคส #${galleryIssueId} · ${galleryIssueTitle}` : galleryIssueTitle;
+
+            if (!galleryImages.length) {
+                subEl.textContent = 'ไม่มีรูปในเคสนี้';
+                counter.textContent = '0 / 0';
+                main.innerHTML = '<div class="gallery-empty">ไม่มีรูปให้แสดง</div>';
+                thumbs.innerHTML = '';
+                return;
+            }
+
+            if (galleryIndex < 0) galleryIndex = 0;
+            if (galleryIndex > galleryImages.length - 1) galleryIndex = galleryImages.length - 1;
+
+            const src = galleryImages[galleryIndex];
+            main.innerHTML = `<img id="galleryMainImage" src="${escapeHtml(src)}" alt="issue image">`;
+            subEl.textContent = 'คลิกที่รูปเพื่อขยายเต็มจอ';
+            counter.textContent = `${galleryIndex + 1} / ${galleryImages.length}`;
+
+            thumbs.innerHTML = galleryImages.map((src, idx) => `
+                <img class="gallery-thumb ${idx === galleryIndex ? 'active' : ''}" src="${escapeHtml(src)}" data-thumb-index="${idx}" alt="thumb ${idx + 1}">
+            `).join('');
+
+            const mainImg = $('#galleryMainImage');
+            if (mainImg) {
+                mainImg.onclick = () => openZoom(src);
+            }
+
+            $$('#galleryThumbs .gallery-thumb').forEach(el => {
+                el.onclick = () => {
+                    galleryIndex = Number(el.dataset.thumbIndex || 0);
+                    renderGallery();
+                };
+            });
+        }
+
+        function prevGallery() {
+            if (galleryImages.length <= 1) return;
+            galleryIndex = (galleryIndex - 1 + galleryImages.length) % galleryImages.length;
+            renderGallery();
+        }
+
+        function nextGallery() {
+            if (galleryImages.length <= 1) return;
+            galleryIndex = (galleryIndex + 1) % galleryImages.length;
+            renderGallery();
+        }
+
+        $('#galleryPrevBtn').onclick = prevGallery;
+        $('#galleryNextBtn').onclick = nextGallery;
+
+        function openZoom(src) {
+            $('#zoomImage').src = src;
+            $('#zoomBackdrop').style.display = 'flex';
+        }
+
+        function closeZoom() {
+            $('#zoomBackdrop').style.display = 'none';
+            $('#zoomImage').src = '';
+        }
+
+        window.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                closeRail();
+                closeIssueModal();
+                closeGallery();
+                closeZoom();
+            }
+
+            if ($('#galleryBackdrop').style.display === 'flex') {
+                if (e.key === 'ArrowLeft') prevGallery();
+                if (e.key === 'ArrowRight') nextGallery();
+            }
+        });
+
+        loadIssues();
+    </script>
+</body>
+
+</html>

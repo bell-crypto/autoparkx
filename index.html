@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Parking • หน้าแรก</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AutoParkX">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a84ff">
+
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+
+    <style>
+        :root {
+            --bg: #f5f6f8;
+            --card: #ffffff;
+            --text: #0b1220;
+            --muted: #6b7280;
+            --tint: #0a84ff;
+            --sep: #e9edf2;
+            --radius: 18px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            --safe-top: env(safe-area-inset-top);
+            --safe-btm: env(safe-area-inset-bottom);
+            --nav-h: 0px;
+            --tab-h: 0px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f14;
+                --card: #11161c;
+                --text: #e9edf2;
+                --muted: #9aa4af;
+                --sep: #1b2430;
+                --shadow: 0 14px 26px rgba(0, 0, 0, .5);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, "Noto Sans Thai", "Sarabun", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            overflow-y: auto;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        a,
+        button,
+        select,
+        [role="button"] {
+            cursor: pointer;
+        }
+
+        a.btn {
+            cursor: pointer;
+        }
+
+        .btn {
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn:active {
+            transform: scale(.98);
+            filter: brightness(.98);
+        }
+
+        @media (hover:none) {
+
+            a,
+            button,
+            select,
+            [role="button"] {
+                cursor: default;
+            }
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: saturate(180%) blur(12px);
+            -webkit-backdrop-filter: saturate(180%) blur(12px);
+            background: color-mix(in oklab, var(--bg) 85%, transparent);
+            border-bottom: 1px solid var(--sep);
+            padding: calc(8px + var(--safe-top)) 14px 8px;
+        }
+
+        .nav>.row {
+            max-width: 980px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            letter-spacing: .2px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--tint);
+            box-shadow: 0 0 0 4px color-mix(in oklab, var(--tint) 15%, transparent);
+        }
+
+        .page {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 14px 14px calc(90px + var(--safe-btm));
+            min-height: calc(100svh - var(--nav-h) - var(--tab-h));
+        }
+
+        .stack {
+            display: grid;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--sep);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+
+        .title {
+            margin: 0 0 8px;
+            font-weight: 900;
+        }
+
+        .sub {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .stats {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .stat {
+            border: 1px solid var(--sep);
+            border-radius: 14px;
+            padding: 12px 10px;
+            text-align: center;
+            background: color-mix(in oklab, var(--card) 92%, transparent);
+        }
+
+        .label {
+            color: var(--muted);
+            font-weight: 800;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .dotmini {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            transform: translateY(1px);
+        }
+
+        .dotmini.av {
+            background: #10b981;
+        }
+
+        .dotmini.bk {
+            background: #f59e0b;
+        }
+
+        .dotmini.oc {
+            background: #ef4444;
+        }
+
+        .num {
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-top: 4px;
+        }
+
+        .stat {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 6px;
+            background: var(--stat-accent, #10b981);
+        }
+
+        .stat[data-type="available"] {
+            --stat-accent: #10b981;
+        }
+
+        .stat[data-type="booked"] {
+            --stat-accent: #f59e0b;
+        }
+
+        .stat[data-type="occupied"] {
+            --stat-accent: #ef4444;
+        }
+
+        .progressHead {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .progressHead .muted {
+            color: var(--muted);
+            font-weight: 900;
+            font-size: 13px;
+        }
+
+        .progressBar {
+            margin-top: 8px;
+            height: 12px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: color-mix(in oklab, var(--sep) 55%, transparent);
+            border: 1px solid var(--sep);
+            display: flex;
+        }
+
+        .progressSeg {
+            height: 100%;
+            width: 0%;
+            transition: width .35s ease;
+        }
+
+        .seg-av {
+            background: #10b981;
+        }
+
+        .seg-bk {
+            background: #f59e0b;
+        }
+
+        .seg-oc {
+            background: #ef4444;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .progressBar {
+                background: color-mix(in oklab, var(--sep) 25%, transparent);
+            }
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .btn {
+            appearance: none;
+            -webkit-appearance: none;
+            border: 0;
+            border-radius: 14px;
+            padding: 14px;
+            font-weight: 900;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            touch-action: manipulation;
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, var(--tint), #0a66cc);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(10, 132, 255, .25);
+        }
+
+        .btn.outline {
+            background: transparent;
+            color: var(--tint);
+            border: 1px solid var(--tint);
+        }
+
+        .btn.disabled,
+        .btn[aria-disabled="true"] {
+            opacity: .55;
+            filter: grayscale(.15);
+            box-shadow: none !important;
+            transform: none !important;
+            pointer-events: none;
+        }
+
+        .slots {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+        }
+
+        .slot {
+            border: 1px solid var(--sep);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            background: color-mix(in oklab, var(--card) 94%, transparent);
+        }
+
+        a.slot {
+            text-decoration: none;
+            color: var(--text);
+            cursor: pointer;
+            display: block;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        a.slot:active {
+            transform: scale(.98);
+            filter: brightness(.98);
+        }
+
+        .code {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .pill-status {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .p-av {
+            background: #10b981;
+        }
+
+        .p-bk {
+            background: #f59e0b;
+        }
+
+        .p-oc {
+            background: #ef4444;
+        }
+
+        .p-mt {
+            background: #6b7280;
+        }
+
+        .skeleton {
+            height: 52px;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #eef1f6 0%, #f7f8fb 50%, #eef1f6 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.2s infinite;
+        }
+
+        @media (prefers-color-scheme:dark) {
+            .skeleton {
+                background: linear-gradient(90deg, #1a2230 0%, #11161c 50%, #1a2230 100%);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .tabbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + var(--safe-btm)) max(12px, env(safe-area-inset-right));
+            background: color-mix(in oklab, var(--bg) 90%, transparent);
+            border-top: 1px solid var(--sep);
+            backdrop-filter: saturate(180%) blur(10px);
+        }
+
+        .tabs {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 6px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tab.active {
+            color: var(--tint);
+            background: color-mix(in oklab, var(--tint) 10%, transparent);
+        }
+
+        .ico {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .cardhead {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .selectwrap {
+            position: relative;
+            display: inline-block;
+            z-index: 2;
+        }
+
+        .levelSelect {
+            -webkit-appearance: none;
+            appearance: none;
+            width: auto;
+            max-width: 100%;
+            display: inline-block;
+            border: 1px solid var(--sep);
+            background: var(--card);
+            color: var(--text);
+            font-weight: 950;
+            font-size: 13px;
+            letter-spacing: .1px;
+            padding: 8px 22px 8px 12px;
+            border-radius: 14px;
+            box-shadow: none;
+            outline: none;
+            transition: none;
+            transform: none;
+        }
+
+        .levelSelect:focus,
+        .levelSelect:focus-visible {
+            outline: none;
+            box-shadow: none;
+            border-color: var(--sep);
+        }
+
+        .selectwrap::after {
+            content: "▾";
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        select.levelSelect {
+            background-image: none;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .hintline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .badge-walkin {
+            font-size: 12px;
+            font-weight: 900;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--sep);
+            color: var(--muted);
+            background: color-mix(in oklab, var(--card) 88%, transparent);
+            white-space: nowrap;
+        }
+
+        .badge-walkin strong {
+            color: var(--text);
+        }
+
+        html,
+        body {
+            overscroll-behavior: none;
+        }
+
+        body {
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .page {
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav">
+        <div class="row">
+            <div class="brand"><span class="dot"></span>AutoParkX</div>
+        </div>
+    </div>
+
+    <main class="page">
+        <div class="stack">
+            <section class="card">
+                <h3 class="title">ภาพรวมวันนี้</h3>
+
+                <div class="stats" id="stats">
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                </div>
+
+                <div class="progressHead">
+                    <div style="font-weight:900">ภาพรวมการจอง</div>
+                    <div class="muted" id="progressText">เต็ม —% · ทั้งหมด — ช่อง</div>
+                </div>
+                <div class="progressBar" aria-label="booking occupancy bar">
+                    <div class="progressSeg seg-av" id="segAvail"></div>
+                    <div class="progressSeg seg-bk" id="segBooked"></div>
+                    <div class="progressSeg seg-oc" id="segOcc"></div>
+                </div>
+
+                <div class="actions">
+                    <a class="btn primary" id="bookingBtn" href="booking.html">จองที่จอด</a>
+                    <a class="btn outline" href="mybookings.html">ประวัติการจอง</a>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="cardhead">
+                    <h3 class="title" style="margin:0">สถานะช่องจอด</h3>
+
+                    <div class="selectwrap" aria-label="เลือกชั้น">
+                        <select class="levelSelect" id="levelSelect">
+                            <option value="1">ชั้น 1</option>
+                            <option value="2">ชั้น 2</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="slots" id="slotPreview">
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                </div>
+
+                <div class="hintline">
+                    <p class="sub" id="slotHint" style="margin:0">ดูแบบเต็มพร้อมเลือกจองได้ที่ “จองที่จอด”</p>
+                    <span class="badge-walkin" id="walkinBadge" style="display:none;"></span>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <nav class="tabbar" role="navigation" aria-label="Bottom Navigation">
+        <div class="tabs">
+            <a class="tab active" href="index.html"><span class="ico">🏠</span>หน้าแรก</a>
+            <a class="tab" href="booking.html"><span class="ico">📅</span>จอง</a>
+            <a class="tab" href="mybookings.html"><span class="ico">📖</span>ประวัติ</a>
+            <a class="tab" href="account.html"><span class="ico">👤</span>บัญชี</a>
+        </div>
+    </nav>
+
+    <script>
+        const API_BASE = `${location.origin}/api`;
+        const $ = s => document.querySelector(s);
+
+        const pad = n => String(n).padStart(2, '0');
+        const toYMD = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+        let currentLevel = 1;
+
+        function buildNowRangeQuery() {
+            const now = new Date();
+            const ymd = toYMD(now);
+            const h = pad(now.getHours());
+            const m = pad(now.getMinutes());
+            const cur = `${ymd} ${h}:${m}`;
+            return `?start_time=${encodeURIComponent(cur)}&end_time=${encodeURIComponent(cur)}`;
+        }
+
+        function toggleBookingForLevel(isWalkIn) {
+            const btn = $('#bookingBtn');
+            if (!btn) return;
+
+            if (isWalkIn) {
+                btn.classList.add('disabled');
+                btn.setAttribute('aria-disabled', 'true');
+                btn.removeAttribute('href');
+                btn.textContent = 'ชั้นนี้ Walk-in';
+            } else {
+                btn.classList.remove('disabled');
+                btn.removeAttribute('aria-disabled');
+                btn.setAttribute('href', 'booking.html');
+                btn.textContent = 'จองที่จอด';
+            }
+        }
+
+        function setLevel(lv) {
+            currentLevel = (lv === 2) ? 2 : 1;
+            const sel = $('#levelSelect');
+            if (sel) sel.value = String(currentLevel);
+
+            const is2 = currentLevel === 2;
+
+            const badge = $('#walkinBadge');
+            badge.style.display = is2 ? '' : 'none';
+            badge.innerHTML = is2 ? '<strong>WALK-IN</strong> · ดูสถานะได้เท่านั้น' : '';
+
+            $('#slotHint').textContent = is2
+                ? 'ชั้น 2 สำหรับ Walk-in (ไม่รองรับการจองล่วงหน้า)'
+                : 'ดูแบบเต็มพร้อมเลือกจองได้ที่ “จองที่จอด”';
+
+            toggleBookingForLevel(is2);
+            loadData();
+        }
+
+        function calcSummaryFromSlots(slots) {
+            const sum = { available: 0, booked: 0, occupied: 0 };
+            for (const s of slots) {
+                if (s.status === 'AVAILABLE') sum.available++;
+                else if (s.status === 'BOOKED') sum.booked++;
+                else if (s.status === 'OCCUPIED') sum.occupied++;
+            }
+            return sum;
+        }
+
+        async function loadData() {
+            try {
+                const qs = buildNowRangeQuery();
+                const res = await fetch(`${API_BASE}/slots_list.php${qs}`, { cache: 'no-store' });
+                const data = await res.json();
+                if (!res.ok || !data.ok) throw new Error(data.error || 'โหลดข้อมูลไม่สำเร็จ');
+
+                const allSlots = Array.isArray(data.slots) ? data.slots : [];
+                const filtered = allSlots.filter(s => Number(s.level ?? 1) === Number(currentLevel));
+
+                const is2 = currentLevel === 2;
+                const ssum = calcSummaryFromSlots(filtered);
+
+                $('#stats').innerHTML = `
+          <div class="stat" data-type="available">
+            <div class="label"><span class="dotmini av"></span>ว่าง</div>
+            <div class="num">${Number(ssum.available ?? 0)}</div>
+          </div>
+          <div class="stat" data-type="booked">
+            <div class="label"><span class="dotmini bk"></span>${is2 ? 'Walk-in' : 'จองแล้ว'}</div>
+            <div class="num">${Number(ssum.booked ?? 0)}</div>
+          </div>
+          <div class="stat" data-type="occupied">
+            <div class="label"><span class="dotmini oc"></span>ใช้งานอยู่</div>
+            <div class="num">${Number(ssum.occupied ?? 0)}</div>
+          </div>
+        `;
+
+                const total = filtered.length || 0;
+                const available = Number(ssum.available ?? 0);
+                const booked = Number(ssum.booked ?? 0);
+                const occupied = Number(ssum.occupied ?? 0);
+
+                const used = booked + occupied;
+                const pct = total > 0 ? Math.round((used / total) * 100) : 0;
+
+                const progressText = document.getElementById('progressText');
+                if (progressText) progressText.textContent = `เต็ม ${pct}% · ทั้งหมด ${total} ช่อง`;
+
+                const segAvail = document.getElementById('segAvail');
+                const segBooked = document.getElementById('segBooked');
+                const segOcc = document.getElementById('segOcc');
+
+                const wAvail = total ? (available / total) * 100 : 0;
+                const wBooked = total ? (booked / total) * 100 : 0;
+                const wOcc = total ? (occupied / total) * 100 : 0;
+
+                if (segAvail) segAvail.style.width = `${wAvail}%`;
+                if (segBooked) segBooked.style.width = `${wBooked}%`;
+                if (segOcc) segOcc.style.width = `${wOcc}%`;
+
+                const slots = filtered.slice(0, 10);
+
+                $('#slotPreview').innerHTML = (slots.map(s => {
+                    const m = {
+                        AVAILABLE: { c: 'p-av', t: 'ว่าง' },
+                        BOOKED: { c: 'p-bk', t: is2 ? 'Walk-in' : 'จองแล้ว' },
+                        OCCUPIED: { c: 'p-oc', t: 'ใช้งานอยู่' },
+                        MAINTENANCE: { c: 'p-mt', t: 'ปิดปรับปรุง' },
+                        HELD: { c: 'p-mt', t: 'ระงับ' },
+                    }[s.status] || { c: 'p-mt', t: s.status };
+
+                    const canClick = !is2;
+
+                    const inner = `
+            <div style="font-weight:900">${s.code}</div>
+            <div class="code">ชั้น ${s.level ?? 1}</div>
+            <span class="pill-status ${m.c}">${m.t}</span>
+          `;
+
+                    if (canClick) {
+                        const href = `booking.html?slot=${encodeURIComponent(s.code)}&level=${encodeURIComponent(s.level ?? 1)}`;
+                        return `<a class="slot" href="${href}" aria-label="ไปหน้าจอง ${s.code}">${inner}</a>`;
+                    }
+
+                    return `<div class="slot" aria-label="ดูสถานะ ${s.code}">${inner}</div>`;
+                }).join('')) || `
+          <div class="slot">
+            <div style="font-weight:900">—</div>
+            <div class="code">ยังไม่มีช่องของชั้นนี้</div>
+            <span class="pill-status p-mt">ไม่พบข้อมูล</span>
+          </div>
+        `;
+            } catch (e) {
+                console.error(e);
+                $('#stats').innerHTML = `
+          <div class="stat" data-type="available"><div class="label">ว่าง</div><div class="num">—</div></div>
+          <div class="stat" data-type="booked"><div class="label">จองแล้ว</div><div class="num">—</div></div>
+          <div class="stat" data-type="occupied"><div class="label">ใช้งานอยู่</div><div class="num">—</div></div>
+        `;
+
+                const progressText = document.getElementById('progressText');
+                if (progressText) progressText.textContent = `เต็ม —% · ทั้งหมด — ช่อง`;
+                const segAvail = document.getElementById('segAvail');
+                const segBooked = document.getElementById('segBooked');
+                const segOcc = document.getElementById('segOcc');
+                if (segAvail) segAvail.style.width = `0%`;
+                if (segBooked) segBooked.style.width = `0%`;
+                if (segOcc) segOcc.style.width = `0%`;
+
+                $('#slotPreview').innerHTML =
+                    `<div class="slot"><div style="font-weight:900">—</div><div class="code">โหลดข้อมูลไม่สำเร็จ</div></div>`;
+            }
+        }
+
+        (function () {
+            const sel = $('#levelSelect');
+            if (!sel) return;
+            sel.addEventListener('change', (e) => setLevel(Number(e.target.value)), { passive: true });
+        })();
+
+        setLevel(1);
+
+        let t = null;
+        const startTimer = () => { if (!t) t = setInterval(loadData, 5000); };
+        const stopTimer = () => { if (t) { clearInterval(t); t = null; } };
+
+        document.addEventListener('visibilitychange', () => document.hidden ? stopTimer() : (loadData(), startTimer()));
+        startTimer();
+
+        (function () {
+            const root = document.documentElement;
+            const setVar = (n, px) => root.style.setProperty(n, (px | 0) + 'px');
+            function updateBars() {
+                const nav = document.querySelector('.nav');
+                const tab = document.querySelector('.tabbar');
+                setVar('--nav-h', nav?.offsetHeight || 0);
+                setVar('--tab-h', tab?.offsetHeight || 0);
+            }
+            const ro = new ResizeObserver(updateBars);
+            const nav = document.querySelector('.nav');
+            const tab = document.querySelector('.tabbar');
+            if (nav) ro.observe(nav);
+            if (tab) ro.observe(tab);
+            window.addEventListener('load', updateBars, { passive: true });
+            window.addEventListener('resize', updateBars, { passive: true });
+            updateBars();
+        })();
+    </script>
+
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        window.OneSignalDeferred.push(function (OneSignal) {
+            OneSignal.init({
+                appId: "37d62862-dece-46da-8120-796bf433fc3e",
+                notifyButton: { enable: true },
+                allowLocalhostAsSecureOrigin: true
+            });
+
+            let USER_ID = null;
+            try {
+                const raw = localStorage.getItem("parking_user");
+                if (raw) {
+                    const obj = JSON.parse(raw);
+                    USER_ID = obj.id || obj.user_id || (obj.user && obj.user.id) || null;
+                }
+            } catch (e) {
+                console.warn("parse parking_user fail", e);
+            }
+
+            async function syncPushToken() {
+                if (!USER_ID) { console.log("no USER_ID, skip sync token"); return; }
+                try {
+                    const subId = await OneSignal.User.PushSubscription.id;
+                    if (!subId) { console.log("no subscription id yet"); return; }
+                    await fetch(`${location.origin}/api/save_token.php`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ user_id: USER_ID, token: subId })
+                    });
+                } catch (err) {
+                    console.error("syncPushToken error", err);
+                }
+            }
+
+            OneSignal.User.PushSubscription.addEventListener("change", function () {
+                syncPushToken();
+            });
+
+            setTimeout(function () {
+                try {
+                    if (OneSignal.Notifications && OneSignal.Notifications.requestPermission) {
+                        OneSignal.Notifications.requestPermission(true).then(function () {
+                            syncPushToken();
+                        });
+                    } else {
+                        syncPushToken();
+                    }
+                } catch (e) {
+                    console.error("OneSignal permission error", e);
+                }
+            }, 3000);
+        });
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/OneSignalSDKWorker.js')
+                    .then(function (reg) {
+                        console.log('OneSignal ServiceWorker registered ✅', reg.scope);
+                    })
+                    .catch(function (err) {
+                        console.error('OneSignal ServiceWorker registration failed ❌', err);
+                    });
+            });
+        } else {
+            console.warn('ServiceWorker not supported on this browser');
+        }
+    </script>
+
+    <script>
+        const INDEX_SCROLL_KEY = 'index_scroll_y';
+
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+
+        function saveIndexScroll() {
+            sessionStorage.setItem(INDEX_SCROLL_KEY, String(window.scrollY || 0));
+        }
+
+        function restoreIndexScroll() {
+            const y = parseInt(sessionStorage.getItem(INDEX_SCROLL_KEY) || '0', 10);
+            if (!Number.isNaN(y) && y > 0) {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => window.scrollTo(0, y));
+                });
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const a = e.target.closest && e.target.closest('a[href]');
+            if (!a) return;
+            if (a.target === '_blank') return;
+            saveIndexScroll();
+        }, { capture: true });
+
+        window.addEventListener('pagehide', saveIndexScroll);
+        window.addEventListener('pageshow', restoreIndexScroll);
+        document.addEventListener('DOMContentLoaded', restoreIndexScroll);
+
+        document.addEventListener('touchmove', function (e) {
+            const page = document.querySelector('.page');
+            if (!page) return;
+
+            if (!page.contains(e.target)) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+
+</html>
